@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   },
   output: 'export',
   basePath: '/SVP-mockups',
+  trailingSlash: true,
   reactStrictMode: true,
   experimental: {
     swcPlugins: [['@lingui/swc-plugin', {}]],
