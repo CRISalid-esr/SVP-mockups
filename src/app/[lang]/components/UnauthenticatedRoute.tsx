@@ -1,28 +1,25 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import Loading from '@/components/Loading'
 
-const DEFAULT_AUTHENTICATED_REDIRECT_URL = '/dashboard'
-const callBackUrlAsString = (callbackUrl: string | null) => {
-  if (callbackUrl) {
-    return callbackUrl
-  }
-  return DEFAULT_AUTHENTICATED_REDIRECT_URL
-}
+const DEFAULT_AUTHENTICATED_REDIRECT_PATH = '/dashboard'
 
 const UnauthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const params = useParams()
+  const lang = params?.lang || 'fr'
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push(callBackUrlAsString(searchParams.get('callbackUrl')))
+      const callbackUrl = searchParams.get('callbackUrl')
+      router.push(callbackUrl || `/${lang}${DEFAULT_AUTHENTICATED_REDIRECT_PATH}`)
     }
-  }, [status, router, searchParams])
+  }, [status, router, searchParams, lang])
 
   if (status === 'loading') {
     return <Loading />
