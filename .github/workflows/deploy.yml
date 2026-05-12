@@ -24,10 +24,11 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - name: Remove API routes (incompatibles avec static export)
+      - name: Remove routes incompatibles avec static export
         run: |
           rm -rf src/app/api
           rm -rf src/app/user
+          rm -rf "src/app/[lang]/[...rest]"
 
       - name: Build
         run: npm run build
