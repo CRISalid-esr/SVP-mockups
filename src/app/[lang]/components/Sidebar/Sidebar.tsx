@@ -1,6 +1,7 @@
 'use client'
 
 import { Trans } from '@lingui/react/macro'
+import { publicPath } from '@/utils/publicPath'
 import Check from '@/public/icons/check.svg'
 import DarkMode from '@/public/icons/dark_mode.svg'
 import LightMode from '@/public/icons/light_mode.svg'
@@ -271,7 +272,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                     }}
                   >
                     <Avatar
-                      src='/icons/hideSidePanel.svg'
+                      src={publicPath('/icons/hideSidePanel.svg')}
                       alt='sidepanel'
                       sx={{
                         width: theme.utils.pxToRem(24),
@@ -299,7 +300,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                     }}
                   >
                     <Avatar
-                      src='/icons/showSidePanel.svg'
+                      src={publicPath('/icons/showSidePanel.svg')}
                       alt='sidepanel'
                       sx={{ width: 24, height: 24 }}
                     />

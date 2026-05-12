@@ -1,4 +1,5 @@
 import { BibliographicPlatform as DbBibliographicPlatform } from '@prisma/client'
+import { publicPath } from '@/utils/publicPath'
 
 export enum BibliographicPlatform {
   HAL = 'hal',
@@ -12,14 +13,14 @@ export const BibliographicPlatformMetadata: Record<
   BibliographicPlatform,
   { name: string; icon: string }
 > = {
-  [BibliographicPlatform.HAL]: { name: 'HAL', icon: '/icons/hal.png' },
-  [BibliographicPlatform.SCANR]: { name: 'ScanR', icon: '/icons/scanr.png' },
-  [BibliographicPlatform.IDREF]: { name: 'IdRef', icon: '/icons/idref.png' },
+  [BibliographicPlatform.HAL]: { name: 'HAL', icon: publicPath('/icons/hal.png') },
+  [BibliographicPlatform.SCANR]: { name: 'ScanR', icon: publicPath('/icons/scanr.png') },
+  [BibliographicPlatform.IDREF]: { name: 'IdRef', icon: publicPath('/icons/idref.png') },
   [BibliographicPlatform.OPENALEX]: {
     name: 'OpenAlex',
-    icon: '/icons/openalex.png',
+    icon: publicPath('/icons/openalex.png'),
   },
-  [BibliographicPlatform.SCOPUS]: { name: 'Scopus', icon: '/icons/scopus.png' },
+  [BibliographicPlatform.SCOPUS]: { name: 'Scopus', icon: publicPath('/icons/scopus.png') },
 }
 
 export const getBibliographicPlatformByNameIgnoreCase = (

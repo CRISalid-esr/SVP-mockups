@@ -1,3 +1,5 @@
+import { publicPath } from '@/utils/publicPath'
+
 export const VOCABS: Record<
   string,
   {
@@ -14,7 +16,7 @@ export const VOCABS: Record<
         '^http://vocab\\.getty\\.edu/aat(?:/(?<identifier>[0-9]+))?(?:/.*)*$',
       ),
     ],
-    icon: '/icons/aat-vocab.gif',
+    icon: publicPath('/icons/aat-vocab.gif'),
     name: 'Art & Architecture Thesaurus',
     org: 'Getty Research Institute',
     url: 'https://www.getty.edu/research/tools/vocabularies/aat/',
@@ -25,7 +27,7 @@ export const VOCABS: Record<
         '^http://hub\\.abes\\.fr(?:/(?!subject)[^/]*)*(?:/subject/(?<identifier>[^/]+))?(?:/[^/]*)*$',
       ),
     ],
-    icon: '/icons/abes-vocab.png',
+    icon: publicPath('/icons/abes-vocab.png'),
     name: 'Scienceplus',
     org: "ABES : Agence bibliographique de l'enseignement supérieur",
     url: 'http://hub.abes.fr',
@@ -34,7 +36,7 @@ export const VOCABS: Record<
     iriPatterns: [
       RegExp('^https://dl\\.acm\\.org(?:/(?<identifier>[0-9.]+))?(?:/.*)*$'),
     ],
-    icon: '/icons/acm-vocab.svg',
+    icon: publicPath('/icons/acm-vocab.svg'),
     name: 'Computing Classification System',
     org: 'Association for Computing Machinery',
     url: 'https://dl.acm.org/ccs',
@@ -43,7 +45,7 @@ export const VOCABS: Record<
     iriPatterns: [
       RegExp('^http://www\\.idref\\.fr(?:/(?<identifier>[A-Z0-9]+))?(?:/.*)*$'),
     ],
-    icon: '/icons/idref-vocab.png',
+    icon: publicPath('/icons/idref-vocab.png'),
     name: "IdRef : Identifiants et référentiels pour l'enseignement supérieur et la recherche",
     org: "ABES : Agence bibliographique de l'enseignement supérieur",
     url: 'http://www.idref.fr',
@@ -54,7 +56,7 @@ export const VOCABS: Record<
         '^http://zbw\\.eu(?:/(?!jel#)[^/]*)*(?:/jel#(?<identifier>[^/]+))?(?:/[^/]*)*',
       ),
     ],
-    icon: '/icons/jel-vocab.png', //or '@/public/icons/jel-vocab-old.svg'
+    icon: publicPath('/icons/jel-vocab.png'),
     name: 'Journal of Economic Literature',
     org: 'American Economic Association',
     url: 'https://www.aeaweb.org/jel/guide/jel.php',
@@ -65,7 +67,7 @@ export const VOCABS: Record<
         '^http://www\\.wikidata\\.org/entity(?:/(?<identifier>[A-Z0-9]+))?(?:/.*)*$',
       ),
     ],
-    icon: '/icons/wikidata-vocab.png',
+    icon: publicPath('/icons/wikidata-vocab.png'),
     name: 'Wikidata',
     org: 'Wikimedia Foundation',
     url: 'http://www.wikidata.org',

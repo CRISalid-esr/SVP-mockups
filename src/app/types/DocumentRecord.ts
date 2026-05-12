@@ -3,6 +3,7 @@ import {
   BibliographicPlatformMetadata,
   getBibliographicPlatformFromDbValue,
 } from '@/types/BibliographicPlatform'
+import { publicPath } from '@/utils/publicPath'
 import { Literal } from '@/types/Literal'
 import { IAgent } from '@/types/IAgent'
 import { Person } from '@/types/Person'
@@ -69,7 +70,7 @@ export class DocumentRecord {
 
   getPlatformIcon(): string {
     return (
-      BibliographicPlatformMetadata[this.platform]?.icon || '/icons/default.png'
+      BibliographicPlatformMetadata[this.platform]?.icon || publicPath('/icons/default.png')
     )
   }
 

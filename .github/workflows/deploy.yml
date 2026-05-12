@@ -34,6 +34,7 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_USE_MOCK: "true"
+          NEXT_PUBLIC_BASE_PATH: "/SVP-mockups"
           NEXT_PUBLIC_SUPPORTED_LOCALES: "fr,en"
           NEXT_PUBLIC_BASE_URL: "https://crisalid-esr.github.io/SVP-mockups"
           NEXT_PUBLIC_CAS_URL: "https://localhost/cas"

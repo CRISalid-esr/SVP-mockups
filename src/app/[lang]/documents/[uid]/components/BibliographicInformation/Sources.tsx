@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro'
+import { publicPath } from '@/utils/publicPath'
 import useStore from '@/stores/global_store'
 import * as Lingui from '@lingui/core'
 import EditIcon from '@mui/icons-material/Edit'
@@ -56,7 +57,7 @@ const Sources = () => {
                 fontSize: theme.utils.pxToRem(14),
               }}
               key={record.platform}
-              avatar={<Avatar src={metadata?.icon || '/icons/default.png'} />}
+              avatar={<Avatar src={metadata?.icon || publicPath('/icons/default.png')} />}
               label={BibliographicPlatformMetadata[record.platform].name}
               clickable
               color='primary'

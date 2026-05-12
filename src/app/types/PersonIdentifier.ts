@@ -1,5 +1,6 @@
 import { PersonIdentifierType as DbPersonIdentifierType } from '@prisma/client'
 import { PersonIdentifierWithRelations as DBPersonIdentifier } from '@/prisma-schema/extended-client'
+import { publicPath } from '@/utils/publicPath'
 
 export type PersonIdentifierJson = {
   type: DbPersonIdentifierType | string
@@ -42,17 +43,17 @@ export class PersonIdentifier {
   getIcon(): string {
     switch (this.type) {
       case DbPersonIdentifierType.ORCID:
-        return '/icons/orcid.png'
+        return publicPath('/icons/orcid.png')
       case DbPersonIdentifierType.IDREF:
-        return '/icons/idref.png'
+        return publicPath('/icons/idref.png')
       case DbPersonIdentifierType.ID_HAL_S:
       case DbPersonIdentifierType.ID_HAL_I:
       case DbPersonIdentifierType.HAL_LOGIN:
-        return '/icons/hal.png'
+        return publicPath('/icons/hal.png')
       case DbPersonIdentifierType.SCOPUS_EID:
-        return '/icons/scopus.png'
+        return publicPath('/icons/scopus.png')
       default:
-        return '/icons/id.png' // fallback icon
+        return publicPath('/icons/id.png')
     }
   }
 
