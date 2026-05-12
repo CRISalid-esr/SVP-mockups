@@ -1,0 +1,64 @@
+[
+    {
+        "uid": "person-1",
+        "external": false,
+        "email": "jean.dupont@universite.fr",
+        "displayName": "Jean Dupont",
+        "firstName": "Jean",
+        "lastName": "Dupont",
+        "slug": "jean-dupont",
+        "identifiers": [
+            {
+                "type": "orcid",
+                "value": "0000-0001-2345-6789"
+            },
+            {
+                "type": "idref",
+                "value": "123456789"
+            }
+        ],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-1",
+                    "acronym": "LIP6",
+                    "names": [
+                        {
+                            "language": "fr",
+                            "value": "Laboratoire d'Informatique de Paris 6"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-2",
+        "external": false,
+        "email": "marie.curie@recherche.fr",
+        "displayName": "Marie Curie",
+        "firstName": "Marie",
+        "lastName": "Curie",
+        "slug": "marie-curie",
+        "identifiers": [
+            {
+                "type": "orcid",
+                "value": "0000-0002-9876-5432"
+            }
+        ],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-2",
+                    "acronym": "IPN",
+                    "names": [
+                        {
+                            "language": "fr",
+                            "value": "Institut de Physique Nucléaire"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]

@@ -1,0 +1,148 @@
+[
+    {
+        "uid": "doc-1",
+        "documentType": "Article",
+        "oaStatus": "gold",
+        "publicationDate": "2023-05-15",
+        "publicationDateStart": "2023-05-15T00:00:00.000Z",
+        "publicationDateEnd": "2023-05-15T00:00:00.000Z",
+        "upwOAStatus": "gold",
+        "titles": [
+            {
+                "language": "en",
+                "value": "A deep learning approach to climate modeling"
+            },
+            {
+                "language": "fr",
+                "value": "Une approche par apprentissage profond pour la modélisation climatique"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "en",
+                "value": "In this paper, we present a novel architecture for climate prediction..."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 1,
+                    "uid": "person-1",
+                    "firstName": "Jean",
+                    "lastName": "Dupont",
+                    "displayName": "Jean Dupont",
+                    "email": "jean.dupont@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": [
+                    "author"
+                ],
+                "rank": 1
+            }
+        ],
+        "records": [
+            {
+                "uid": "rec-1-hal",
+                "sourceIdentifier": "hal-01234567",
+                "identifiers": [
+                    {
+                        "type": "doi",
+                        "value": "10.1000/123456"
+                    }
+                ],
+                "contributions": [],
+                "documentTypes": [
+                    "Article"
+                ],
+                "publicationDate": "2023-05-15T00:00:00.000Z",
+                "platform": "hal",
+                "titles": [
+                    {
+                        "language": "en",
+                        "value": "A deep learning approach to climate modeling"
+                    }
+                ],
+                "_url": "https://hal.science/hal-01234567",
+                "halCollectionCodes": [
+                    "LIP6"
+                ],
+                "halSubmitType": "file"
+            }
+        ],
+        "state": "default",
+        "journal": {
+            "id": 1,
+            "issnL": "1234-5678",
+            "publisher": "Elsevier",
+            "title": "Journal of Climate Research",
+            "identifiers": []
+        }
+    },
+    {
+        "uid": "doc-2",
+        "documentType": "Book",
+        "oaStatus": "closed",
+        "publicationDate": "2022-11-20",
+        "publicationDateStart": "2022-11-20T00:00:00.000Z",
+        "publicationDateEnd": "2022-11-20T00:00:00.000Z",
+        "upwOAStatus": "closed",
+        "titles": [
+            {
+                "language": "en",
+                "value": "Quantum Mechanics: A Modern Introduction"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "en",
+                "value": "This book covers the fundamentals of quantum mechanics..."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 2,
+                    "uid": "person-2",
+                    "firstName": "Marie",
+                    "lastName": "Curie",
+                    "displayName": "Marie Curie",
+                    "email": "marie.curie@recherche.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": [
+                    "author"
+                ],
+                "rank": 1
+            }
+        ],
+        "records": [
+            {
+                "uid": "rec-2-scopus",
+                "sourceIdentifier": "scopus-987654321",
+                "identifiers": [],
+                "contributions": [],
+                "documentTypes": [
+                    "Book"
+                ],
+                "publicationDate": "2022-11-20T00:00:00.000Z",
+                "platform": "scopus",
+                "titles": [
+                    {
+                        "language": "en",
+                        "value": "Quantum Mechanics: A Modern Introduction"
+                    }
+                ],
+                "_url": "https://www.scopus.com/record/display.uri?eid=2-s2.0-987654321",
+                "halCollectionCodes": [],
+                "halSubmitType": null
+            }
+        ],
+        "state": "default"
+    }
+]

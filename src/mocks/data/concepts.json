@@ -1,0 +1,34 @@
+[
+    {
+        "uid": "concept-1",
+        "uri": "http://example.org/concepts/deep-learning",
+        "labels": [
+            {
+                "language": "en",
+                "value": "Deep Learning",
+                "type": "PREF"
+            },
+            {
+                "language": "fr",
+                "value": "Apprentissage profond",
+                "type": "PREF"
+            }
+        ]
+    },
+    {
+        "uid": "concept-2",
+        "uri": "http://example.org/concepts/climate-change",
+        "labels": [
+            {
+                "language": "en",
+                "value": "Climate Change",
+                "type": "PREF"
+            },
+            {
+                "language": "fr",
+                "value": "Changement climatique",
+                "type": "PREF"
+            }
+        ]
+    }
+]

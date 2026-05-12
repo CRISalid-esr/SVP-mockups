@@ -1,0 +1,42 @@
+[
+    {
+        "uid": "lab-1",
+        "acronym": "LIP6",
+        "names": [
+            {
+                "language": "fr",
+                "value": "Laboratoire d'Informatique de Paris 6"
+            },
+            {
+                "language": "en",
+                "value": "Paris 6 Computer Science Laboratory"
+            }
+        ],
+        "descriptions": [
+            {
+                "language": "fr",
+                "value": "Un grand laboratoire d'informatique."
+            }
+        ],
+        "external": false,
+        "slug": "lip6"
+    },
+    {
+        "uid": "lab-2",
+        "acronym": "IPN",
+        "names": [
+            {
+                "language": "fr",
+                "value": "Institut de Physique Nucléaire"
+            }
+        ],
+        "descriptions": [
+            {
+                "language": "fr",
+                "value": "Recherche en physique nucléaire."
+            }
+        ],
+        "external": false,
+        "slug": "ipn"
+    }
+]

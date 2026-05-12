@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_USE_MOCK: "true"
+          NEXT_PUBLIC_SUPPORTED_LOCALES: "fr,en"
+          NEXT_PUBLIC_BASE_URL: "https://crisalid-esr.github.io/SVP-mockups"
+          NEXT_PUBLIC_CAS_URL: "https://localhost/cas"
+          NEXT_PUBLIC_INSTITUTION_NAME: "Mock Institution"
+          ORCID_URL: "https://orcid.org"
+          ORCID_SCOPES: "/read-limited"
+          ORCID_CLIENT_ID: "APP-MOCK"
+          NEXTAUTH_SECRET: "mock-secret-for-build"
+          NEXTAUTH_URL: "https://crisalid-esr.github.io/SVP-mockups"
+          DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages
