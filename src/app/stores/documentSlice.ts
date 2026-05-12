@@ -4,6 +4,9 @@ import { toQueryString } from '@/utils/query'
 import { BaseQuery } from '@/types/BaseQuery'
 import { AgentType } from '@/types/IAgent'
 import { Concept } from '@/types/Concept'
+import { mockService } from '../../mocks/mockService'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export interface DocumentQuery extends BaseQuery {
   searchTerm: string
@@ -91,7 +94,6 @@ export const addDocumentSlice: StateCreator<
       const { requestId, ...rest } = queryObject
       const queryString = toQueryString(rest)
 
-      // Mark the request as the latest before the async call
       set((state) => ({
         document: {
           ...state.document,
@@ -101,10 +103,20 @@ export const addDocumentSlice: StateCreator<
       }))
 
       try {
-        const response = await fetch(`/api/documents?${queryString}`)
-        const jsonData = await response.json()
-        const documents = jsonData.documents.map(Document.fromJson)
-        const totalItems = jsonData.totalItems
+        let documents: Document[]
+        let totalItems: number
+
+        if (USE_MOCK) {
+          const mockData = mockService.getDocuments(queryObject.searchTerm)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          documents = mockData.documents.map((d: any) => Document.fromJson(d))
+          totalItems = mockData.totalItems
+        } else {
+          const response = await fetch(`/api/documents?${queryString}`)
+          const jsonData = await response.json()
+          documents = jsonData.documents.map(Document.fromJson)
+          totalItems = jsonData.totalItems
+        }
 
         set((state) => {
           // Ignore if a newer request was made since this one started
@@ -157,13 +169,19 @@ export const addDocumentSlice: StateCreator<
       set((state) => ({ document: { ...state.document, loading: true } }))
 
       try {
-        const response = await fetch(`/api/documents/${uid}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch document')
-        }
+        let document: Document
 
-        const documentJson = await response.json()
-        const document: Document = await Document.fromJson(documentJson)
+        if (USE_MOCK) {
+          const mockDoc = mockService.getDocumentById(uid)
+          if (!mockDoc) throw new Error('Document not found')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          document = Document.fromJson(mockDoc as any)
+        } else {
+          const response = await fetch(`/api/documents/${uid}`)
+          if (!response.ok) throw new Error('Failed to fetch document')
+          const documentJson = await response.json()
+          document = Document.fromJson(documentJson)
+        }
 
         set((state) => ({
           document: {
@@ -205,9 +223,19 @@ export const addDocumentSlice: StateCreator<
       }))
 
       try {
-        const response = await fetch(`/api/documents/count?${queryString}`)
-        const jsonData = await response.json()
-        const { allItems, incompleteHalRepositoryItems } = jsonData
+        let allItems: number
+        let incompleteHalRepositoryItems: number
+
+        if (USE_MOCK) {
+          const mockCount = mockService.countDocuments()
+          allItems = mockCount.allItems
+          incompleteHalRepositoryItems = mockCount.incompleteHalRepositoryItems
+        } else {
+          const response = await fetch(`/api/documents/count?${queryString}`)
+          const jsonData = await response.json()
+          allItems = jsonData.allItems
+          incompleteHalRepositoryItems = jsonData.incompleteHalRepositoryItems
+        }
 
         set((state) => {
           // Ignore if a newer request was made since this one started

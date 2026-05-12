@@ -3,6 +3,9 @@ import { User } from '@/types/User'
 import { IAgent, IAgentClass } from '@/types/IAgent'
 import { Person } from '@/types/Person'
 import { ResearchStructure } from '@/types/ResearchStructure'
+import { mockService } from '../../mocks/mockService'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export interface UserSlice {
   user: {
@@ -29,9 +32,8 @@ export const addUserSlice: StateCreator<UserSlice, [], [], UserSlice> = (
     fetchConnectedUser: async () => {
       set((state) => ({ user: { ...state.user, loading: true } }))
       try {
-        const response = await fetch('/api/users/me')
-        const jsonUser = await response.json()
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const jsonUser = USE_MOCK ? mockService.getConnectedUser() as any : await (await fetch('/api/users/me')).json()
         const user = User.fromJsonUser(jsonUser)
 
         set((state) => ({
@@ -65,27 +67,40 @@ export const addUserSlice: StateCreator<UserSlice, [], [], UserSlice> = (
       set((state) => ({ user: { ...state.user, loading: true } }))
 
       try {
-        let endpoint = ''
-        let EntityClass: IAgentClass
+        let entity: IAgent
 
-        if (slug.startsWith('person:')) {
-          endpoint = `/api/person/slug/${slug}`
-          EntityClass = Person
-        } else if (slug.startsWith('research-structure:')) {
-          endpoint = `/api/researchStructures/slug/${slug}`
-          EntityClass = ResearchStructure
+        if (USE_MOCK) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let entityJson: any
+          let EntityClass: IAgentClass
+          if (slug.startsWith('person:')) {
+            entityJson = mockService.getPersonBySlug(slug)
+            EntityClass = Person
+          } else if (slug.startsWith('research-structure:')) {
+            entityJson = mockService.getResearchStructureBySlug(slug)
+            EntityClass = ResearchStructure
+          } else {
+            throw new Error(`Unknown slug type: ${slug}`)
+          }
+          if (!entityJson) throw new Error(`Entity not found: ${slug}`)
+          entity = EntityClass.fromJson(entityJson)
         } else {
-          throw new Error(`Unknown slug type: ${slug}`)
+          let endpoint = ''
+          let EntityClass: IAgentClass
+          if (slug.startsWith('person:')) {
+            endpoint = `/api/person/slug/${slug}`
+            EntityClass = Person
+          } else if (slug.startsWith('research-structure:')) {
+            endpoint = `/api/researchStructures/slug/${slug}`
+            EntityClass = ResearchStructure
+          } else {
+            throw new Error(`Unknown slug type: ${slug}`)
+          }
+          const response = await fetch(endpoint)
+          if (!response.ok) throw new Error(`Failed to fetch entity with slug: ${slug}`)
+          const entityJson = await response.json()
+          entity = EntityClass.fromJson(entityJson)
         }
-
-        const response = await fetch(endpoint)
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch entity with slug: ${slug}`)
-        }
-
-        const entityJson = await response.json()
-        const entity = EntityClass.fromJson(entityJson)
 
         set((state) => ({
           user: {

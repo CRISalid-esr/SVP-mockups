@@ -3,6 +3,9 @@ import { Person, PersonJson } from '@/types/Person'
 import { i18n } from '@lingui/core'
 import { toQueryString } from '@/utils/query'
 import { BaseQuery } from '@/types/BaseQuery'
+import { mockService } from '../../mocks/mockService'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export interface PeopleByNameQuery extends BaseQuery {
   searchTerm: string
@@ -47,22 +50,26 @@ export const addPersonSlice: StateCreator<PersonSlice, [], [], PersonSlice> = (
       const queryString = toQueryString(mergedQueryObject)
       set((state) => ({ person: { ...state.person, loading: true } }))
       try {
-        const response = await fetch(`/api/people?${queryString}`, {
-          headers: {
-            'accept-language': i18n.locale,
-          },
-        })
+        let hasMore = false
+        let people: PersonJson[] = []
+        let total = 0
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`)
+        if (USE_MOCK) {
+          const mockData = mockService.getPeople(queryObject.searchTerm)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          people = mockData.people as any[]
+          hasMore = mockData.hasMore
+          total = mockData.total
+        } else {
+          const response = await fetch(`/api/people?${queryString}`, {
+            headers: { 'accept-language': i18n.locale },
+          })
+          if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`)
+          const data = (await response.json()) as { hasMore?: boolean; people?: PersonJson[]; total?: number }
+          hasMore = data.hasMore ?? false
+          people = data.people ?? []
+          total = data.total ?? 0
         }
-
-        const data = (await response.json()) as {
-          hasMore?: boolean
-          people?: PersonJson[]
-          total?: number
-        }
-        const { hasMore = false, people = [], total = 0 } = data
 
         set((state) => {
           const reinit = Number(queryObject.page) === 1

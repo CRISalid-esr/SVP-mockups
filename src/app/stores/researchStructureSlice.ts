@@ -2,10 +2,13 @@ import { StateCreator } from 'zustand'
 import {
   ResearchStructure,
   ResearchStructureJson,
-} from '@/types/ResearchStructure' // Assuming you have a Prisma model for Person
+} from '@/types/ResearchStructure'
 import { i18n } from '@lingui/core'
 import { BaseQuery } from '@/types/BaseQuery'
 import { toQueryString } from '@/utils/query'
+import { mockService } from '../../mocks/mockService'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export interface ResearchStructuresByNameQuery extends BaseQuery {
   searchTerm: string
@@ -57,26 +60,26 @@ export const addResearchStructureSlice: StateCreator<
       }))
 
       try {
-        const response = await fetch(`/api/researchStructures?${queryString}`, {
-          headers: {
-            'accept-language': i18n.locale,
-          },
-        })
+        let hasMore = false
+        let researchStructures: ResearchStructureJson[] = []
+        let total = 0
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`)
+        if (USE_MOCK) {
+          const mockData = mockService.getResearchStructures(queryObject.searchTerm)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          researchStructures = mockData.researchStructures as any[]
+          hasMore = mockData.hasMore
+          total = mockData.total
+        } else {
+          const response = await fetch(`/api/researchStructures?${queryString}`, {
+            headers: { 'accept-language': i18n.locale },
+          })
+          if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`)
+          const jsonData = (await response.json()) as { hasMore?: boolean; researchStructures?: ResearchStructureJson[]; total?: number }
+          hasMore = jsonData.hasMore ?? false
+          researchStructures = jsonData.researchStructures ?? []
+          total = jsonData.total ?? 0
         }
-
-        const jsonData = (await response.json()) as {
-          hasMore?: boolean
-          researchStructures?: ResearchStructureJson[]
-          total?: number
-        }
-        const {
-          hasMore = false,
-          researchStructures = [],
-          total = 0,
-        } = jsonData
 
         set((state) => {
           const reinit = Number(queryObject.page) === 1
