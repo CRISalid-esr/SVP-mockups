@@ -9,23 +9,27 @@ import {
   CheckCircle,
   DeleteOutline,
   DragIndicator,
+  Edit,
+  ExpandMore,
   KeyboardArrowDown,
   KeyboardArrowUp,
-  OpenInNew,
-  PersonAdd,
+  MoreHoriz,
   Search,
   WarningAmber,
 } from '@mui/icons-material'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Autocomplete,
   Box,
   Button,
   Chip,
+  Divider,
   FormControl,
   IconButton,
   InputLabel,
   LinearProgress,
-  Link,
   MenuItem,
   Paper,
   Select,
@@ -58,13 +62,6 @@ const MOCK_HAL_STRUCTURES = [
   { id: '102315', name: 'INRAE Montpellier', shortName: 'INRAE', ror: '003vg9w96' },
 ]
 
-const MOCK_SUGGESTED_AUTHORS = [
-  { id: 1, name: 'Magali Muraro', email: '@univ-reims.fr', idhal: 'magali-muraro', orcid: '0000-0002-1234-5678' },
-  { id: 2, name: 'Alrick Dias', email: '@imbe.fr', idhal: 'alrick-dias', orcid: undefined },
-  { id: 3, name: 'Tristan Cazenave', email: '@dauphine.fr', idhal: 'tristan-cazenave', orcid: '0000-0003-4669-9374' },
-  { id: 4, name: 'Coline Chartier', email: '@example.fr', idhal: undefined, orcid: undefined },
-]
-
 const AUTHOR_ROLES = [
   { value: 'author', label: 'Auteur' },
   { value: 'auteur_correspondant', label: 'Auteur correspondant' },
@@ -88,6 +85,8 @@ type StructureCandidate = {
   halStructureId: string
   shortName: string
   fullName: string
+  tutelles?: string
+  researchers?: number
   ror?: string
   matchScore: number
 }
@@ -123,7 +122,6 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
     const role = (c.roles[0] as string) ?? 'author'
     const external = c.person.external ?? false
 
-    // Inject mock alignment data based on rank for demo purposes
     if (rank === 1) {
       return {
         uid, displayName, role, rank, external,
@@ -138,24 +136,24 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
       return {
         uid, displayName, role, rank, external,
         idhalCandidates: [
-          { idhal: 'sophie-martin', fullName: 'Sophie Martin', affiliations: 'LS2N, Nantes', publications: 12, matchScore: 92, orcid: '0000-0002-9876-5432' },
-          { idhal: 'sophie-martin-2', fullName: 'S. Martin', affiliations: 'LIRMM, Montpellier', publications: 3, matchScore: 61 },
+          { idhal: 'sophie-martin', fullName: 'Sophie Martin', affiliations: 'LS2N, Nantes · IRD', publications: 12, matchScore: 92, orcid: '0000-0002-9876-5432' },
+          { idhal: 'sophie-martin-inrae', fullName: 'Sophie Martin', affiliations: 'INRAE Montpellier', publications: 3, matchScore: 71 },
+          { idhal: 'sophie-martin-cnrs', fullName: 'Sophie J. Martin', affiliations: 'CNRS · UMR 7194', publications: 8, matchScore: 64 },
         ],
         affiliations: [
-          { halStructureId: '', halStructureName: '', importedText: 'Laboratoire LS2N, Université de Nantes', structureCandidates: [
-            { halStructureId: '102313', shortName: 'LS2N', fullName: 'Laboratoire des sciences du numérique à Nantes', ror: '04ezmvf85', matchScore: 94 },
-            { halStructureId: '102315', shortName: 'INRAE', fullName: 'INRAE Montpellier', matchScore: 38 },
-          ]},
+          {
+            halStructureId: '', halStructureName: '', importedText: 'Laboratoire des sciences du numérique',
+            structureCandidates: [
+              { halStructureId: '102313', shortName: 'LS2N', fullName: 'Laboratoire des sciences du numérique à Nantes', tutelles: 'Nantes Université · CNRS · École Centrale · IMT Atl.', researchers: 470, ror: '04ezmvf85', matchScore: 92 },
+              { halStructureId: '999', shortName: 'LSN', fullName: 'Laboratoire des sciences du numérique', tutelles: 'Université Paris-Saclay', researchers: 64, ror: '0395g4t98', matchScore: 71 },
+            ],
+          },
         ],
       }
     }
     if (rank === 3) {
-      return {
-        uid, displayName, role, rank, external,
-        affiliations: [],
-      }
+      return { uid, displayName, role, rank, external, affiliations: [] }
     }
-    // rank 4 — aligned external author
     return {
       uid, displayName, role, rank, external,
       idhal: 'anne-leclerc',
@@ -174,6 +172,32 @@ function matchColor(score: number) {
   return MUTED
 }
 
+function initials(name: string) {
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
+function avatarColor(name: string) {
+  const colors = ['#4F7942', '#2E6DA4', '#8B5E3C', '#6B4F9E', '#B5451B']
+  let hash = 0
+  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) & 0xffff
+  return colors[hash % colors.length]
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function Avatar({ name, size = 28 }: { name: string; size?: number }) {
+  return (
+    <Box sx={{
+      width: size, height: size, borderRadius: '50%',
+      bgcolor: avatarColor(name), color: 'white',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.38, fontWeight: 700, flexShrink: 0,
+    }}>
+      {initials(name)}
+    </Box>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Authors = () => {
@@ -183,16 +207,14 @@ const Authors = () => {
   const [authors, setAuthors] = useState<AuthorState[]>(() =>
     initFromContributions(contributions),
   )
-  const [searchInput, setSearchInput] = useState('')
   const [expandedCandidates, setExpandedCandidates] = useState<Record<string, boolean>>({})
+  const [candidateSearch, setCandidateSearch] = useState<Record<string, string>>({})
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
     const totalAuthors = authors.length
     const aligned = authors.filter((a) => !!a.idhal).length
     const missingIdhal = totalAuthors - aligned
-    let totalAff = 0
-    let alignedAff = 0
+    let totalAff = 0, alignedAff = 0
     authors.forEach((a) => {
       a.affiliations.forEach((af) => {
         totalAff++
@@ -240,8 +262,7 @@ const Authors = () => {
   const addAffiliation = (uid: string, structure: typeof MOCK_HAL_STRUCTURES[0]) =>
     setAuthors((prev) =>
       prev.map((a) =>
-        a.uid !== uid
-          ? a
+        a.uid !== uid ? a
           : { ...a, affiliations: [...a.affiliations, { halStructureId: structure.id, halStructureName: structure.name, shortName: structure.shortName, ror: structure.ror }] },
       ),
     )
@@ -259,16 +280,12 @@ const Authors = () => {
         let next = { ...a }
         if (!next.idhal && next.idhalCandidates?.length) {
           const best = [...next.idhalCandidates].sort((x, y) => y.matchScore - x.matchScore)[0]
-          if (best.matchScore >= 85) {
-            next = { ...next, idhal: best.idhal, orcid: best.orcid ?? next.orcid, idhalCandidates: undefined }
-          }
+          if (best.matchScore >= 85) next = { ...next, idhal: best.idhal, orcid: best.orcid ?? next.orcid, idhalCandidates: undefined }
         }
         next.affiliations = next.affiliations.map((af) => {
           if (af.importedText && af.structureCandidates?.length) {
             const best = [...af.structureCandidates].sort((x, y) => y.matchScore - x.matchScore)[0]
-            if (best.matchScore >= 85) {
-              return { halStructureId: best.halStructureId, halStructureName: best.fullName, shortName: best.shortName, ror: best.ror }
-            }
+            if (best.matchScore >= 85) return { halStructureId: best.halStructureId, halStructureName: best.fullName, shortName: best.shortName, ror: best.ror }
           }
           return af
         })
@@ -277,29 +294,16 @@ const Authors = () => {
     )
   }
 
-  const addAuthor = (suggested?: typeof MOCK_SUGGESTED_AUTHORS[0]) => {
+  const addAuthor = () => {
     const uid = `new-${Date.now()}`
-    setAuthors((prev) => [
-      ...prev,
-      {
-        uid,
-        displayName: suggested?.name ?? searchInput,
-        role: 'author',
-        rank: prev.length + 1,
-        external: true,
-        idhal: suggested?.idhal,
-        orcid: suggested?.orcid,
-        affiliations: [],
-      },
-    ])
-    setSearchInput('')
+    setAuthors((prev) => [...prev, { uid, displayName: 'Nouvel auteur', role: 'author', rank: prev.length + 1, external: true, affiliations: [] }])
   }
 
   const pending = stats.missingIdhal + stats.unalignedAff
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ maxWidth: 860 }}>
+    <Box sx={{ maxWidth: 960 }}>
 
       {/* ── Alignment banner ──────────────────────────────────────────────── */}
       <Box sx={{ mb: 3 }}>
@@ -316,40 +320,38 @@ const Authors = () => {
 
         {pending > 0 ? (
           <Paper elevation={0} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '12px', p: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
               <WarningAmber sx={{ color: WARN, mt: '2px', flexShrink: 0, fontSize: 20 }} />
               <Box sx={{ flex: 1 }}>
-                <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.9375rem', mb: 0.5 }}>
+                <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.9375rem', mb: 0.25 }}>
                   {pending} alignement{pending > 1 ? 's' : ''} AureHAL requis avant le dépôt
                 </Typography>
-                <Typography sx={{ color: TEXT, fontSize: '0.875rem', mb: 1.5 }}>
+                <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
                   {stats.missingIdhal > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.missingIdhal}</Box> auteur{stats.missingIdhal > 1 ? 's' : ''} sans IdHAL</>}
                   {stats.missingIdhal > 0 && stats.unalignedAff > 0 && ' · '}
                   {stats.unalignedAff > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.unalignedAff}</Box> affiliation{stats.unalignedAff > 1 ? 's' : ''} non alignée{stats.unalignedAff > 1 ? 's' : ''}</>}
-                  {'. L\'identification dans AureHAL est indispensable pour le dépôt HAL.'}
+                  {". L'identification des personnes et structures dans AureHAL est indispensable pour transmettre le dépôt à HAL."}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
-                    onClick={alignAllBest}
-                    sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}
-                  >
-                    Aligner toutes les meilleures correspondances
-                  </Button>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 200 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={stats.pct}
-                      sx={{ flex: 1, maxWidth: 200, height: 6, borderRadius: 3, bgcolor: '#FFF', '& .MuiLinearProgress-bar': { bgcolor: TEAL } }}
-                    />
-                    <Typography sx={{ color: MUTED, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
-                      <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems}/{stats.totalItems}</Box> alignés · {stats.pct}%
-                    </Typography>
-                  </Box>
-                </Box>
               </Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
+                onClick={alignAllBest}
+                sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, '&:hover': { bgcolor: TEAL_DARK } }}
+              >
+                Aligner toutes les meilleures correspondances
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1.5 }}>
+              <LinearProgress
+                variant="determinate"
+                value={stats.pct}
+                sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: '#FFF', '& .MuiLinearProgress-bar': { bgcolor: TEAL } }}
+              />
+              <Typography sx={{ color: MUTED, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
+                <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems} / {stats.totalItems}</Box> alignés · {stats.pct} %
+              </Typography>
             </Box>
           </Paper>
         ) : (
@@ -358,204 +360,133 @@ const Authors = () => {
             <Typography sx={{ color: TEXT, fontSize: '0.9375rem', fontWeight: 600 }}>
               Tous les auteurs et affiliations sont alignés avec AureHAL.
             </Typography>
-            <Box sx={{ ml: 'auto' }}>
-              <Typography sx={{ color: MUTED, fontSize: '0.8125rem' }}>
-                <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems}/{stats.totalItems}</Box> alignés · {stats.pct}%
-              </Typography>
-            </Box>
+            <Typography sx={{ color: MUTED, fontSize: '0.8125rem', ml: 'auto' }}>
+              <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems} / {stats.totalItems}</Box> alignés · {stats.pct} %
+            </Typography>
           </Paper>
         )}
-      </Box>
-
-      {/* ── Registry links ────────────────────────────────────────────────── */}
-      <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Consulter AureHAL (auteurs et structures)', href: 'https://aurehal.archives-ouvertes.fr/' },
-          { label: 'ROR (Research Organization Registry)', href: 'https://ror.org/' },
-        ].map(({ label, href }) => (
-          <Link key={href} href={href} target="_blank" rel="noopener"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: TEAL, textDecoration: 'none', fontSize: '0.875rem', '&:hover': { textDecoration: 'underline' } }}>
-            <OpenInNew sx={{ fontSize: 14 }} />{label}
-          </Link>
-        ))}
-      </Box>
-
-      {/* ── Add author search ─────────────────────────────────────────────── */}
-      <Box sx={{ mb: 3 }}>
-        <Autocomplete
-          inputValue={searchInput}
-          onInputChange={(_, v) => setSearchInput(v)}
-          options={MOCK_SUGGESTED_AUTHORS}
-          getOptionLabel={(o) => (typeof o === 'string' ? o : o.name)}
-          onChange={(_, value) => {
-            if (value && typeof value === 'object') addAuthor(value)
-            else if (typeof value === 'string') addAuthor()
-          }}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} key={option.id}>
-              <Box sx={{ width: '100%' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.875rem' }}>{option.name}</Typography>
-                  {option.idhal && <Chip size="small" label={`IdHAL: ${option.idhal}`} sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
-                  {option.orcid && <Box component="img" src={publicPath('/icons/orcid.png')} alt="ORCID" sx={{ width: 14, height: 14 }} />}
-                </Box>
-                <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>{option.email}</Typography>
-              </Box>
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Ajouter un auteur — rechercher dans AureHAL (nom, IdHAL, ORCID)"
-              fullWidth
-              InputProps={{
-                ...params.InputProps,
-                startAdornment: <><Search sx={{ fontSize: 16, color: MUTED, mr: 1 }} />{params.InputProps.startAdornment}</>,
-                endAdornment: <><Chip size="small" label="API AureHAL" sx={{ height: 22, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL, fontWeight: 600, mr: 0.5 }} />{params.InputProps.endAdornment}</>,
-              }}
-            />
-          )}
-          freeSolo
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && searchInput && !MOCK_SUGGESTED_AUTHORS.some((a) => a.name.toLowerCase() === searchInput.toLowerCase())) {
-              e.preventDefault()
-              addAuthor()
-            }
-          }}
-          noOptionsText={
-            <Button fullWidth startIcon={<Add />} onClick={() => addAuthor()}
-              sx={{ color: TEAL, textTransform: 'none', justifyContent: 'flex-start', '&:hover': { bgcolor: TEAL_LIGHT } }}>
-              Ajouter un nouvel auteur
-            </Button>
-          }
-        />
       </Box>
 
       {/* ── Author cards ──────────────────────────────────────────────────── */}
       {authors.map((author) => {
         const needsIdhal = !author.idhal
         const hasCandidates = needsIdhal && (author.idhalCandidates?.length ?? 0) > 0
-        const isAligned = !needsIdhal
         const expanded = expandedCandidates[author.uid]
+        const search = candidateSearch[author.uid] ?? ''
 
         return (
-          <Paper
-            key={author.uid}
-            elevation={0}
-            sx={{ bgcolor: 'white', border: `1px solid ${needsIdhal ? WARN_BORDER : BORDER}`, borderRadius: '12px', p: 2.5, mb: 2 }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-              {/* Reorder controls */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 0.25 }}>
-                <Tooltip title="Réordonner">
-                  <DragIndicator sx={{ color: '#9CA3AF', fontSize: 18, cursor: 'grab' }} />
-                </Tooltip>
-                <IconButton size="small" onClick={() => move(author.uid, 'up')} sx={{ p: 0.25 }}>
-                  <KeyboardArrowUp sx={{ fontSize: 16 }} />
-                </IconButton>
-                <IconButton size="small" onClick={() => move(author.uid, 'down')} sx={{ p: 0.25 }}>
-                  <KeyboardArrowDown sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
+          <Paper key={author.uid} elevation={0}
+            sx={{ border: `1px solid ${BORDER}`, borderRadius: '12px', mb: 2, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex' }}>
 
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* ── Left column: author info ─────────────────────────────── */}
+              <Box sx={{ flex: '0 0 42%', p: 2.5, borderRight: `1px solid ${BORDER}` }}>
+
                 {/* Name row */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-                  <Typography sx={{ color: TEXT, fontWeight: 700, fontSize: '1.0625rem' }}>{author.displayName}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', mr: 0.5 }}>
+                    <DragIndicator sx={{ color: '#C0C8C7', fontSize: 18, cursor: 'grab' }} />
+                    <IconButton size="small" onClick={() => move(author.uid, 'up')} sx={{ p: 0.25 }}>
+                      <KeyboardArrowUp sx={{ fontSize: 14, color: MUTED }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => move(author.uid, 'down')} sx={{ p: 0.25 }}>
+                      <KeyboardArrowDown sx={{ fontSize: 14, color: MUTED }} />
+                    </IconButton>
+                  </Box>
+                  <Typography sx={{ color: TEXT, fontWeight: 700, fontSize: '1.0625rem', flex: 1 }}>
+                    {author.displayName}
+                  </Typography>
                   {author.orcid && (
                     <Tooltip title={`ORCID: ${author.orcid}`}>
                       <Box component="img" src={publicPath('/icons/orcid.png')} alt="ORCID" sx={{ width: 16, height: 16 }} />
                     </Tooltip>
                   )}
-                  {isAligned ? (
-                    <Chip
-                      size="small"
-                      icon={<CheckCircle sx={{ fontSize: '12px !important', color: `${TEAL} !important`, ml: '4px !important' }} />}
-                      label={`IdHAL · ${author.idhal}`}
-                      sx={{ height: 22, bgcolor: TEAL_LIGHT, color: TEAL, fontWeight: 600, fontSize: '0.75rem' }}
-                    />
-                  ) : (
-                    <Chip
-                      size="small"
-                      icon={<WarningAmber sx={{ fontSize: '12px !important', color: `${WARN} !important`, ml: '4px !important' }} />}
-                      label="Sans IdHAL"
-                      sx={{ height: 22, bgcolor: WARN_BG, color: WARN, fontWeight: 600, fontSize: '0.75rem', border: `1px solid ${WARN_BORDER}` }}
-                    />
-                  )}
-                  {isAligned && (
-                    <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
-                      sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', ml: 'auto', minWidth: 'auto' }}>
-                      Changer
-                    </Button>
-                  )}
-                  <IconButton size="small" onClick={() => remove(author.uid)}
-                    sx={{ color: '#9CA3AF', ml: isAligned ? 0 : 'auto', '&:hover': { color: '#D32F2F' } }}>
-                    <DeleteOutline sx={{ fontSize: 18 }} />
+                  <IconButton size="small" sx={{ color: MUTED, p: 0.5 }}>
+                    <Edit sx={{ fontSize: 16 }} />
                   </IconButton>
                 </Box>
 
-                {/* Role selector */}
-                <Box sx={{ mb: 1.5 }}>
-                  <FormControl size="small" sx={{ minWidth: 240 }}>
-                    <InputLabel sx={{ fontSize: '0.8125rem' }}>Fonction</InputLabel>
-                    <Select
-                      value={author.role}
-                      onChange={(e) => update(author.uid, { role: e.target.value })}
-                      label="Fonction"
-                      sx={{ fontSize: '0.8125rem' }}
-                    >
-                      {AUTHOR_ROLES.map((r) => (
-                        <MenuItem key={r.value} value={r.value} sx={{ fontSize: '0.8125rem' }}>{r.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
+                {/* IdHAL status */}
+                {author.idhal ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                    <CheckCircle sx={{ color: SUCCESS, fontSize: 16 }} />
+                    <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>IDHAL</Typography>
+                    <Typography sx={{ fontSize: '0.8125rem', color: TEAL, fontWeight: 600 }}>{author.idhal}</Typography>
+                    <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
+                      sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto', '&:hover': { color: TEAL } }}>
+                      Changer
+                    </Button>
+                  </Box>
+                ) : (
+                  <Chip
+                    size="small"
+                    icon={<WarningAmber sx={{ fontSize: '14px !important', color: `${WARN} !important`, ml: '4px !important' }} />}
+                    label="Sans IdHAL"
+                    sx={{ height: 24, bgcolor: WARN_BG, color: WARN, fontWeight: 600, fontSize: '0.75rem', border: `1px solid ${WARN_BORDER}`, mb: 1.5 }}
+                  />
+                )}
 
                 {/* IdHAL alignment panel */}
                 {needsIdhal && (
                   <Paper elevation={0} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <WarningAmber sx={{ color: WARN, fontSize: 16 }} />
-                      <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem' }}>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'flex-start' }}>
+                      <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
                         Identité AureHAL à confirmer
                       </Typography>
                       <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                        {`— cet auteur n'a pas d'IdHAL.`}
+                        {`— cet auteur n'a pas d'IdHAL. Sélectionnez son identité pour permettre le dépôt HAL.`}
                       </Typography>
                     </Box>
 
+                    {/* Candidate search */}
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder={author.displayName}
+                      value={search}
+                      onChange={(e) => setCandidateSearch((prev) => ({ ...prev, [author.uid]: e.target.value }))}
+                      InputProps={{ startAdornment: <Search sx={{ fontSize: 16, color: MUTED, mr: 1 }} /> }}
+                      sx={{ mb: 1.5, bgcolor: 'white', borderRadius: 1 }}
+                    />
+
                     {hasCandidates && (
                       <>
-                        <Typography sx={{ color: MUTED, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', mb: 1 }}>
+                        <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>
                           Candidats AureHAL · {author.idhalCandidates!.length}
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                           {author.idhalCandidates!.slice(0, expanded ? undefined : 3).map((candidate, ci) => (
                             <Paper key={ci} elevation={0}
-                              sx={{ bgcolor: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', p: 1.25, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              sx={{
+                                bgcolor: ci === 0 ? 'white' : 'white',
+                                border: `1.5px solid ${ci === 0 ? TEAL : BORDER}`,
+                                borderRadius: '8px', p: 1.25,
+                                display: 'flex', alignItems: 'center', gap: 1.5,
+                              }}>
+                              <Avatar name={candidate.fullName} size={32} />
                               <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.25 }}>
-                                  <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.875rem' }}>{candidate.fullName}</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.25 }}>
+                                  <Typography sx={{ color: TEXT, fontWeight: 700, fontSize: '0.875rem' }}>{candidate.fullName}</Typography>
+                                  <Typography sx={{ color: TEAL, fontSize: '0.75rem' }}>{candidate.idhal}</Typography>
                                   {candidate.orcid && (
-                                    <Tooltip title={`ORCID: ${candidate.orcid}`}>
-                                      <Box component="img" src={publicPath('/icons/orcid.png')} alt="ORCID" sx={{ width: 12, height: 12 }} />
-                                    </Tooltip>
+                                    <Box component="img" src={publicPath('/icons/orcid.png')} alt="ORCID" sx={{ width: 12, height: 12 }} />
                                   )}
-                                  <Chip size="small" label={candidate.idhal} sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />
                                 </Box>
                                 <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
-                                  {candidate.affiliations} · {candidate.publications} publication{candidate.publications > 1 ? 's' : ''} dans HAL
+                                  {candidate.affiliations} · {candidate.publications} publications dans HAL
                                 </Typography>
                               </Box>
-                              <Typography sx={{ color: matchColor(candidate.matchScore), fontWeight: 700, fontSize: '0.875rem', minWidth: 36, textAlign: 'right' }}>
-                                {candidate.matchScore}%
-                              </Typography>
+                              <Chip
+                                size="small"
+                                label={`• ${candidate.matchScore} %`}
+                                sx={{ height: 20, bgcolor: 'transparent', color: matchColor(candidate.matchScore), fontWeight: 700, fontSize: '0.75rem', border: 'none' }}
+                              />
                               <Button
                                 variant={candidate.matchScore >= 85 ? 'contained' : 'outlined'}
                                 size="small"
                                 onClick={() => confirmIdhal(author.uid, candidate)}
                                 sx={{
-                                  textTransform: 'none', fontWeight: 600, fontSize: '0.75rem',
+                                  textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', flexShrink: 0,
                                   bgcolor: candidate.matchScore >= 85 ? TEAL : 'transparent',
                                   color: candidate.matchScore >= 85 ? 'white' : TEAL,
                                   borderColor: TEAL,
@@ -567,19 +498,21 @@ const Authors = () => {
                             </Paper>
                           ))}
                         </Box>
+
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1, flexWrap: 'wrap' }}>
                           {author.idhalCandidates!.length > 3 && (
                             <Button size="small"
                               onClick={() => setExpandedCandidates((prev) => ({ ...prev, [author.uid]: !prev[author.uid] }))}
                               sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                              {expanded ? 'Voir moins' : `Voir tous les candidats (${author.idhalCandidates!.length})`}
+                              {expanded ? 'Voir moins' : `Voir tous les candidats`}
                             </Button>
                           )}
                           <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
-                          <Link href="https://aurehal.archives-ouvertes.fr/author/create" target="_blank" rel="noopener"
-                            sx={{ color: TEAL, textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}>
-                            Créer un IdHAL pour {author.displayName}
-                          </Link>
+                          <Button size="small"
+                            onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
+                            sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
+                            {`Créer un IdHAL pour ${author.displayName}`}
+                          </Button>
                           <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
                           <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
                             sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
@@ -590,11 +523,12 @@ const Authors = () => {
                     )}
 
                     {!hasCandidates && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                        <Link href="https://aurehal.archives-ouvertes.fr/author/create" target="_blank" rel="noopener"
-                          sx={{ color: TEAL, textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}>
-                          Créer un IdHAL pour {author.displayName}
-                        </Link>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Button size="small"
+                          onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
+                          sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, p: 0, minWidth: 'auto' }}>
+                          {`Créer un IdHAL pour ${author.displayName}`}
+                        </Button>
                         <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
                         <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
                           sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
@@ -605,122 +539,201 @@ const Authors = () => {
                   </Paper>
                 )}
 
-                {/* Affiliations */}
-                <Typography sx={{ color: MUTED, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', mb: 1 }}>
-                  Affiliations
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
-                  {author.affiliations.map((aff, affIdx) => {
-                    const affAligned = aff.halStructureId && !aff.importedText
-                    if (affAligned) {
-                      return (
-                        <Paper key={affIdx} elevation={0}
-                          sx={{ bgcolor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', p: 1.25, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* Role selector */}
+                <FormControl size="small" fullWidth>
+                  <InputLabel sx={{ fontSize: '0.8125rem' }}>Fonction</InputLabel>
+                  <Select
+                    value={author.role}
+                    onChange={(e) => update(author.uid, { role: e.target.value })}
+                    label="Fonction"
+                    sx={{ fontSize: '0.8125rem' }}
+                  >
+                    {AUTHOR_ROLES.map((r) => (
+                      <MenuItem key={r.value} value={r.value} sx={{ fontSize: '0.8125rem' }}>{r.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* ── Right column: affiliations ───────────────────────────── */}
+              <Box sx={{ flex: 1, p: 2.5, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
+                <IconButton size="small" onClick={() => remove(author.uid)}
+                  sx={{ position: 'absolute', top: 12, right: 12, color: '#C0C8C7', '&:hover': { color: '#D32F2F' } }}>
+                  <DeleteOutline sx={{ fontSize: 18 }} />
+                </IconButton>
+
+                {author.affiliations.map((aff, affIdx) => {
+                  const affAligned = aff.halStructureId && !aff.importedText
+
+                  if (affAligned) {
+                    return (
+                      <Paper key={affIdx} elevation={0}
+                        sx={{ bgcolor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', p: 1.25 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                          <CheckCircle sx={{ color: SUCCESS, fontSize: 16, mt: '2px', flexShrink: 0 }} />
                           <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.25 }}>
-                              <Typography sx={{ color: TEAL, fontWeight: 700, fontSize: '0.875rem' }}>{aff.shortName ?? aff.halStructureName}</Typography>
-                              {aff.ror && <Chip size="small" label={`ROR ${aff.ror}`} sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                              <Typography sx={{ color: TEAL, fontWeight: 700, fontSize: '0.875rem' }}>
+                                {aff.shortName ?? aff.halStructureName}
+                              </Typography>
+                              {aff.ror && (
+                                <Chip size="small" label={`ROR ${aff.ror}`}
+                                  sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />
+                              )}
                             </Box>
                             <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>{aff.halStructureName}</Typography>
                           </Box>
                           <IconButton size="small" onClick={() => removeAffiliation(author.uid, affIdx)}
-                            sx={{ color: '#9CA3AF', '&:hover': { color: '#D32F2F' } }}>
+                            sx={{ color: '#C0C8C7', '&:hover': { color: '#D32F2F' }, p: 0.5 }}>
                             <DeleteOutline sx={{ fontSize: 16 }} />
                           </IconButton>
-                        </Paper>
-                      )
-                    }
-
-                    // Unaligned affiliation
-                    return (
-                      <Paper key={affIdx} elevation={0}
-                        sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.25 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <WarningAmber sx={{ color: WARN, fontSize: 16 }} />
-                          <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem' }}>Structure à aligner avec AureHAL</Typography>
-                          <IconButton size="small" onClick={() => removeAffiliation(author.uid, affIdx)}
-                            sx={{ ml: 'auto', color: '#9CA3AF', '&:hover': { color: '#D32F2F' } }}>
-                            <DeleteOutline sx={{ fontSize: 16 }} />
+                          <IconButton size="small" sx={{ color: MUTED, p: 0.5 }}>
+                            <MoreHoriz sx={{ fontSize: 16 }} />
                           </IconButton>
-                        </Box>
-                        <Typography sx={{ color: TEXT, fontSize: '0.8125rem', mb: 1 }}>
-                          Texte importé : <Box component="span" sx={{ fontStyle: 'italic' }}>« {aff.importedText} »</Box>
-                        </Typography>
-                        {aff.structureCandidates?.map((cand, ci) => (
-                          <Paper key={ci} elevation={0}
-                            sx={{ bgcolor: 'white', border: `1px solid ${BORDER}`, borderRadius: '6px', p: 1, display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.75 }}>
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: 0.25 }}>
-                                <Typography sx={{ color: TEXT, fontWeight: 700, fontSize: '0.8125rem' }}>{cand.shortName}</Typography>
-                                {cand.ror && <Chip size="small" label={`ROR ${cand.ror}`} sx={{ height: 16, fontSize: '0.625rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
-                              </Box>
-                              <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>{cand.fullName}</Typography>
-                            </Box>
-                            <Typography sx={{ color: matchColor(cand.matchScore), fontWeight: 700, fontSize: '0.8125rem', minWidth: 36, textAlign: 'right' }}>
-                              {cand.matchScore}%
-                            </Typography>
-                            <Button
-                              variant={cand.matchScore >= 85 ? 'contained' : 'outlined'}
-                              size="small"
-                              onClick={() => alignAffiliation(author.uid, affIdx, cand)}
-                              sx={{
-                                textTransform: 'none', fontWeight: 600, fontSize: '0.75rem',
-                                bgcolor: cand.matchScore >= 85 ? TEAL : 'transparent',
-                                color: cand.matchScore >= 85 ? 'white' : TEAL,
-                                borderColor: TEAL,
-                                '&:hover': { bgcolor: cand.matchScore >= 85 ? TEAL_DARK : TEAL_LIGHT, borderColor: TEAL },
-                              }}
-                            >
-                              Aligner
-                            </Button>
-                          </Paper>
-                        ))}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                          <Autocomplete
-                            size="small"
-                            options={MOCK_HAL_STRUCTURES}
-                            getOptionLabel={(o) => o.name}
-                            onChange={(_, value) => {
-                              if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
-                            }}
-                            sx={{ flex: 1, minWidth: 220 }}
-                            renderInput={(params) => <TextField {...params} placeholder="Rechercher dans AureHAL…" />}
-                          />
-                          <Link href="https://aurehal.archives-ouvertes.fr/structure/create" target="_blank" rel="noopener"
-                            sx={{ color: TEAL, textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}>
-                            Demander la création dans AureHAL
-                          </Link>
                         </Box>
                       </Paper>
                     )
-                  })}
-                </Box>
+                  }
 
-                {/* Add affiliation */}
-                <Autocomplete
-                  size="small"
-                  options={MOCK_HAL_STRUCTURES}
-                  getOptionLabel={(o) => o.name}
-                  onChange={(_, value) => { if (value) addAffiliation(author.uid, value) }}
-                  renderInput={(params) => <TextField {...params} placeholder="Ajouter une affiliation AureHAL" />}
-                />
+                  // Unaligned affiliation
+                  return (
+                    <Paper key={affIdx} elevation={0}
+                      sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.25 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <WarningAmber sx={{ color: WARN, fontSize: 15 }} />
+                        <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem', flex: 1 }}>
+                          Structure à aligner avec AureHAL
+                        </Typography>
+                        <IconButton size="small" onClick={() => removeAffiliation(author.uid, affIdx)}
+                          sx={{ color: '#C0C8C7', '&:hover': { color: '#D32F2F' }, p: 0.5 }}>
+                          <DeleteOutline sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Box>
+                      <Typography sx={{ color: TEAL, fontSize: '0.8125rem', mb: 1 }}>
+                        Texte importé : <Box component="span" sx={{ fontStyle: 'italic', color: TEXT }}>« {aff.importedText} »</Box>
+                      </Typography>
+
+                      {aff.structureCandidates?.length ? (
+                        <>
+                          <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75 }}>
+                            Candidats AureHAL
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 1 }}>
+                            {aff.structureCandidates.map((cand, ci) => (
+                              <Paper key={ci} elevation={0}
+                                sx={{ bgcolor: 'white', border: `1.5px solid ${ci === 0 ? TEAL : BORDER}`, borderRadius: '8px', p: 1, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: 0.25 }}>
+                                    <Chip size="small" label={cand.shortName}
+                                      sx={{ height: 20, bgcolor: TEAL_LIGHT, color: TEAL, fontWeight: 700, fontSize: '0.6875rem' }} />
+                                    {cand.ror && <Chip size="small" label={`ROR ${cand.ror}`}
+                                      sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
+                                  </Box>
+                                  <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.8125rem' }}>{cand.fullName}</Typography>
+                                  {(cand.tutelles || cand.researchers) && (
+                                    <Typography sx={{ color: MUTED, fontSize: '0.6875rem', mt: 0.25 }}>
+                                      {cand.tutelles && <>Tutelles : {cand.tutelles}</>}
+                                      {cand.tutelles && cand.researchers && ' · '}
+                                      {cand.researchers && <>{cand.researchers} chercheurs</>}
+                                    </Typography>
+                                  )}
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
+                                  <Typography sx={{ color: matchColor(cand.matchScore), fontWeight: 700, fontSize: '0.8125rem' }}>
+                                    • {cand.matchScore} %
+                                  </Typography>
+                                  <Button
+                                    variant={cand.matchScore >= 85 ? 'contained' : 'outlined'}
+                                    size="small"
+                                    onClick={() => alignAffiliation(author.uid, affIdx, cand)}
+                                    sx={{
+                                      textTransform: 'none', fontWeight: 600, fontSize: '0.75rem',
+                                      bgcolor: cand.matchScore >= 85 ? TEAL : 'transparent',
+                                      color: cand.matchScore >= 85 ? 'white' : TEAL,
+                                      borderColor: TEAL,
+                                      '&:hover': { bgcolor: cand.matchScore >= 85 ? TEAL_DARK : TEAL_LIGHT, borderColor: TEAL },
+                                    }}
+                                  >
+                                    Aligner
+                                  </Button>
+                                </Box>
+                              </Paper>
+                            ))}
+                          </Box>
+                        </>
+                      ) : null}
+
+                      {/* Manual structure search */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                        <Autocomplete
+                          size="small"
+                          options={MOCK_HAL_STRUCTURES}
+                          getOptionLabel={(o) => o.name}
+                          onChange={(_, value) => {
+                            if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
+                          }}
+                          sx={{ flex: 1, minWidth: 160 }}
+                          renderInput={(params) => <TextField {...params} placeholder="Rechercher dans AureHAL…" />}
+                        />
+                        <Button size="small"
+                          onClick={() => window.open('https://aurehal.archives-ouvertes.fr/structure/create', '_blank')}
+                          sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap', p: 0, minWidth: 'auto' }}>
+                          Demander la création dans AureHAL
+                        </Button>
+                      </Box>
+                    </Paper>
+                  )
+                })}
+
+                {/* Add affiliation accordion */}
+                <Accordion elevation={0} disableGutters
+                  sx={{ border: `1px dashed ${BORDER}`, borderRadius: '8px !important', '&:before': { display: 'none' }, bgcolor: 'transparent' }}>
+                  <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 18, color: TEAL }} />}
+                    sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0 }, px: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Add sx={{ fontSize: 16, color: TEAL }} />
+                      <Typography sx={{ color: TEAL, fontSize: '0.8125rem', fontWeight: 600 }}>
+                        Ajouter une affiliation AureHAL
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ px: 1.5, pb: 1.5 }}>
+                    <Autocomplete
+                      size="small"
+                      options={MOCK_HAL_STRUCTURES}
+                      getOptionLabel={(o) => o.name}
+                      onChange={(_, value) => { if (value) addAffiliation(author.uid, value) }}
+                      renderInput={(params) => <TextField {...params} placeholder="Rechercher une structure dans AureHAL" />}
+                    />
+                  </AccordionDetails>
+                </Accordion>
               </Box>
             </Box>
           </Paper>
         )
       })}
 
-      {/* ── Global action bar ─────────────────────────────────────────────── */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2 }}>
+      {/* ── Bottom action bar ─────────────────────────────────────────────── */}
+      <Divider sx={{ mb: 2 }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Button
-          variant="outlined"
-          size="small"
-          startIcon={<PersonAdd sx={{ fontSize: 16 }} />}
-          onClick={() => addAuthor()}
-          sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { borderColor: TEAL_DARK, bgcolor: TEAL_LIGHT } }}
+          variant="text"
+          startIcon={<Add sx={{ fontSize: 18 }} />}
+          onClick={addAuthor}
+          sx={{ color: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_LIGHT } }}
         >
           Ajouter un auteur
         </Button>
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button variant="text"
+            sx={{ color: MUTED, textTransform: 'none', '&:hover': { bgcolor: SURFACE } }}>
+            Annuler les modifications
+          </Button>
+          <Button variant="contained"
+            sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
+            Enregistrer
+          </Button>
+        </Box>
       </Box>
     </Box>
   )
