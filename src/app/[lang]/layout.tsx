@@ -69,4 +69,8 @@ const RootLayout = async ({ params, children }: Props) => {
     </html>
   )
 }
+export function generateStaticParams() {
+  return [{ lang: 'fr' }, { lang: 'en' }]
+}
+
 export default RootLayout

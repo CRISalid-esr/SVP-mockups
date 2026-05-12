@@ -1,5 +1,9 @@
 'use client'
 
+export function generateStaticParams() {
+  return [{ uid: 'doc-1' }, { uid: 'doc-2' }]
+}
+
 import { t } from '@lingui/core/macro'
 import { TabFilter } from '@/components/TabFilter'
 import useStore from '@/stores/global_store'
