@@ -30,7 +30,7 @@ import {
 import { Activity, ActivityType } from '@/types/Activity'
 import { CustomCard } from '@/components/Card'
 
-type UntitledIcon = React.ComponentType<{ size?: number; style?: React.CSSProperties; className?: string }>
+type UntitledIcon = React.ComponentType<{ size?: number; style?: React.CSSProperties; className?: string; color?: string }>
 
 const Briefcase = Briefcase01 as UntitledIcon
 const Users = Users01 as UntitledIcon
