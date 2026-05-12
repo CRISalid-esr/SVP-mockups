@@ -1,6 +1,7 @@
 import { InstitutionalLogos } from '@/types/InstitutionalLogos'
+import { publicPath } from '@/utils/publicPath'
 
 export const logos: InstitutionalLogos = {
-  darkSideBarLogo: '/icons/logo-dark.svg',
-  lightSideBarLogo: '/icons/logo-light.svg',
+  darkSideBarLogo: publicPath('/icons/logo-dark.svg'),
+  lightSideBarLogo: publicPath('/icons/logo-light.svg'),
 }

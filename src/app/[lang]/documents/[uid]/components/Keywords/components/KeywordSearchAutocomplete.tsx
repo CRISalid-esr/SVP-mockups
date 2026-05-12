@@ -27,6 +27,7 @@ import {
 } from '@/lib/services/VocabSearchClient'
 import { Vocab } from '@/types/Vocab'
 import Image from 'next/image'
+import { publicPath } from '@/utils/publicPath'
 import { VOCABS } from '@/lib/services/Vocabs'
 import { Trans } from '@lingui/react'
 import { Concept } from '@/types/Concept'
@@ -321,7 +322,7 @@ const KeywordSearchAutocomplete = ({
                   src={
                     group
                       ? VOCABS[group?.vocab.toUpperCase()].icon
-                      : '/icons/default.png'
+                      : publicPath('/icons/default.png')
                   }
                   alt={(group ? group.vocab.toUpperCase() : 'Vocab') + ' icon'}
                   width={24}

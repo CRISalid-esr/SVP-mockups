@@ -1,6 +1,7 @@
 'use client'
 
 import { Trans } from '@lingui/react/macro'
+import { publicPath } from '@/utils/publicPath'
 import {
   Box,
   Button,
@@ -136,7 +137,7 @@ const DocumentSyncDialog: FC<DocumentSyncDialogProps> = ({
 
                 {data.status === 'not_performed' && (
                   <Image
-                    src='/icons/inactive.svg'
+                    src={publicPath('/icons/inactive.svg')}
                     alt='not performed'
                     width={40}
                     height={40}
@@ -148,7 +149,7 @@ const DocumentSyncDialog: FC<DocumentSyncDialogProps> = ({
                 )}
                 {data.status === 'completed' && (
                   <Image
-                    src='/icons/success.svg'
+                    src={publicPath('/icons/success.svg')}
                     alt='success'
                     width={40}
                     height={40}
@@ -164,7 +165,7 @@ const DocumentSyncDialog: FC<DocumentSyncDialogProps> = ({
 
                 {data.status === 'failed' && (
                   <Image
-                    src='/icons/error.svg'
+                    src={publicPath('/icons/error.svg')}
                     alt='error'
                     width={40}
                     height={40}

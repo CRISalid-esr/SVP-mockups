@@ -3,6 +3,7 @@
 import { Button } from '@mui/material'
 import Image from 'next/image'
 import React from 'react'
+import { publicPath } from '@/utils/publicPath'
 import { Trans } from '@lingui/react'
 import { getRuntimeEnv } from '@/utils/runtimeEnv'
 import * as Lingui from '@lingui/core'
@@ -47,7 +48,7 @@ export const HalLoginButton = ({ halProvided }: { halProvided: boolean }) => {
       variant='outlined'
       href={authUrl}
       startIcon={
-        <Image src='/icons/hal.png' alt='HAL logo' width={20} height={20} />
+        <Image src={publicPath('/icons/hal.png')} alt='HAL logo' width={20} height={20} />
       }
       sx={{
         borderColor: '#1E88E5',

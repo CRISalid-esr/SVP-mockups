@@ -886,7 +886,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                       }}
                     >
                       <Image
-                        src='/icons/language.svg'
+                        src={publicPath('/icons/language.svg')}
                         alt='language'
                         style={{ fill: 'red' }}
                         width={24}
@@ -937,7 +937,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                   }}
                 >
                   <Image
-                    src='/icons/avatar.png'
+                    src={publicPath('/icons/avatar.png')}
                     alt='avatar'
                     width={40}
                     height={40}
@@ -1026,7 +1026,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                   }}
                 >
                   <Image
-                    src='/icons/avatar.png'
+                    src={publicPath('/icons/avatar.png')}
                     alt='avatar'
                     width={24}
                     height={24}

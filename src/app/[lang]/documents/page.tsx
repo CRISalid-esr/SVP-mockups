@@ -43,6 +43,7 @@ import {
   MRT_SortingState,
 } from 'material-react-table'
 import Image from 'next/image'
+import { publicPath } from '@/utils/publicPath'
 import { useRouter, useSearchParams } from 'next/navigation' // Import useRouter
 import React, {
   ReactElement,
@@ -438,7 +439,7 @@ const DocumentsPage = () => {
                     BibliographicPlatformMetadata[record.platform]
                   const imageElement = (
                     <Image
-                      src={metadata?.icon || '/icons/default.png'}
+                      src={metadata?.icon || publicPath('/icons/default.png')}
                       alt={metadata?.name || 'Unknown Source'}
                       width={24}
                       height={24}
@@ -488,7 +489,7 @@ const DocumentsPage = () => {
                 >
                   <Typography>{metadata?.name || platform}</Typography>
                   <Image
-                    src={metadata?.icon || '/icons/default.png'}
+                    src={metadata?.icon || publicPath('/icons/default.png')}
                     alt={metadata?.name || 'Unknown Source'}
                     width={24}
                     height={24}

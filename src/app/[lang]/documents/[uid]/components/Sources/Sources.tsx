@@ -1,4 +1,5 @@
 import { t } from '@lingui/core/macro'
+import { publicPath } from '@/utils/publicPath'
 import { CustomCard } from '@/components/Card'
 import { LanguageChips } from '@/components/LanguageChips'
 import useStore from '@/stores/global_store'
@@ -292,7 +293,7 @@ const Sources = () => {
           const metadata = BibliographicPlatformMetadata[platform]
           const imageElement = (
             <Image
-              src={metadata?.icon || '/icons/default.png'}
+              src={metadata?.icon || publicPath('/icons/default.png')}
               alt={metadata?.name || 'Unknown Source'}
               width={24}
               height={24}
@@ -344,7 +345,7 @@ const Sources = () => {
                 >
                   <Typography>{metadata?.name || platform}</Typography>
                   <Image
-                    src={metadata?.icon || '/icons/default.png'}
+                    src={metadata?.icon || publicPath('/icons/default.png')}
                     alt={metadata?.name || 'Unknown Source'}
                     width={24}
                     height={24}

@@ -23,6 +23,7 @@ import StoreChecker from '@/components/StoreChecker'
 import React from 'react'
 import { dbCheckup } from 'src/app/lib/db_checkup'
 import Image from 'next/image'
+import { publicPath } from '@/utils/publicPath'
 import { Grid } from '@mui/system'
 import Link from 'next/link'
 import { Metadata } from 'next'
@@ -55,7 +56,7 @@ const SetupChecks = async () => {
               <Typography variant='h5' component='div'>
                 Deployment |{' '}
                 <Image
-                  src='/icons/docker.svg'
+                  src={publicPath('/icons/docker.svg')}
                   alt='Docker logo'
                   style={{ marginLeft: 10, verticalAlign: 'middle' }}
                   width={40}
@@ -101,7 +102,7 @@ const SetupChecks = async () => {
               <Typography variant='h5' component='div'>
                 Database Checkup |{' '}
                 <Image
-                  src='/icons/prisma.svg'
+                  src={publicPath('/icons/prisma.svg')}
                   alt='Database logo'
                   style={{ marginLeft: 10, verticalAlign: 'middle' }}
                   width={100}

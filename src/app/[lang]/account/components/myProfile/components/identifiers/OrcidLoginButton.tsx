@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react'
 import Image from 'next/image'
+import { publicPath } from '@/utils/publicPath'
 import {
   Box,
   Button,
@@ -195,7 +196,7 @@ export const OrcidLoginButton = ({
         href={authUrl}
         startIcon={
           <Image
-            src='/icons/orcid-logo.png'
+            src={publicPath('/icons/orcid-logo.png')}
             alt='ORCID logo'
             width={20}
             height={20}

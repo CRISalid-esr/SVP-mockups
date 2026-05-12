@@ -2,6 +2,7 @@
 
 import { t } from '@lingui/core/macro'
 import Image from 'next/image'
+import { publicPath } from '@/utils/publicPath'
 import { Box } from '@mui/system'
 import {
   ListItemText,
@@ -56,7 +57,7 @@ const LanguageSwitcher = ({ value }: Props) => {
       renderValue={(val) => (
         <Box sx={{ display: 'flex' }}>
           <Image
-            src='/icons/language.svg'
+            src={publicPath('/icons/language.svg')}
             alt='language'
             width={24}
             height={24}
