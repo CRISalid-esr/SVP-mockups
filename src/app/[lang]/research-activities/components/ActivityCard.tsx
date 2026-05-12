@@ -13,24 +13,37 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
-    Briefcase01 as Briefcase,
-    Users01 as Users,
-    BookOpen01 as BookOpen,
-    Lightbulb01 as Lightbulb,
-    Announcement01 as Megaphone,
-    Award01 as Award,
-    File02 as FileText,
-    GraduationHat01 as GraduationCap,
-    Calendar,
-    Link01 as LinkIcon,
-    Edit01 as Edit,
-    Trash01 as Trash2,
+    Briefcase01,
+    Users01,
+    BookOpen01,
+    Lightbulb01,
+    Announcement01,
+    Award01,
+    File02,
+    GraduationHat01,
+    Calendar as CalendarIcon,
+    Link01,
+    Edit01,
+    Trash01,
 } from '@untitled-ui/icons-react'
 
 import { Activity, ActivityType } from '@/types/Activity'
 import { CustomCard } from '@/components/Card'
 
 type UntitledIcon = React.ComponentType<{ size?: number; style?: React.CSSProperties; className?: string }>
+
+const Briefcase = Briefcase01 as UntitledIcon
+const Users = Users01 as UntitledIcon
+const BookOpen = BookOpen01 as UntitledIcon
+const Lightbulb = Lightbulb01 as UntitledIcon
+const Megaphone = Announcement01 as UntitledIcon
+const Award = Award01 as UntitledIcon
+const FileText = File02 as UntitledIcon
+const GraduationCap = GraduationHat01 as UntitledIcon
+const Calendar = CalendarIcon as UntitledIcon
+const LinkIcon = Link01 as UntitledIcon
+const Edit = Edit01 as UntitledIcon
+const Trash2 = Trash01 as UntitledIcon
 
 interface ActivityCardProps {
     activity: Activity
