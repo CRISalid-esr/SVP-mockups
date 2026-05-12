@@ -30,13 +30,15 @@ import {
 import { Activity, ActivityType } from '@/types/Activity'
 import { CustomCard } from '@/components/Card'
 
+type UntitledIcon = React.ComponentType<{ size?: number; style?: React.CSSProperties; className?: string }>
+
 interface ActivityCardProps {
     activity: Activity
     onEdit?: (activity: Activity) => void
     onDelete?: (activity: Activity) => void
 }
 
-const getActivityIcon = (type: ActivityType) => {
+const getActivityIcon = (type: ActivityType): UntitledIcon => {
     switch (type) {
         case 'projet': return Briefcase
         case 'encadrement': return Users
