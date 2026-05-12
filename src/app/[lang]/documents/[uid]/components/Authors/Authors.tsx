@@ -324,13 +324,13 @@ const Authors = () => {
               <WarningAmber sx={{ color: WARN, mt: '2px', flexShrink: 0, fontSize: 20 }} />
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.9375rem', mb: 0.25 }}>
-                  {pending} alignement{pending > 1 ? 's' : ''} AureHAL requis avant le dépôt
+                  Retrouvez les auteurs et les affiliations HAL manquants
                 </Typography>
                 <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                  {stats.missingIdhal > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.missingIdhal}</Box> auteur{stats.missingIdhal > 1 ? 's' : ''} sans IdHAL</>}
+                  {stats.missingIdhal > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.missingIdhal}</Box> auteur{stats.missingIdhal > 1 ? 's' : ''} non trouvé{stats.missingIdhal > 1 ? 's' : ''} dans HAL</>}
                   {stats.missingIdhal > 0 && stats.unalignedAff > 0 && ' · '}
-                  {stats.unalignedAff > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.unalignedAff}</Box> affiliation{stats.unalignedAff > 1 ? 's' : ''} non alignée{stats.unalignedAff > 1 ? 's' : ''}</>}
-                  {". L'identification des personnes et structures dans AureHAL est indispensable pour transmettre le dépôt à HAL."}
+                  {stats.unalignedAff > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.unalignedAff}</Box> affiliation{stats.unalignedAff > 1 ? 's' : ''} HAL manquante{stats.unalignedAff > 1 ? 's' : ''}</>}
+                  {'. Identifier les personnes et les structures dans HAL est nécessaire avant le dépôt.'}
                 </Typography>
               </Box>
               <Button
@@ -358,7 +358,7 @@ const Authors = () => {
           <Paper elevation={0} sx={{ bgcolor: TEAL_LIGHT, border: `1px solid ${BORDER}`, borderRadius: '12px', p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <CheckCircle sx={{ color: SUCCESS, fontSize: 20 }} />
             <Typography sx={{ color: TEXT, fontSize: '0.9375rem', fontWeight: 600 }}>
-              Tous les auteurs et affiliations sont alignés avec AureHAL.
+              Tous les auteurs et leurs affiliations HAL ont été trouvés.
             </Typography>
             <Typography sx={{ color: MUTED, fontSize: '0.8125rem', ml: 'auto' }}>
               <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems} / {stats.totalItems}</Box> alignés · {stats.pct} %
@@ -406,12 +406,14 @@ const Authors = () => {
                   </IconButton>
                 </Box>
 
-                {/* IdHAL status */}
+                {/* HAL status */}
                 {author.idhal ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <CheckCircle sx={{ color: SUCCESS, fontSize: 16 }} />
-                    <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>IDHAL</Typography>
-                    <Typography sx={{ fontSize: '0.8125rem', color: TEAL, fontWeight: 600 }}>{author.idhal}</Typography>
+                    <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>Trouvé dans HAL</Typography>
+                    {!author.idhal.startsWith('_anon_') && (
+                      <Typography sx={{ fontSize: '0.8125rem', color: TEAL }}>{author.idhal}</Typography>
+                    )}
                     <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
                       sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto', '&:hover': { color: TEAL } }}>
                       Changer
@@ -421,20 +423,20 @@ const Authors = () => {
                   <Chip
                     size="small"
                     icon={<WarningAmber sx={{ fontSize: '14px !important', color: `${WARN} !important`, ml: '4px !important' }} />}
-                    label="Sans IdHAL"
+                    label="Non trouvé dans HAL"
                     sx={{ height: 24, bgcolor: WARN_BG, color: WARN, fontWeight: 600, fontSize: '0.75rem', border: `1px solid ${WARN_BORDER}`, mb: 1.5 }}
                   />
                 )}
 
-                {/* IdHAL alignment panel */}
+                {/* HAL identity panel */}
                 {needsIdhal && (
                   <Paper elevation={0} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
                     <Box sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'flex-start' }}>
                       <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
-                        Identité AureHAL à confirmer
+                        Auteur non trouvé dans HAL
                       </Typography>
                       <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                        {`— cet auteur n'a pas d'IdHAL. Sélectionnez son identité pour permettre le dépôt HAL.`}
+                        {`— sélectionnez cet auteur dans HAL pour permettre le dépôt.`}
                       </Typography>
                     </Box>
 
@@ -452,7 +454,7 @@ const Authors = () => {
                     {hasCandidates && (
                       <>
                         <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>
-                          Candidats AureHAL · {author.idhalCandidates!.length}
+                          Candidats HAL · {author.idhalCandidates!.length}
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                           {author.idhalCandidates!.slice(0, expanded ? undefined : 3).map((candidate, ci) => (
@@ -511,12 +513,12 @@ const Authors = () => {
                           <Button size="small"
                             onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
                             sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                            {`Créer un IdHAL pour ${author.displayName}`}
+                            {`Créer un profil HAL pour ${author.displayName}`}
                           </Button>
                           <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
                           <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
                             sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                            Déposer sans IdHAL
+                            Déposer quand même
                           </Button>
                         </Box>
                       </>
@@ -527,12 +529,12 @@ const Authors = () => {
                         <Button size="small"
                           onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
                           sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, p: 0, minWidth: 'auto' }}>
-                          {`Créer un IdHAL pour ${author.displayName}`}
+                          {`Créer un profil HAL pour ${author.displayName}`}
                         </Button>
                         <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
                         <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
                           sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                          Déposer sans IdHAL
+                          Déposer quand même
                         </Button>
                       </Box>
                     )}
@@ -602,7 +604,7 @@ const Authors = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                         <WarningAmber sx={{ color: WARN, fontSize: 15 }} />
                         <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem', flex: 1 }}>
-                          Structure à aligner avec AureHAL
+                          Affiliation HAL manquante
                         </Typography>
                         <IconButton size="small" onClick={() => removeAffiliation(author.uid, affIdx)}
                           sx={{ color: '#C0C8C7', '&:hover': { color: '#D32F2F' }, p: 0.5 }}>
@@ -616,7 +618,7 @@ const Authors = () => {
                       {aff.structureCandidates?.length ? (
                         <>
                           <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75 }}>
-                            Candidats AureHAL
+                            Candidats HAL
                           </Typography>
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 1 }}>
                             {aff.structureCandidates.map((cand, ci) => (
@@ -673,12 +675,12 @@ const Authors = () => {
                             if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
                           }}
                           sx={{ flex: 1, minWidth: 160 }}
-                          renderInput={(params) => <TextField {...params} placeholder="Rechercher dans AureHAL…" />}
+                          renderInput={(params) => <TextField {...params} placeholder="Rechercher dans HAL…" />}
                         />
                         <Button size="small"
                           onClick={() => window.open('https://aurehal.archives-ouvertes.fr/structure/create', '_blank')}
                           sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap', p: 0, minWidth: 'auto' }}>
-                          Demander la création dans AureHAL
+                          Créer dans HAL
                         </Button>
                       </Box>
                     </Paper>
@@ -693,7 +695,7 @@ const Authors = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                       <Add sx={{ fontSize: 16, color: TEAL }} />
                       <Typography sx={{ color: TEAL, fontSize: '0.8125rem', fontWeight: 600 }}>
-                        Ajouter une affiliation AureHAL
+                        Ajouter une affiliation HAL
                       </Typography>
                     </Box>
                   </AccordionSummary>
@@ -703,7 +705,7 @@ const Authors = () => {
                       options={MOCK_HAL_STRUCTURES}
                       getOptionLabel={(o) => o.name}
                       onChange={(_, value) => { if (value) addAffiliation(author.uid, value) }}
-                      renderInput={(params) => <TextField {...params} placeholder="Rechercher une structure dans AureHAL" />}
+                      renderInput={(params) => <TextField {...params} placeholder="Rechercher une structure dans HAL" />}
                     />
                   </AccordionDetails>
                 </Accordion>
