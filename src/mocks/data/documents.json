@@ -37,10 +37,53 @@
                     "createdAt": "2023-01-01T00:00:00.000Z",
                     "updatedAt": "2023-01-01T00:00:00.000Z"
                 },
-                "roles": [
-                    "author"
-                ],
+                "roles": ["author"],
                 "rank": 1
+            },
+            {
+                "person": {
+                    "id": 2,
+                    "uid": "person-2",
+                    "firstName": "Sophie",
+                    "lastName": "Martin",
+                    "displayName": "Sophie Martin",
+                    "email": "sophie.martin@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 2
+            },
+            {
+                "person": {
+                    "id": 10,
+                    "uid": "person-ext-1",
+                    "firstName": "Pierre",
+                    "lastName": "Bernard",
+                    "displayName": "Pierre Bernard",
+                    "email": null,
+                    "external": true,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 3
+            },
+            {
+                "person": {
+                    "id": 11,
+                    "uid": "person-ext-2",
+                    "firstName": "Anne",
+                    "lastName": "Leclerc",
+                    "displayName": "Anne Leclerc",
+                    "email": null,
+                    "external": true,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["auteur_correspondant"],
+                "rank": 4
             }
         ],
         "records": [
