@@ -520,7 +520,7 @@ const Authors = () => {
                         Identité AureHAL à confirmer
                       </Typography>
                       <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                        — cet auteur n'a pas d'IdHAL.
+                        {`— cet auteur n'a pas d'IdHAL.`}
                       </Typography>
                     </Box>
 
