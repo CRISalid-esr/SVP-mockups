@@ -12,7 +12,6 @@ import {
   Typography,
 } from '@mui/material'
 import { Add } from '@mui/icons-material'
-import { t } from '@lingui/core/macro'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import useStore from '@/stores/global_store'
 import * as Lingui from '@lingui/core'

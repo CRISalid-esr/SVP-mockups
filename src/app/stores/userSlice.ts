@@ -73,14 +73,13 @@ export const addUserSlice: StateCreator<UserSlice, [], [], UserSlice> = (
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let entityJson: any
           let EntityClass: IAgentClass
-          if (slug.startsWith('person:')) {
-            entityJson = mockService.getPersonBySlug(slug)
-            EntityClass = Person
-          } else if (slug.startsWith('research-structure:')) {
+          if (slug.startsWith('research-structure:')) {
             entityJson = mockService.getResearchStructureBySlug(slug)
             EntityClass = ResearchStructure
           } else {
-            throw new Error(`Unknown slug type: ${slug}`)
+            // Accept both 'person:slug' and bare 'slug' forms
+            entityJson = mockService.getPersonBySlug(slug)
+            EntityClass = Person
           }
           if (!entityJson) throw new Error(`Entity not found: ${slug}`)
           entity = EntityClass.fromJson(entityJson)
