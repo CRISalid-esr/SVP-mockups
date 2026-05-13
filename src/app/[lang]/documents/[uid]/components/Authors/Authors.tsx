@@ -209,6 +209,8 @@ const Authors = () => {
   )
   const [expandedCandidates, setExpandedCandidates] = useState<Record<string, boolean>>({})
   const [candidateSearch, setCandidateSearch] = useState<Record<string, string>>({})
+  const [showIdhalCandidates, setShowIdhalCandidates] = useState<Record<string, boolean>>({})
+  const [showAffCandidates, setShowAffCandidates] = useState<Record<string, Record<number, boolean>>>({})
 
   const stats = useMemo(() => {
     const totalAuthors = authors.length
@@ -299,6 +301,15 @@ const Authors = () => {
     setAuthors((prev) => [...prev, { uid, displayName: 'Nouvel auteur', role: 'author', rank: prev.length + 1, external: true, affiliations: [] }])
   }
 
+  const toggleIdhalCandidates = (uid: string) =>
+    setShowIdhalCandidates((prev) => ({ ...prev, [uid]: !prev[uid] }))
+
+  const toggleAffCandidates = (uid: string, affIdx: number) =>
+    setShowAffCandidates((prev) => ({
+      ...prev,
+      [uid]: { ...(prev[uid] ?? {}), [affIdx]: !(prev[uid]?.[affIdx]) },
+    }))
+
   const pending = stats.missingIdhal + stats.unalignedAff
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -371,6 +382,7 @@ const Authors = () => {
       {authors.map((author) => {
         const needsIdhal = !author.idhal
         const hasCandidates = needsIdhal && (author.idhalCandidates?.length ?? 0) > 0
+        const candidatesVisible = showIdhalCandidates[author.uid]
         const expanded = expandedCandidates[author.uid]
         const search = candidateSearch[author.uid] ?? ''
 
@@ -451,16 +463,33 @@ const Authors = () => {
                       sx={{ mb: 1.5, bgcolor: 'white', borderRadius: 1 }}
                     />
 
-                    {hasCandidates && (
+                    {/* Candidates — hidden until user clicks "Suggérer" */}
+                    {hasCandidates && !candidatesVisible && (
+                      <Button
+                        size="small"
+                        onClick={() => toggleIdhalCandidates(author.uid)}
+                        sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, p: 0, minWidth: 'auto' }}
+                      >
+                        {`Suggérer (${author.idhalCandidates!.length} correspondance${author.idhalCandidates!.length > 1 ? 's' : ''} HAL trouvée${author.idhalCandidates!.length > 1 ? 's' : ''}) →`}
+                      </Button>
+                    )}
+
+                    {hasCandidates && candidatesVisible && (
                       <>
-                        <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>
-                          Candidats HAL · {author.idhalCandidates!.length}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Candidats HAL · {author.idhalCandidates!.length}
+                          </Typography>
+                          <Button size="small" onClick={() => toggleIdhalCandidates(author.uid)}
+                            sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
+                            Masquer
+                          </Button>
+                        </Box>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                           {author.idhalCandidates!.slice(0, expanded ? undefined : 3).map((candidate, ci) => (
                             <Paper key={ci} elevation={0}
                               sx={{
-                                bgcolor: ci === 0 ? 'white' : 'white',
+                                bgcolor: 'white',
                                 border: `1.5px solid ${ci === 0 ? TEAL : BORDER}`,
                                 borderRadius: '8px', p: 1.25,
                                 display: 'flex', alignItems: 'center', gap: 1.5,
@@ -506,15 +535,9 @@ const Authors = () => {
                             <Button size="small"
                               onClick={() => setExpandedCandidates((prev) => ({ ...prev, [author.uid]: !prev[author.uid] }))}
                               sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                              {expanded ? 'Voir moins' : `Voir tous les candidats`}
+                              {expanded ? 'Voir moins' : 'Voir tous les candidats'}
                             </Button>
                           )}
-                          <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
-                          <Button size="small"
-                            onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
-                            sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                            {`Créer un profil HAL pour ${author.displayName}`}
-                          </Button>
                           <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
                           <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
                             sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
@@ -525,18 +548,10 @@ const Authors = () => {
                     )}
 
                     {!hasCandidates && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Button size="small"
-                          onClick={() => window.open(`https://aurehal.archives-ouvertes.fr/author/create`, '_blank')}
-                          sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, p: 0, minWidth: 'auto' }}>
-                          {`Créer un profil HAL pour ${author.displayName}`}
-                        </Button>
-                        <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
-                        <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
-                          sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                          Déposer quand même
-                        </Button>
-                      </Box>
+                      <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
+                        sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
+                        Déposer quand même
+                      </Button>
                     )}
                   </Paper>
                 )}
@@ -566,6 +581,7 @@ const Authors = () => {
 
                 {author.affiliations.map((aff, affIdx) => {
                   const affAligned = aff.halStructureId && !aff.importedText
+                  const affCandidatesVisible = showAffCandidates[author.uid]?.[affIdx]
 
                   if (affAligned) {
                     return (
@@ -615,74 +631,83 @@ const Authors = () => {
                         Texte importé : <Box component="span" sx={{ fontStyle: 'italic', color: TEXT }}>« {aff.importedText} »</Box>
                       </Typography>
 
+                      {/* Structure candidates — hidden until user clicks "Suggérer" */}
                       {aff.structureCandidates?.length ? (
-                        <>
-                          <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.75 }}>
-                            Candidats HAL
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 1 }}>
-                            {aff.structureCandidates.map((cand, ci) => (
-                              <Paper key={ci} elevation={0}
-                                sx={{ bgcolor: 'white', border: `1.5px solid ${ci === 0 ? TEAL : BORDER}`, borderRadius: '8px', p: 1, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: 0.25 }}>
-                                    <Chip size="small" label={cand.shortName}
-                                      sx={{ height: 20, bgcolor: TEAL_LIGHT, color: TEAL, fontWeight: 700, fontSize: '0.6875rem' }} />
-                                    {cand.ror && <Chip size="small" label={`ROR ${cand.ror}`}
-                                      sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
+                        !affCandidatesVisible ? (
+                          <Button
+                            size="small"
+                            onClick={() => toggleAffCandidates(author.uid, affIdx)}
+                            sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, p: 0, minWidth: 'auto', mb: 1 }}
+                          >
+                            {`Suggérer (${aff.structureCandidates.length} correspondance${aff.structureCandidates.length > 1 ? 's' : ''} HAL trouvée${aff.structureCandidates.length > 1 ? 's' : ''}) →`}
+                          </Button>
+                        ) : (
+                          <>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.75 }}>
+                              <Typography sx={{ color: MUTED, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Candidats HAL
+                              </Typography>
+                              <Button size="small" onClick={() => toggleAffCandidates(author.uid, affIdx)}
+                                sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
+                                Masquer
+                              </Button>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 1 }}>
+                              {aff.structureCandidates.map((cand, ci) => (
+                                <Paper key={ci} elevation={0}
+                                  sx={{ bgcolor: 'white', border: `1.5px solid ${ci === 0 ? TEAL : BORDER}`, borderRadius: '8px', p: 1, display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mb: 0.25 }}>
+                                      <Chip size="small" label={cand.shortName}
+                                        sx={{ height: 20, bgcolor: TEAL_LIGHT, color: TEAL, fontWeight: 700, fontSize: '0.6875rem' }} />
+                                      {cand.ror && <Chip size="small" label={`ROR ${cand.ror}`}
+                                        sx={{ height: 18, fontSize: '0.6875rem', bgcolor: TEAL_LIGHT, color: TEAL }} />}
+                                    </Box>
+                                    <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.8125rem' }}>{cand.fullName}</Typography>
+                                    {(cand.tutelles || cand.researchers) && (
+                                      <Typography sx={{ color: MUTED, fontSize: '0.6875rem', mt: 0.25 }}>
+                                        {cand.tutelles && <>Tutelles : {cand.tutelles}</>}
+                                        {cand.tutelles && cand.researchers && ' · '}
+                                        {cand.researchers && <>{cand.researchers} chercheurs</>}
+                                      </Typography>
+                                    )}
                                   </Box>
-                                  <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.8125rem' }}>{cand.fullName}</Typography>
-                                  {(cand.tutelles || cand.researchers) && (
-                                    <Typography sx={{ color: MUTED, fontSize: '0.6875rem', mt: 0.25 }}>
-                                      {cand.tutelles && <>Tutelles : {cand.tutelles}</>}
-                                      {cand.tutelles && cand.researchers && ' · '}
-                                      {cand.researchers && <>{cand.researchers} chercheurs</>}
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
+                                    <Typography sx={{ color: matchColor(cand.matchScore), fontWeight: 700, fontSize: '0.8125rem' }}>
+                                      • {cand.matchScore} %
                                     </Typography>
-                                  )}
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5, flexShrink: 0 }}>
-                                  <Typography sx={{ color: matchColor(cand.matchScore), fontWeight: 700, fontSize: '0.8125rem' }}>
-                                    • {cand.matchScore} %
-                                  </Typography>
-                                  <Button
-                                    variant={cand.matchScore >= 85 ? 'contained' : 'outlined'}
-                                    size="small"
-                                    onClick={() => alignAffiliation(author.uid, affIdx, cand)}
-                                    sx={{
-                                      textTransform: 'none', fontWeight: 600, fontSize: '0.75rem',
-                                      bgcolor: cand.matchScore >= 85 ? TEAL : 'transparent',
-                                      color: cand.matchScore >= 85 ? 'white' : TEAL,
-                                      borderColor: TEAL,
-                                      '&:hover': { bgcolor: cand.matchScore >= 85 ? TEAL_DARK : TEAL_LIGHT, borderColor: TEAL },
-                                    }}
-                                  >
-                                    Aligner
-                                  </Button>
-                                </Box>
-                              </Paper>
-                            ))}
-                          </Box>
-                        </>
+                                    <Button
+                                      variant={cand.matchScore >= 85 ? 'contained' : 'outlined'}
+                                      size="small"
+                                      onClick={() => alignAffiliation(author.uid, affIdx, cand)}
+                                      sx={{
+                                        textTransform: 'none', fontWeight: 600, fontSize: '0.75rem',
+                                        bgcolor: cand.matchScore >= 85 ? TEAL : 'transparent',
+                                        color: cand.matchScore >= 85 ? 'white' : TEAL,
+                                        borderColor: TEAL,
+                                        '&:hover': { bgcolor: cand.matchScore >= 85 ? TEAL_DARK : TEAL_LIGHT, borderColor: TEAL },
+                                      }}
+                                    >
+                                      Aligner
+                                    </Button>
+                                  </Box>
+                                </Paper>
+                              ))}
+                            </Box>
+                          </>
+                        )
                       ) : null}
 
                       {/* Manual structure search */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                        <Autocomplete
-                          size="small"
-                          options={MOCK_HAL_STRUCTURES}
-                          getOptionLabel={(o) => o.name}
-                          onChange={(_, value) => {
-                            if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
-                          }}
-                          sx={{ flex: 1, minWidth: 160 }}
-                          renderInput={(params) => <TextField {...params} placeholder="Rechercher dans HAL…" />}
-                        />
-                        <Button size="small"
-                          onClick={() => window.open('https://aurehal.archives-ouvertes.fr/structure/create', '_blank')}
-                          sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap', p: 0, minWidth: 'auto' }}>
-                          Créer dans HAL
-                        </Button>
-                      </Box>
+                      <Autocomplete
+                        size="small"
+                        options={MOCK_HAL_STRUCTURES}
+                        getOptionLabel={(o) => o.name}
+                        onChange={(_, value) => {
+                          if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
+                        }}
+                        renderInput={(params) => <TextField {...params} placeholder="Rechercher dans HAL…" />}
+                      />
                     </Paper>
                   )
                 })}
