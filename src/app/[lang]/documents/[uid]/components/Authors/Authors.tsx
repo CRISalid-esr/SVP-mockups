@@ -9,7 +9,6 @@ import {
   CheckCircle,
   DeleteOutline,
   DragIndicator,
-  Edit,
   ExpandMore,
   KeyboardArrowDown,
   KeyboardArrowUp,
@@ -413,9 +412,6 @@ const Authors = () => {
                       <Box component="img" src={publicPath('/icons/orcid.png')} alt="ORCID" sx={{ width: 16, height: 16 }} />
                     </Tooltip>
                   )}
-                  <IconButton size="small" sx={{ color: MUTED, p: 0.5 }}>
-                    <Edit sx={{ fontSize: 16 }} />
-                  </IconButton>
                 </Box>
 
                 {/* HAL status */}
@@ -521,29 +517,18 @@ const Authors = () => {
                           ))}
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1, flexWrap: 'wrap' }}>
-                          {author.idhalCandidates!.length > 3 && (
+                        {author.idhalCandidates!.length > 3 && (
+                          <Box sx={{ mt: 1 }}>
                             <Button size="small"
                               onClick={() => setExpandedCandidates((prev) => ({ ...prev, [author.uid]: !prev[author.uid] }))}
                               sx={{ color: TEAL, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
                               {expanded ? 'Voir moins' : 'Voir tous les candidats'}
                             </Button>
-                          )}
-                          <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>·</Typography>
-                          <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
-                            sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                            Déposer quand même
-                          </Button>
-                        </Box>
+                          </Box>
+                        )}
                       </>
                     )}
 
-                    {!hasCandidates && (
-                      <Button size="small" onClick={() => update(author.uid, { idhal: `_anon_${author.uid}` })}
-                        sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto' }}>
-                        Déposer quand même
-                      </Button>
-                    )}
                   </Paper>
                 )}
 
