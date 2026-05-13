@@ -12,7 +12,6 @@ import {
   Typography,
 } from '@mui/material'
 import { Add } from '@mui/icons-material'
-import { Trans } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import useStore from '@/stores/global_store'
@@ -184,7 +183,7 @@ const ResearchActivitiesPage = () => {
     <Box>
       <DocumentHeader
         perspectiveName={currentPerspective?.getDisplayName(lang) || ''}
-        pageName={t`research_activities_page_main_title`}
+        pageName={'Activités de recherche'}
       />
 
       <Box sx={{ p: 3 }}>
@@ -199,7 +198,7 @@ const ResearchActivitiesPage = () => {
         >
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 600, mb: 0.5 }}>
-              <Trans>research_activities_page_main_title</Trans>
+              {'Activités de recherche'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {'Gérez vos projets, encadrements et autres activités scientifiques'}
