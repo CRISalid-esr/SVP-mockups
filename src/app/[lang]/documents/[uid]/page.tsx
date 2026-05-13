@@ -18,9 +18,11 @@ import {
   DocumentDetailsHeader,
   DocumentDetailsTitle,
   Domains,
+  HalDeposit,
   Keywords,
   Sources,
 } from './components/'
+import { BibliographicPlatform } from '@/types/BibliographicPlatform'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { Trans } from '@lingui/react'
@@ -31,6 +33,20 @@ const DocumentDetailsPage = () => {
   const searchParams = useSearchParams()
   const { uid } = useParams<{ uid: string }>()
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
+
+  const [selectedTab, setSelectedTab] = useState('bibliographic_information')
+
+  const {
+    fetchDocumentById,
+    loading,
+    selectedDocument,
+    hasFetched,
+    setHasFetched,
+  } = useStore((state) => state.document)
+
+  const isHorsHal = selectedDocument
+    ? !selectedDocument.records.some((r) => r.platform === BibliographicPlatform.HAL)
+    : false
 
   const tabs = [
     {
@@ -58,17 +74,16 @@ const DocumentDetailsPage = () => {
       value: 'authors',
       color: theme.palette.primary.main,
     },
+    ...(isHorsHal
+      ? [
+          {
+            label: t`document_details_hal_deposit_tab`,
+            value: 'hal_deposit',
+            color: theme.palette.primary.main,
+          },
+        ]
+      : []),
   ]
-
-  const [selectedTab, setSelectedTab] = useState('bibliographic_information')
-
-  const {
-    fetchDocumentById,
-    loading,
-    selectedDocument,
-    hasFetched,
-    setHasFetched,
-  } = useStore((state) => state.document)
 
   useEffect(() => {
     if (selectedDocument?.uid == uid && hasFetched) {
@@ -125,6 +140,8 @@ const DocumentDetailsPage = () => {
         return <Keywords />
       case 'domains':
         return <Domains />
+      case 'hal_deposit':
+        return <HalDeposit />
       default:
         return <BibliographicInformation />
     }

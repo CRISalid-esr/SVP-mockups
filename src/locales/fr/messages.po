@@ -681,6 +681,10 @@ msgstr "Années début ↔ fin"
 msgid "document_details_authors_tab"
 msgstr "Auteurs"
 
+#: src/app/[lang]/documents/[uid]/page.tsx
+msgid "document_details_hal_deposit_tab"
+msgstr "Déposer dans HAL"
+
 #: src/app/[lang]/documents/[uid]/page.tsx:37
 msgid "document_details_bibliographic_information_tab"
 msgstr "Informations bibliographiques"
