@@ -76,10 +76,18 @@ export const addUserSlice: StateCreator<UserSlice, [], [], UserSlice> = (
           if (slug.startsWith('research-structure:')) {
             entityJson = mockService.getResearchStructureBySlug(slug)
             EntityClass = ResearchStructure
-          } else {
-            // Accept both 'person:slug' and bare 'slug' forms
+          } else if (slug.startsWith('person:')) {
             entityJson = mockService.getPersonBySlug(slug)
             EntityClass = Person
+          } else {
+            // Bare slug: try person first, then research structure
+            entityJson = mockService.getPersonBySlug(slug)
+            if (entityJson) {
+              EntityClass = Person
+            } else {
+              entityJson = mockService.getResearchStructureBySlug(slug)
+              EntityClass = ResearchStructure
+            }
           }
           if (!entityJson) throw new Error(`Entity not found: ${slug}`)
           entity = EntityClass.fromJson(entityJson)
