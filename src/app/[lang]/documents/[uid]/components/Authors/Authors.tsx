@@ -443,20 +443,11 @@ const Authors = () => {
                 {/* HAL identity panel */}
                 {needsIdhal && (
                   <Paper elevation={0} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'flex-start' }}>
-                      <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
-                        Auteur non trouvé dans HAL
-                      </Typography>
-                      <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                        {`— sélectionnez cet auteur dans HAL pour permettre le dépôt.`}
-                      </Typography>
-                    </Box>
-
                     {/* Candidate search */}
                     <TextField
                       size="small"
                       fullWidth
-                      placeholder={author.displayName}
+                      placeholder="Rechercher dans HAL"
                       value={search}
                       onChange={(e) => setCandidateSearch((prev) => ({ ...prev, [author.uid]: e.target.value }))}
                       InputProps={{ startAdornment: <Search sx={{ fontSize: 16, color: MUTED, mr: 1 }} /> }}
@@ -740,27 +731,27 @@ const Authors = () => {
         )
       })}
 
+      {/* ── Add author ────────────────────────────────────────────────────── */}
+      <Button
+        variant="text"
+        startIcon={<Add sx={{ fontSize: 18 }} />}
+        onClick={addAuthor}
+        sx={{ color: TEAL, textTransform: 'none', fontWeight: 600, mb: 2, '&:hover': { bgcolor: TEAL_LIGHT } }}
+      >
+        Ajouter un auteur
+      </Button>
+
       {/* ── Bottom action bar ─────────────────────────────────────────────── */}
       <Divider sx={{ mb: 2 }} />
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Button
-          variant="text"
-          startIcon={<Add sx={{ fontSize: 18 }} />}
-          onClick={addAuthor}
-          sx={{ color: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_LIGHT } }}
-        >
-          Ajouter un auteur
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+        <Button variant="text"
+          sx={{ color: MUTED, textTransform: 'none', '&:hover': { bgcolor: SURFACE } }}>
+          Annuler les modifications
         </Button>
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Button variant="text"
-            sx={{ color: MUTED, textTransform: 'none', '&:hover': { bgcolor: SURFACE } }}>
-            Annuler les modifications
-          </Button>
-          <Button variant="contained"
-            sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
-            Enregistrer
-          </Button>
-        </Box>
+        <Button variant="contained"
+          sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
+          Enregistrer
+        </Button>
       </Box>
     </Box>
   )
