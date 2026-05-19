@@ -1,10 +1,16 @@
 [
     {
         "uid": "lab-1",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "LIP6",
         "rnsr": "199512882V",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "LIP6" },
+            { "language": "en", "value": "LIP6" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Laboratoire d'Informatique de Paris 6" },
             { "language": "en", "value": "Paris 6 Computer Science Laboratory" }
         ],
@@ -21,10 +27,15 @@
     },
     {
         "uid": "lab-2",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "IPN",
         "rnsr": "199512902A",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "IPN" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Institut de Physique Nucléaire de Lyon" }
         ],
         "institutionNames": ["Université Claude Bernard Lyon 1", "CNRS"],
@@ -40,10 +51,16 @@
     },
     {
         "uid": "lab-3",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "LS2N",
         "rnsr": "201521843V",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "LS2N" },
+            { "language": "en", "value": "LS2N" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" },
             { "language": "en", "value": "Digital Sciences Laboratory of Nantes" }
         ],
@@ -60,10 +77,15 @@
     },
     {
         "uid": "lab-4",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "IRIT",
         "rnsr": "199312237R",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "IRIT" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Institut de Recherche en Informatique de Toulouse" }
         ],
         "institutionNames": ["Université Toulouse 3", "CNRS"],
@@ -79,10 +101,15 @@
     },
     {
         "uid": "lab-5",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "LIRMM",
         "rnsr": "199211571G",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "LIRMM" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Laboratoire d'Informatique, de Robotique et de Microélectronique de Montpellier" }
         ],
         "institutionNames": ["Université de Montpellier", "CNRS"],
@@ -98,10 +125,15 @@
     },
     {
         "uid": "lab-6",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "GREYC",
         "rnsr": "200017285V",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "GREYC" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Groupe de Recherche en Informatique, Image et Instrumentation de Caen" }
         ],
         "institutionNames": ["Université de Caen Normandie", "CNRS"],
@@ -117,10 +149,15 @@
     },
     {
         "uid": "lab-7",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UR",
+        "main_mission": "research",
         "acronym": "CERI SN",
         "rnsr": "200721867N",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "CERI SN" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Centre d'Enseignement et de Recherche en Informatique — Sciences du Numérique" }
         ],
         "institutionNames": ["Avignon Université"],
@@ -136,10 +173,15 @@
     },
     {
         "uid": "lab-8",
-        "type": "laboratory",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
         "acronym": "I3S",
         "rnsr": "199512909N",
-        "names": [
+        "short_labels": [
+            { "language": "fr", "value": "I3S" }
+        ],
+        "long_labels": [
             { "language": "fr", "value": "Laboratoire d'Informatique, Signaux et Systèmes de Sophia Antipolis" }
         ],
         "institutionNames": ["Université Côte d'Azur", "CNRS"],
@@ -152,5 +194,55 @@
         ],
         "external": false,
         "slug": "i3s"
+    },
+    {
+        "uid": "unit-9",
+        "generic_type": "unit",
+        "national_type": "UAR",
+        "main_mission": "scientific_services",
+        "acronym": "MeSU",
+        "rnsr": "201220379C",
+        "short_labels": [
+            { "language": "fr", "value": "MeSU" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Mésocentre de calcul — Sorbonne Université" },
+            { "language": "en", "value": "Computing Center — Sorbonne Université" }
+        ],
+        "institutionNames": ["Sorbonne Université", "CNRS"],
+        "membersCount": 18,
+        "publicationsCount": 8,
+        "oaRate": 100,
+        "halRate": 88,
+        "descriptions": [
+            { "language": "fr", "value": "Infrastructure de calcul intensif mutualisée." }
+        ],
+        "external": false,
+        "slug": "mesu"
+    },
+    {
+        "uid": "unit-10",
+        "generic_type": "unit",
+        "national_type": null,
+        "local_types": [{ "language": "fr", "value": "Service commun de documentation" }],
+        "main_mission": "administrative_services",
+        "acronym": "BU Sciences",
+        "rnsr": null,
+        "short_labels": [
+            { "language": "fr", "value": "BU Sciences" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Bibliothèque universitaire — Pôle Sciences" }
+        ],
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 32,
+        "publicationsCount": 0,
+        "oaRate": 0,
+        "halRate": 0,
+        "descriptions": [
+            { "language": "fr", "value": "Service commun de documentation, pôle sciences et techniques." }
+        ],
+        "external": false,
+        "slug": "bu-sciences"
     }
 ]

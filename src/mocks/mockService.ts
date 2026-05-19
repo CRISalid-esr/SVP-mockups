@@ -34,7 +34,7 @@ export const mockService = {
   getResearchStructures: (searchTerm = '') => {
     const filtered = searchTerm
       ? structuresData.filter((s) =>
-          s.names.some((n) =>
+          s.long_labels.some((n) =>
             n.value.toLowerCase().includes(searchTerm.toLowerCase()),
           ),
         )
@@ -63,12 +63,12 @@ export const mockService = {
   },
 
   getLaboratories: (searchTerm = '') => {
-    const labs = structuresData.filter((s) => s.type === 'laboratory')
+    const labs = structuresData.filter((s) => s.generic_type === 'unit')
     const filtered = searchTerm
       ? labs.filter(
           (s) =>
             s.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.names.some((n) =>
+            s.long_labels.some((n) =>
               n.value.toLowerCase().includes(searchTerm.toLowerCase()),
             ),
         )

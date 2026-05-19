@@ -1093,7 +1093,7 @@ msgstr "Institutions"
 #: src/app/[lang]/components/Sidebar/Sidebar.tsx:670
 #: src/app/[lang]/laboratories/page.tsx:9
 msgid "side_bar_laboratories"
-msgstr "Laboratories"
+msgstr "Units"
 
 #: src/app/[lang]/account/page.tsx:80
 msgid "side_bar_my_account"

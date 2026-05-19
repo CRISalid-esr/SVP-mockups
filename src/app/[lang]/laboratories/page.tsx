@@ -9,6 +9,7 @@ import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
 import {
   Box,
   Button,
+  Chip,
   LinearProgress,
   Snackbar,
   Tooltip,
@@ -32,10 +33,26 @@ import { mockService } from '@/mocks/mockService'
 import { Localization } from '@/types/Localization'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 
+const MISSION_LABELS: Record<string, string> = {
+  research: 'Recherche',
+  scientific_services: 'Services scientifiques',
+  administrative_services: 'Services administratifs',
+  teaching: 'Enseignement',
+}
+
+const MISSION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'secondary'> = {
+  research: 'success',
+  scientific_services: 'info',
+  administrative_services: 'warning',
+  teaching: 'secondary',
+}
+
 type Laboratory = {
   uid: string
   acronym: string
   name: string
+  nationalType: string | null
+  mainMission: string
   institutionNames: string[]
   membersCount: number
   publicationsCount: number
@@ -68,11 +85,13 @@ function RateBar({ value, color }: { value: number; color: string }) {
 }
 
 function exportToCsv(rows: { original: Laboratory }[]) {
-  const headers = ['Acronyme', 'Nom', 'Tutelles', 'Membres', 'Publications (24 mois)', 'OA %', 'HAL %', 'RNSR']
+  const headers = ['Acronyme', 'Nom', 'Type national', 'Mission', 'Tutelles', 'Membres', 'Publications (24 mois)', 'OA %', 'HAL %', 'RNSR']
   const lines = rows.map(({ original: d }) =>
     [
       d.acronym,
       `"${d.name.replace(/"/g, '""')}"`,
+      d.nationalType ?? '',
+      MISSION_LABELS[d.mainMission] ?? d.mainMission,
       `"${d.institutionNames.join(' / ')}"`,
       d.membersCount,
       d.publicationsCount,
@@ -101,11 +120,17 @@ const LaboratoriesPage = () => {
     const { laboratories } = mockService.getLaboratories()
     return laboratories.map((s) => ({
       uid: s.uid,
-      acronym: s.acronym,
-      name:
-        s.names.find((n) => n.language === lang)?.value ??
-        s.names[0]?.value ??
+      acronym:
+        s.short_labels?.find((n) => n.language === lang)?.value ??
+        s.short_labels?.[0]?.value ??
+        s.acronym ??
         '',
+      name:
+        s.long_labels?.find((n) => n.language === lang)?.value ??
+        s.long_labels?.[0]?.value ??
+        '',
+      nationalType: (s as { national_type?: string | null }).national_type ?? null,
+      mainMission: (s as { main_mission?: string }).main_mission ?? 'research',
       institutionNames: (s as { institutionNames?: string[] }).institutionNames ?? [],
       membersCount: (s as { membersCount?: number }).membersCount ?? 0,
       publicationsCount: (s as { publicationsCount?: number }).publicationsCount ?? 0,
@@ -141,20 +166,25 @@ const LaboratoriesPage = () => {
           )
         },
         Cell({ row }) {
-          const { acronym, name, rnsr } = row.original
+          const { acronym, name, rnsr, nationalType } = row.original
           return (
             <Box
               sx={{ cursor: 'pointer' }}
               onClick={() => navigateToDetail(row.original.uid)}
             >
-              <Typography
-                variant='body2'
-                fontWeight='bold'
-                color='primary'
-                sx={{ '&:hover': { textDecoration: 'underline' } }}
-              >
-                {acronym}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography
+                  variant='body2'
+                  fontWeight='bold'
+                  color='primary'
+                  sx={{ '&:hover': { textDecoration: 'underline' } }}
+                >
+                  {acronym}
+                </Typography>
+                {nationalType && (
+                  <Chip label={nationalType} size='small' sx={{ height: 16, fontSize: 10 }} />
+                )}
+              </Box>
               <Typography
                 variant='caption'
                 color='text.secondary'
@@ -196,6 +226,28 @@ const LaboratoriesPage = () => {
             <Typography variant='body2'>
               {row.original.institutionNames.join(', ')}
             </Typography>
+          )
+        },
+      },
+      {
+        accessorKey: 'mainMission',
+        header: 'Mission',
+        size: 170,
+        filterVariant: 'multi-select',
+        filterSelectOptions: Object.entries(MISSION_LABELS).map(([value, label]) => ({ value, label })),
+        filterFn: (row, _id, filterValue: string[]) => {
+          if (!filterValue || filterValue.length === 0) return true
+          return filterValue.includes(row.original.mainMission)
+        },
+        Cell({ row }) {
+          const mission = row.original.mainMission
+          return (
+            <Chip
+              label={MISSION_LABELS[mission] ?? mission}
+              color={MISSION_COLORS[mission] ?? 'default'}
+              size='small'
+              variant='outlined'
+            />
           )
         },
       },
