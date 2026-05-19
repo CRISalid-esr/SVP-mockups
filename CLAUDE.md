@@ -87,7 +87,7 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 - Barre de progression alignés/total
 - Bouton "Aligner toutes les meilleures correspondances" (auto-confirme les candidats ≥ 85%)
 - Layout 2 colonnes : info auteur (gauche) + affiliations (droite)
-- Statut auteur : "Trouvé dans HAL" (vert) ou "Non trouvé dans HAL" (orange)
+- Statut auteur : "Auteur identifié" (vert) ou "Auteur non identifié" (orange)
 - Panneau candidats HAL avec avatars colorés, score de correspondance, bouton Confirmer
 - Affiliations alignées (chip ROR) ou manquantes (texte importé + candidats structures)
 - "Ajouter une affiliation HAL" en accordéon
@@ -95,7 +95,7 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 
 **Vocabulaire à maintenir (simplifié pour les utilisateurs non-experts) :**
 - ❌ "AureHAL", "alignement", "IdHAL obligatoire"
-- ✅ "HAL", "Trouvé dans HAL", "Non trouvé dans HAL", "Retrouvez les auteurs manquants"
+- ✅ "HAL", "Auteur identifié", "Auteur non identifié", "Retrouvez les auteurs manquants"
 
 ---
 

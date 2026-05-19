@@ -1099,10 +1099,10 @@ msgstr "Laboratories"
 msgid "side_bar_my_account"
 msgstr "Account manager"
 
-#: src/app/[lang]/components/Sidebar/Sidebar.tsx:570
-#: src/app/[lang]/groups/page.tsx:9
-msgid "side_bar_my_groups"
-msgstr "Groups"
+#: src/app/[lang]/components/Sidebar/Sidebar.tsx:623
+#: src/app/[lang]/researchers/page.tsx:9
+msgid "side_bar_researchers"
+msgstr "Researchers"
 
 #: src/app/[lang]/research-activities/page.tsx:9
 msgid "side_bar_my_research_activities"

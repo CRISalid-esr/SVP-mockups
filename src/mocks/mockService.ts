@@ -61,4 +61,18 @@ export const mockService = {
     const structureSlug = slug.replace('research-structure:', '')
     return structuresData.find((s) => s.slug === structureSlug) ?? null
   },
+
+  getLaboratories: (searchTerm = '') => {
+    const labs = structuresData.filter((s) => s.type === 'laboratory')
+    const filtered = searchTerm
+      ? labs.filter(
+          (s) =>
+            s.acronym.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.names.some((n) =>
+              n.value.toLowerCase().includes(searchTerm.toLowerCase()),
+            ),
+        )
+      : labs
+    return { laboratories: filtered, total: filtered.length }
+  },
 }

@@ -2,6 +2,8 @@ import type { NextConfig } from 'next'
 import * as path from 'node:path'
 import process from 'node:process'
 
+const isStaticBuild = process.env.NODE_ENV === 'production'
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SUPPORTED_LOCALES: process.env.NEXT_PUBLIC_SUPPORTED_LOCALES,
@@ -12,9 +14,11 @@ const nextConfig: NextConfig = {
     ORCID_SCOPES: process.env.ORCID_SCOPES,
     ORCID_CLIENT_ID: process.env.ORCID_CLIENT_ID,
   },
-  output: 'export',
-  basePath: '/SVP-mockups',
-  trailingSlash: true,
+  ...(isStaticBuild && {
+    output: 'export',
+    basePath: '/SVP-mockups',
+    trailingSlash: true,
+  }),
   images: { unoptimized: true },
   reactStrictMode: true,
   experimental: {

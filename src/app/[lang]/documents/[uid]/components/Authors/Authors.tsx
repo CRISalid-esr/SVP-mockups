@@ -337,7 +337,7 @@ const Authors = () => {
                   Retrouvez les auteurs et les affiliations HAL manquants
                 </Typography>
                 <Typography sx={{ color: TEXT, fontSize: '0.8125rem' }}>
-                  {stats.missingIdhal > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.missingIdhal}</Box> auteur{stats.missingIdhal > 1 ? 's' : ''} non trouvé{stats.missingIdhal > 1 ? 's' : ''} dans HAL</>}
+                  {stats.missingIdhal > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.missingIdhal}</Box> auteur{stats.missingIdhal > 1 ? 's' : ''} non identifié{stats.missingIdhal > 1 ? 's' : ''}</>}
                   {stats.missingIdhal > 0 && stats.unalignedAff > 0 && ' · '}
                   {stats.unalignedAff > 0 && <><Box component="span" sx={{ fontWeight: 600 }}>{stats.unalignedAff}</Box> affiliation{stats.unalignedAff > 1 ? 's' : ''} HAL manquante{stats.unalignedAff > 1 ? 's' : ''}</>}
                   {'. Identifier les personnes et les structures dans HAL est nécessaire avant le dépôt.'}
@@ -368,7 +368,7 @@ const Authors = () => {
           <Paper elevation={0} sx={{ bgcolor: TEAL_LIGHT, border: `1px solid ${BORDER}`, borderRadius: '12px', p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <CheckCircle sx={{ color: SUCCESS, fontSize: 20 }} />
             <Typography sx={{ color: TEXT, fontSize: '0.9375rem', fontWeight: 600 }}>
-              Tous les auteurs et leurs affiliations HAL ont été trouvés.
+              Tous les auteurs sont identifiés.
             </Typography>
             <Typography sx={{ color: MUTED, fontSize: '0.8125rem', ml: 'auto' }}>
               <Box component="span" sx={{ fontWeight: 700, color: TEXT }}>{stats.alignedItems} / {stats.totalItems}</Box> alignés · {stats.pct} %
@@ -418,7 +418,7 @@ const Authors = () => {
                 {author.idhal ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <CheckCircle sx={{ color: SUCCESS, fontSize: 16 }} />
-                    <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>Trouvé dans HAL</Typography>
+                    <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>Auteur identifié</Typography>
                     {!author.idhal.startsWith('_anon_') && (
                       <Typography sx={{ fontSize: '0.8125rem', color: TEAL }}>{author.idhal}</Typography>
                     )}
@@ -431,7 +431,7 @@ const Authors = () => {
                   <Chip
                     size="small"
                     icon={<WarningAmber sx={{ fontSize: '14px !important', color: `${WARN} !important`, ml: '4px !important' }} />}
-                    label="Non trouvé dans HAL"
+                    label="Auteur non identifié"
                     sx={{ height: 24, bgcolor: WARN_BG, color: WARN, fontWeight: 600, fontSize: '0.75rem', border: `1px solid ${WARN_BORDER}`, mb: 1.5 }}
                   />
                 )}

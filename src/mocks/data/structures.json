@@ -1,42 +1,156 @@
 [
     {
         "uid": "lab-1",
+        "type": "laboratory",
         "acronym": "LIP6",
+        "rnsr": "199512882V",
         "names": [
-            {
-                "language": "fr",
-                "value": "Laboratoire d'Informatique de Paris 6"
-            },
-            {
-                "language": "en",
-                "value": "Paris 6 Computer Science Laboratory"
-            }
+            { "language": "fr", "value": "Laboratoire d'Informatique de Paris 6" },
+            { "language": "en", "value": "Paris 6 Computer Science Laboratory" }
         ],
+        "institutionNames": ["Sorbonne Université", "CNRS"],
+        "membersCount": 280,
+        "publicationsCount": 412,
+        "oaRate": 72,
+        "halRate": 65,
         "descriptions": [
-            {
-                "language": "fr",
-                "value": "Un grand laboratoire d'informatique."
-            }
+            { "language": "fr", "value": "Un grand laboratoire d'informatique." }
         ],
         "external": false,
         "slug": "lip6"
     },
     {
         "uid": "lab-2",
+        "type": "laboratory",
         "acronym": "IPN",
+        "rnsr": "199512902A",
         "names": [
-            {
-                "language": "fr",
-                "value": "Institut de Physique Nucléaire"
-            }
+            { "language": "fr", "value": "Institut de Physique Nucléaire de Lyon" }
         ],
+        "institutionNames": ["Université Claude Bernard Lyon 1", "CNRS"],
+        "membersCount": 120,
+        "publicationsCount": 198,
+        "oaRate": 85,
+        "halRate": 70,
         "descriptions": [
-            {
-                "language": "fr",
-                "value": "Recherche en physique nucléaire."
-            }
+            { "language": "fr", "value": "Recherche en physique nucléaire." }
         ],
         "external": false,
         "slug": "ipn"
+    },
+    {
+        "uid": "lab-3",
+        "type": "laboratory",
+        "acronym": "LS2N",
+        "rnsr": "201521843V",
+        "names": [
+            { "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" },
+            { "language": "en", "value": "Digital Sciences Laboratory of Nantes" }
+        ],
+        "institutionNames": ["Nantes Université", "Centrale Nantes", "CNRS"],
+        "membersCount": 350,
+        "publicationsCount": 520,
+        "oaRate": 58,
+        "halRate": 52,
+        "descriptions": [
+            { "language": "fr", "value": "Sciences du numérique, informatique et automatique." }
+        ],
+        "external": false,
+        "slug": "ls2n"
+    },
+    {
+        "uid": "lab-4",
+        "type": "laboratory",
+        "acronym": "IRIT",
+        "rnsr": "199312237R",
+        "names": [
+            { "language": "fr", "value": "Institut de Recherche en Informatique de Toulouse" }
+        ],
+        "institutionNames": ["Université Toulouse 3", "CNRS"],
+        "membersCount": 700,
+        "publicationsCount": 980,
+        "oaRate": 63,
+        "halRate": 78,
+        "descriptions": [
+            { "language": "fr", "value": "Informatique et télécommunications." }
+        ],
+        "external": false,
+        "slug": "irit"
+    },
+    {
+        "uid": "lab-5",
+        "type": "laboratory",
+        "acronym": "LIRMM",
+        "rnsr": "199211571G",
+        "names": [
+            { "language": "fr", "value": "Laboratoire d'Informatique, de Robotique et de Microélectronique de Montpellier" }
+        ],
+        "institutionNames": ["Université de Montpellier", "CNRS"],
+        "membersCount": 420,
+        "publicationsCount": 610,
+        "oaRate": 45,
+        "halRate": 60,
+        "descriptions": [
+            { "language": "fr", "value": "Informatique, robotique, microélectronique." }
+        ],
+        "external": false,
+        "slug": "lirmm"
+    },
+    {
+        "uid": "lab-6",
+        "type": "laboratory",
+        "acronym": "GREYC",
+        "rnsr": "200017285V",
+        "names": [
+            { "language": "fr", "value": "Groupe de Recherche en Informatique, Image et Instrumentation de Caen" }
+        ],
+        "institutionNames": ["Université de Caen Normandie", "CNRS"],
+        "membersCount": 160,
+        "publicationsCount": 210,
+        "oaRate": 55,
+        "halRate": 48,
+        "descriptions": [
+            { "language": "fr", "value": "Informatique, image et instrumentation." }
+        ],
+        "external": false,
+        "slug": "greyc"
+    },
+    {
+        "uid": "lab-7",
+        "type": "laboratory",
+        "acronym": "CERI SN",
+        "rnsr": "200721867N",
+        "names": [
+            { "language": "fr", "value": "Centre d'Enseignement et de Recherche en Informatique — Sciences du Numérique" }
+        ],
+        "institutionNames": ["Avignon Université"],
+        "membersCount": 45,
+        "publicationsCount": 68,
+        "oaRate": 40,
+        "halRate": 35,
+        "descriptions": [
+            { "language": "fr", "value": "Informatique et sciences du numérique." }
+        ],
+        "external": false,
+        "slug": "ceri-sn"
+    },
+    {
+        "uid": "lab-8",
+        "type": "laboratory",
+        "acronym": "I3S",
+        "rnsr": "199512909N",
+        "names": [
+            { "language": "fr", "value": "Laboratoire d'Informatique, Signaux et Systèmes de Sophia Antipolis" }
+        ],
+        "institutionNames": ["Université Côte d'Azur", "CNRS"],
+        "membersCount": 220,
+        "publicationsCount": 305,
+        "oaRate": 67,
+        "halRate": 58,
+        "descriptions": [
+            { "language": "fr", "value": "Informatique, signaux et systèmes." }
+        ],
+        "external": false,
+        "slug": "i3s"
     }
 ]
