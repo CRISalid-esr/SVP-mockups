@@ -43,8 +43,8 @@ const RootLayout = async ({ params, children }: Props) => {
           NEXT_PUBLIC_USE_MOCK: process.env.NEXT_PUBLIC_USE_MOCK,
         }}
       />
-      <Script src='/vendor/d3.v4.min.js' strategy='beforeInteractive' />
-      <Script src='/vendor/wordstream.js' strategy='afterInteractive' />
+      <Script src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/vendor/d3.v4.min.js`} strategy='beforeInteractive' />
+      <Script src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/vendor/wordstream.js`} strategy='afterInteractive' />
       <ThemeProvider>
         <CssBaseline />
         <LanguageProvider locale={lang} messages={selectedMessages}>

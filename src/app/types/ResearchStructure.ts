@@ -11,8 +11,9 @@ interface ResearchStructureJson {
   uid: string
   slug: string | null
   acronym: string | null
-  names: Array<Literal>
-  descriptions: Array<Literal>
+  names?: Array<Literal>
+  long_labels?: Array<Literal>
+  descriptions?: Array<Literal>
   signature: string | null
   identifiers: ResearchStructureIdentifier[]
 }
@@ -50,9 +51,9 @@ class ResearchStructure implements IAgent {
    */
   getDisplayName(language?: ExtendedLanguageCode): string {
     return (
-      this.names.find((name) => name.language === language)?.value ||
-      this.names.find((name) => name.language === 'en')?.value ||
-      this.names[0].value ||
+      this.names?.find((name) => name.language === language)?.value ||
+      this.names?.find((name) => name.language === 'en')?.value ||
+      this.names?.[0]?.value ||
       ''
     )
   }
@@ -99,10 +100,11 @@ class ResearchStructure implements IAgent {
   }
 
   static fromJson(researchStructure: ResearchStructureJson): ResearchStructure {
+    const namesList = researchStructure.names ?? researchStructure.long_labels
     return new ResearchStructure(
       researchStructure.uid,
       researchStructure.acronym || null,
-      researchStructure.names?.map(Literal.fromObject),
+      namesList?.map(Literal.fromObject),
       researchStructure.descriptions?.map(Literal.fromObject),
       researchStructure.signature || null,
       'identifiers' in researchStructure ? researchStructure.identifiers : [],
