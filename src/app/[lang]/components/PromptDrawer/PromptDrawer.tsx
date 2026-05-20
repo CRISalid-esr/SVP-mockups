@@ -146,7 +146,7 @@ export default function PromptDrawer() {
         <Box sx={{ px: 2, pt: 1, pb: 0.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Typography
             component='a'
-            href={`https://github.com/CRISalid-esr/SVP-mockups/blob/main/prompts/${promptKey}.md`}
+            href={`https://github.com/CRISalid-esr/SVP-mockups/blob/main/public/prompts/${promptKey}.md`}
             target='_blank'
             rel='noopener noreferrer'
             variant='caption'
