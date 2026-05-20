@@ -199,6 +199,7 @@
         "main_mission": "research",
         "acronym": "LS2N",
         "parent_uid": "comp-ufr-st",
+        "secondary_parent_uids": ["inst-cn"],
         "rnsr": "201521843V",
         "short_labels": [
             { "language": "fr", "value": "LS2N" },
@@ -351,6 +352,7 @@
         "main_mission": "research",
         "acronym": "GeM",
         "parent_uid": "inst-cn",
+        "secondary_parent_uids": ["inst-nu"],
         "rnsr": "200210284Y",
         "short_labels": [
             { "language": "fr", "value": "GeM" }

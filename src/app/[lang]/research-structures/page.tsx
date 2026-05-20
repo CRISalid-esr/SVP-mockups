@@ -2,6 +2,7 @@
 
 import * as Lingui from '@lingui/core'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import CallMadeIcon from '@mui/icons-material/CallMade'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
@@ -78,7 +79,10 @@ type Structure = {
   halRate: number
   rnsr?: string
   parentUid: string | null
+  secondaryParentUids: string[]
   slug: string
+  isReference?: boolean
+  originalUid?: string
   subRows?: Structure[]
 }
 
@@ -135,14 +139,29 @@ function exportToCsv(rows: { original: Structure }[]) {
 function buildTree(flat: Structure[]): Structure[] {
   const byUid = new Map(flat.map((s) => [s.uid, { ...s, subRows: [] as Structure[] }]))
   const roots: Structure[] = []
+
   for (const node of byUid.values()) {
+    // Place under primary parent
     if (node.parentUid && byUid.has(node.parentUid)) {
       byUid.get(node.parentUid)!.subRows!.push(node)
     } else {
       roots.push(node)
     }
+    // Place a reference node under each secondary parent
+    for (const secUid of node.secondaryParentUids) {
+      if (byUid.has(secUid)) {
+        byUid.get(secUid)!.subRows!.push({
+          ...node,
+          uid: `${node.uid}__ref__${secUid}`,
+          originalUid: node.uid,
+          isReference: true,
+          subRows: undefined,
+          secondaryParentUids: [],
+        })
+      }
+    }
   }
-  // Remove empty subRows arrays so MRT doesn't show expand icon
+
   const clean = (nodes: Structure[]): Structure[] =>
     nodes.map((n) => ({
       ...n,
@@ -154,9 +173,41 @@ function buildTree(flat: Structure[]): Structure[] {
 // ─── Name cell (shared between flat and tree views) ──────────────────────────
 
 function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: string) => void }) {
-  const { acronym, name, rnsr, nationalType, genericType } = row
+  const { acronym, name, rnsr, nationalType, genericType, isReference, originalUid } = row
+  const targetUid = originalUid ?? row.uid
+
+  if (isReference) {
+    return (
+      <Box
+        sx={{ cursor: 'pointer', opacity: 0.65 }}
+        onClick={() => onNavigate(targetUid)}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <CallMadeIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+          <Typography
+            variant='body2'
+            fontStyle='italic'
+            color='text.secondary'
+            sx={{ '&:hover': { textDecoration: 'underline' } }}
+          >
+            {acronym}
+          </Typography>
+          {nationalType && (
+            <Chip label={nationalType} size='small' sx={{ height: 14, fontSize: 10 }} />
+          )}
+          <Chip label='co-tutelle' size='small' variant='outlined' sx={{ height: 14, fontSize: 10, borderStyle: 'dashed' }} />
+        </Box>
+        <Typography variant='caption' color='text.disabled' fontStyle='italic'
+          sx={{ display: 'block', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        >
+          {name}
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
-    <Box sx={{ cursor: 'pointer' }} onClick={() => onNavigate(row.uid)}>
+    <Box sx={{ cursor: 'pointer' }} onClick={() => onNavigate(targetUid)}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
         <Typography
           variant='body2'
@@ -580,6 +631,7 @@ const ResearchStructuresPage = () => {
       halRate: (s as { halRate?: number }).halRate ?? 0,
       rnsr: (s as { rnsr?: string }).rnsr,
       parentUid: (s as { parent_uid?: string | null }).parent_uid ?? null,
+      secondaryParentUids: (s as { secondary_parent_uids?: string[] }).secondary_parent_uids ?? [],
       slug: s.slug ?? s.uid,
     }))
   }, [lang])
