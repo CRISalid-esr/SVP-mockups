@@ -1,29 +1,5 @@
 [
     {
-        "uid": "inst-epe-nu",
-        "generic_type": "institution",
-        "national_type": "EPE",
-        "main_mission": "teaching",
-        "acronym": "Nantes Université",
-        "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Nantes Université" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Nantes Université — Établissement Public Expérimental" }
-        ],
-        "institutionNames": [],
-        "membersCount": 72000,
-        "publicationsCount": 7400,
-        "oaRate": 61,
-        "halRate": 57,
-        "descriptions": [
-            { "language": "fr", "value": "EPE regroupant Nantes Université, Centrale Nantes et l'ENSA Nantes." }
-        ],
-        "external": false,
-        "slug": "nantes-universite-epe"
-    },
-    {
         "uid": "inst-nu",
         "generic_type": "institution",
         "national_type": "Université",
@@ -53,7 +29,7 @@
         "national_type": "École d'ingénieurs",
         "main_mission": "teaching",
         "acronym": "Centrale Nantes",
-        "parent_uid": "inst-epe-nu",
+        "parent_uid": null,
         "short_labels": [
             { "language": "fr", "value": "Centrale Nantes" }
         ],
@@ -77,7 +53,7 @@
         "national_type": "École d'architecture",
         "main_mission": "teaching",
         "acronym": "ENSA Nantes",
-        "parent_uid": "inst-epe-nu",
+        "parent_uid": null,
         "short_labels": [
             { "language": "fr", "value": "ENSA Nantes" }
         ],
