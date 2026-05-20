@@ -143,12 +143,20 @@ export default function PromptDrawer() {
           </IconButton>
         </Box>
 
-        <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
-          <Typography variant='caption' color='text.secondary'>
-            {promptKey}.md
+        <Box sx={{ px: 2, pt: 1, pb: 0.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography
+            component='a'
+            href={`https://github.com/CRISalid-esr/SVP-mockups/blob/main/prompts/${promptKey}.md`}
+            target='_blank'
+            rel='noopener noreferrer'
+            variant='caption'
+            color='text.secondary'
+            sx={{ '&:hover': { color: 'primary.main' } }}
+          >
+            {promptKey}.md ↗
           </Typography>
           {copied && (
-            <Typography variant='caption' color='success.main' sx={{ ml: 1.5 }}>
+            <Typography variant='caption' color='success.main'>
               ✓ Copié dans le presse-papiers
             </Typography>
           )}
