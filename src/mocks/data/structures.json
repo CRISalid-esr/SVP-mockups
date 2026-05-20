@@ -1,10 +1,227 @@
 [
     {
+        "uid": "inst-su",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "SU",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Sorbonne Université" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Sorbonne Université" }
+        ],
+        "institutionNames": [],
+        "membersCount": 55000,
+        "publicationsCount": 8200,
+        "oaRate": 68,
+        "halRate": 62,
+        "descriptions": [
+            { "language": "fr", "value": "Université de recherche intensive, Paris." }
+        ],
+        "external": false,
+        "slug": "sorbonne-universite"
+    },
+    {
+        "uid": "composante-1",
+        "generic_type": "composante",
+        "national_type": "UFR",
+        "main_mission": "teaching",
+        "acronym": "UFR Info",
+        "parent_uid": "inst-su",
+        "short_labels": [
+            { "language": "fr", "value": "UFR Info" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "UFR d'Informatique — Sorbonne Université" }
+        ],
+        "institutionNames": ["Sorbonne Université"],
+        "membersCount": 1200,
+        "publicationsCount": 680,
+        "oaRate": 71,
+        "halRate": 66,
+        "descriptions": [
+            { "language": "fr", "value": "Unité de formation et de recherche en informatique." }
+        ],
+        "external": false,
+        "slug": "ufr-info-su"
+    },
+    {
+        "uid": "inst-nu",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "NU",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Nantes Université" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Nantes Université" }
+        ],
+        "institutionNames": [],
+        "membersCount": 40000,
+        "publicationsCount": 5100,
+        "oaRate": 60,
+        "halRate": 55,
+        "descriptions": [
+            { "language": "fr", "value": "Université pluridisciplinaire des Pays de la Loire." }
+        ],
+        "external": false,
+        "slug": "nantes-universite"
+    },
+    {
+        "uid": "inst-lyon1",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "UCB Lyon 1",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "UCB Lyon 1" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Université Claude Bernard Lyon 1" }
+        ],
+        "institutionNames": [],
+        "membersCount": 44000,
+        "publicationsCount": 6200,
+        "oaRate": 72,
+        "halRate": 65,
+        "descriptions": [
+            { "language": "fr", "value": "Université des sciences, technologies et santé." }
+        ],
+        "external": false,
+        "slug": "ucb-lyon1"
+    },
+    {
+        "uid": "inst-ut3",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "UT3",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Université Toulouse 3" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Université Toulouse 3 — Paul Sabatier" }
+        ],
+        "institutionNames": [],
+        "membersCount": 31000,
+        "publicationsCount": 4800,
+        "oaRate": 65,
+        "halRate": 70,
+        "descriptions": [
+            { "language": "fr", "value": "Université des sciences et technologies de Toulouse." }
+        ],
+        "external": false,
+        "slug": "ut3"
+    },
+    {
+        "uid": "inst-montpellier",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "UM",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Université de Montpellier" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Université de Montpellier" }
+        ],
+        "institutionNames": [],
+        "membersCount": 48000,
+        "publicationsCount": 5600,
+        "oaRate": 50,
+        "halRate": 58,
+        "descriptions": [
+            { "language": "fr", "value": "Université de sciences, droit et économie." }
+        ],
+        "external": false,
+        "slug": "universite-montpellier"
+    },
+    {
+        "uid": "inst-caen",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "UNICAEN",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Unicaen" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Université de Caen Normandie" }
+        ],
+        "institutionNames": [],
+        "membersCount": 27000,
+        "publicationsCount": 2800,
+        "oaRate": 57,
+        "halRate": 50,
+        "descriptions": [
+            { "language": "fr", "value": "Université normande pluridisciplinaire." }
+        ],
+        "external": false,
+        "slug": "unicaen"
+    },
+    {
+        "uid": "inst-cotedazur",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "UCA",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Université Côte d'Azur" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Université Côte d'Azur" }
+        ],
+        "institutionNames": [],
+        "membersCount": 28000,
+        "publicationsCount": 3900,
+        "oaRate": 69,
+        "halRate": 61,
+        "descriptions": [
+            { "language": "fr", "value": "Université d'excellence du littoral méditerranéen." }
+        ],
+        "external": false,
+        "slug": "universite-cote-azur"
+    },
+    {
+        "uid": "inst-avignon",
+        "generic_type": "institution",
+        "national_type": "Université",
+        "main_mission": "teaching",
+        "acronym": "Avignon Univ.",
+        "parent_uid": null,
+        "short_labels": [
+            { "language": "fr", "value": "Avignon Université" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Avignon Université" }
+        ],
+        "institutionNames": [],
+        "membersCount": 8000,
+        "publicationsCount": 820,
+        "oaRate": 43,
+        "halRate": 38,
+        "descriptions": [
+            { "language": "fr", "value": "Université pluridisciplinaire d'Avignon." }
+        ],
+        "external": false,
+        "slug": "avignon-universite"
+    },
+    {
         "uid": "lab-1",
         "generic_type": "unit",
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "LIP6",
+        "parent_uid": "composante-1",
         "rnsr": "199512882V",
         "short_labels": [
             { "language": "fr", "value": "LIP6" },
@@ -31,6 +248,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "IPN",
+        "parent_uid": "inst-lyon1",
         "rnsr": "199512902A",
         "short_labels": [
             { "language": "fr", "value": "IPN" }
@@ -55,6 +273,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "LS2N",
+        "parent_uid": "inst-nu",
         "rnsr": "201521843V",
         "short_labels": [
             { "language": "fr", "value": "LS2N" },
@@ -81,6 +300,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "IRIT",
+        "parent_uid": "inst-ut3",
         "rnsr": "199312237R",
         "short_labels": [
             { "language": "fr", "value": "IRIT" }
@@ -105,6 +325,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "LIRMM",
+        "parent_uid": "inst-montpellier",
         "rnsr": "199211571G",
         "short_labels": [
             { "language": "fr", "value": "LIRMM" }
@@ -129,6 +350,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "GREYC",
+        "parent_uid": "inst-caen",
         "rnsr": "200017285V",
         "short_labels": [
             { "language": "fr", "value": "GREYC" }
@@ -153,6 +375,7 @@
         "national_type": "UR",
         "main_mission": "research",
         "acronym": "CERI SN",
+        "parent_uid": "inst-avignon",
         "rnsr": "200721867N",
         "short_labels": [
             { "language": "fr", "value": "CERI SN" }
@@ -177,6 +400,7 @@
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "I3S",
+        "parent_uid": "inst-cotedazur",
         "rnsr": "199512909N",
         "short_labels": [
             { "language": "fr", "value": "I3S" }
@@ -201,6 +425,7 @@
         "national_type": "UAR",
         "main_mission": "scientific_services",
         "acronym": "MeSU",
+        "parent_uid": "inst-su",
         "rnsr": "201220379C",
         "short_labels": [
             { "language": "fr", "value": "MeSU" }
@@ -227,6 +452,7 @@
         "local_types": [{ "language": "fr", "value": "Service commun de documentation" }],
         "main_mission": "administrative_services",
         "acronym": "BU Sciences",
+        "parent_uid": "inst-nu",
         "rnsr": null,
         "short_labels": [
             { "language": "fr", "value": "BU Sciences" }
