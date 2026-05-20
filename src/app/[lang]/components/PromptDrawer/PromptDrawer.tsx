@@ -10,12 +10,10 @@ import { publicPath } from '@/utils/publicPath'
 
 function getPromptKey(pathname: string, tab: string | null): string | null {
   const withoutLang = pathname.replace(/^\/[a-z]{2}/, '')
-  if (withoutLang === '/institutions') return 'institutions-liste'
-  if (withoutLang.startsWith('/institutions/')) return 'institutions-detail'
+  if (withoutLang === '/research-structures') return 'structures-liste'
+  if (withoutLang.startsWith('/research-structures/')) return 'structures-detail'
   if (withoutLang === '/researchers') return 'chercheurs-liste'
   if (withoutLang.startsWith('/researchers/')) return 'chercheurs-detail'
-  if (withoutLang === '/laboratories') return 'unites-liste'
-  if (withoutLang.startsWith('/laboratories/')) return 'unites-detail'
   if (withoutLang.startsWith('/documents/') && tab === 'authors') return 'author-tab'
   return null
 }
