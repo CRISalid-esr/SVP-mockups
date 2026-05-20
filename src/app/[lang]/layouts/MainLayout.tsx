@@ -2,6 +2,7 @@
 
 import { Appbar } from '@/components/appbar'
 import { Sidebar } from 'src/app/[lang]/components/Sidebar'
+import PromptDrawer from 'src/app/[lang]/components/PromptDrawer/PromptDrawer'
 import { useTheme } from '@mui/material/styles'
 import { Box, useMediaQuery } from '@mui/system'
 import { useEffect, useState } from 'react'
@@ -79,6 +80,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         preventDuplicate
       >
         <WebSocketListener />
+        <PromptDrawer />
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* AppBar for mobile */}
           {isMobile && <Appbar handleToggleDrawer={handleToggleDrawer} />}
