@@ -1,51 +1,27 @@
 [
     {
-        "uid": "inst-su",
+        "uid": "inst-epe-nu",
         "generic_type": "institution",
-        "national_type": "Université",
+        "national_type": "EPE",
         "main_mission": "teaching",
-        "acronym": "SU",
+        "acronym": "Nantes Université",
         "parent_uid": null,
         "short_labels": [
-            { "language": "fr", "value": "Sorbonne Université" }
+            { "language": "fr", "value": "Nantes Université" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Sorbonne Université" }
+            { "language": "fr", "value": "Nantes Université — Établissement Public Expérimental" }
         ],
         "institutionNames": [],
-        "membersCount": 55000,
-        "publicationsCount": 8200,
-        "oaRate": 68,
-        "halRate": 62,
+        "membersCount": 72000,
+        "publicationsCount": 7400,
+        "oaRate": 61,
+        "halRate": 57,
         "descriptions": [
-            { "language": "fr", "value": "Université de recherche intensive, Paris." }
+            { "language": "fr", "value": "EPE regroupant Nantes Université, Centrale Nantes et l'ENSA Nantes." }
         ],
         "external": false,
-        "slug": "sorbonne-universite"
-    },
-    {
-        "uid": "composante-1",
-        "generic_type": "composante",
-        "national_type": "UFR",
-        "main_mission": "teaching",
-        "acronym": "UFR Info",
-        "parent_uid": "inst-su",
-        "short_labels": [
-            { "language": "fr", "value": "UFR Info" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "UFR d'Informatique — Sorbonne Université" }
-        ],
-        "institutionNames": ["Sorbonne Université"],
-        "membersCount": 1200,
-        "publicationsCount": 680,
-        "oaRate": 71,
-        "halRate": 66,
-        "descriptions": [
-            { "language": "fr", "value": "Unité de formation et de recherche en informatique." }
-        ],
-        "external": false,
-        "slug": "ufr-info-su"
+        "slug": "nantes-universite-epe"
     },
     {
         "uid": "inst-nu",
@@ -53,7 +29,7 @@
         "national_type": "Université",
         "main_mission": "teaching",
         "acronym": "NU",
-        "parent_uid": null,
+        "parent_uid": "inst-epe-nu",
         "short_labels": [
             { "language": "fr", "value": "Nantes Université" }
         ],
@@ -61,219 +37,192 @@
             { "language": "fr", "value": "Nantes Université" }
         ],
         "institutionNames": [],
-        "membersCount": 40000,
-        "publicationsCount": 5100,
-        "oaRate": 60,
-        "halRate": 55,
+        "membersCount": 56000,
+        "publicationsCount": 5800,
+        "oaRate": 62,
+        "halRate": 58,
         "descriptions": [
-            { "language": "fr", "value": "Université pluridisciplinaire des Pays de la Loire." }
+            { "language": "fr", "value": "Université pluridisciplinaire, membre de l'EPE Nantes Université." }
         ],
         "external": false,
         "slug": "nantes-universite"
     },
     {
-        "uid": "inst-lyon1",
+        "uid": "inst-cn",
         "generic_type": "institution",
-        "national_type": "Université",
+        "national_type": "École d'ingénieurs",
         "main_mission": "teaching",
-        "acronym": "UCB Lyon 1",
-        "parent_uid": null,
+        "acronym": "Centrale Nantes",
+        "parent_uid": "inst-epe-nu",
         "short_labels": [
-            { "language": "fr", "value": "UCB Lyon 1" }
+            { "language": "fr", "value": "Centrale Nantes" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Université Claude Bernard Lyon 1" }
+            { "language": "fr", "value": "École Centrale de Nantes" }
         ],
         "institutionNames": [],
-        "membersCount": 44000,
-        "publicationsCount": 6200,
-        "oaRate": 72,
-        "halRate": 65,
+        "membersCount": 3200,
+        "publicationsCount": 1100,
+        "oaRate": 67,
+        "halRate": 72,
         "descriptions": [
-            { "language": "fr", "value": "Université des sciences, technologies et santé." }
+            { "language": "fr", "value": "Grande école d'ingénieurs, membre de l'EPE Nantes Université." }
         ],
         "external": false,
-        "slug": "ucb-lyon1"
+        "slug": "centrale-nantes"
     },
     {
-        "uid": "inst-ut3",
+        "uid": "inst-ensa",
         "generic_type": "institution",
-        "national_type": "Université",
+        "national_type": "École d'architecture",
         "main_mission": "teaching",
-        "acronym": "UT3",
-        "parent_uid": null,
+        "acronym": "ENSA Nantes",
+        "parent_uid": "inst-epe-nu",
         "short_labels": [
-            { "language": "fr", "value": "Université Toulouse 3" }
+            { "language": "fr", "value": "ENSA Nantes" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Université Toulouse 3 — Paul Sabatier" }
+            { "language": "fr", "value": "École Nationale Supérieure d'Architecture de Nantes" }
         ],
         "institutionNames": [],
-        "membersCount": 31000,
-        "publicationsCount": 4800,
-        "oaRate": 65,
-        "halRate": 70,
-        "descriptions": [
-            { "language": "fr", "value": "Université des sciences et technologies de Toulouse." }
-        ],
-        "external": false,
-        "slug": "ut3"
-    },
-    {
-        "uid": "inst-montpellier",
-        "generic_type": "institution",
-        "national_type": "Université",
-        "main_mission": "teaching",
-        "acronym": "UM",
-        "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Université de Montpellier" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Université de Montpellier" }
-        ],
-        "institutionNames": [],
-        "membersCount": 48000,
-        "publicationsCount": 5600,
-        "oaRate": 50,
-        "halRate": 58,
-        "descriptions": [
-            { "language": "fr", "value": "Université de sciences, droit et économie." }
-        ],
-        "external": false,
-        "slug": "universite-montpellier"
-    },
-    {
-        "uid": "inst-caen",
-        "generic_type": "institution",
-        "national_type": "Université",
-        "main_mission": "teaching",
-        "acronym": "UNICAEN",
-        "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Unicaen" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Université de Caen Normandie" }
-        ],
-        "institutionNames": [],
-        "membersCount": 27000,
-        "publicationsCount": 2800,
-        "oaRate": 57,
-        "halRate": 50,
-        "descriptions": [
-            { "language": "fr", "value": "Université normande pluridisciplinaire." }
-        ],
-        "external": false,
-        "slug": "unicaen"
-    },
-    {
-        "uid": "inst-cotedazur",
-        "generic_type": "institution",
-        "national_type": "Université",
-        "main_mission": "teaching",
-        "acronym": "UCA",
-        "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Université Côte d'Azur" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Université Côte d'Azur" }
-        ],
-        "institutionNames": [],
-        "membersCount": 28000,
-        "publicationsCount": 3900,
-        "oaRate": 69,
-        "halRate": 61,
-        "descriptions": [
-            { "language": "fr", "value": "Université d'excellence du littoral méditerranéen." }
-        ],
-        "external": false,
-        "slug": "universite-cote-azur"
-    },
-    {
-        "uid": "inst-avignon",
-        "generic_type": "institution",
-        "national_type": "Université",
-        "main_mission": "teaching",
-        "acronym": "Avignon Univ.",
-        "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Avignon Université" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Avignon Université" }
-        ],
-        "institutionNames": [],
-        "membersCount": 8000,
-        "publicationsCount": 820,
-        "oaRate": 43,
+        "membersCount": 1400,
+        "publicationsCount": 120,
+        "oaRate": 44,
         "halRate": 38,
         "descriptions": [
-            { "language": "fr", "value": "Université pluridisciplinaire d'Avignon." }
+            { "language": "fr", "value": "École nationale d'architecture, membre de l'EPE Nantes Université." }
         ],
         "external": false,
-        "slug": "avignon-universite"
+        "slug": "ensa-nantes"
     },
     {
-        "uid": "lab-1",
-        "generic_type": "unit",
-        "national_type": "UMR",
-        "main_mission": "research",
-        "acronym": "LIP6",
-        "parent_uid": "composante-1",
-        "rnsr": "199512882V",
+        "uid": "comp-ufr-st",
+        "generic_type": "composante",
+        "national_type": "UFR",
+        "main_mission": "teaching",
+        "acronym": "UFR Sciences",
+        "parent_uid": "inst-nu",
         "short_labels": [
-            { "language": "fr", "value": "LIP6" },
-            { "language": "en", "value": "LIP6" }
+            { "language": "fr", "value": "UFR Sciences" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Laboratoire d'Informatique de Paris 6" },
-            { "language": "en", "value": "Paris 6 Computer Science Laboratory" }
+            { "language": "fr", "value": "UFR Sciences et Techniques" }
         ],
-        "institutionNames": ["Sorbonne Université", "CNRS"],
-        "membersCount": 280,
-        "publicationsCount": 412,
-        "oaRate": 72,
-        "halRate": 65,
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 8500,
+        "publicationsCount": 2100,
+        "oaRate": 65,
+        "halRate": 60,
         "descriptions": [
-            { "language": "fr", "value": "Un grand laboratoire d'informatique." }
+            { "language": "fr", "value": "Unité de formation et de recherche en sciences fondamentales et appliquées." }
         ],
         "external": false,
-        "slug": "lip6"
+        "slug": "ufr-sciences"
     },
     {
-        "uid": "lab-2",
-        "generic_type": "unit",
-        "national_type": "UMR",
-        "main_mission": "research",
-        "acronym": "IPN",
-        "parent_uid": "inst-lyon1",
-        "rnsr": "199512902A",
+        "uid": "comp-ufr-llshs",
+        "generic_type": "composante",
+        "national_type": "UFR",
+        "main_mission": "teaching",
+        "acronym": "UFR LLSHS",
+        "parent_uid": "inst-nu",
         "short_labels": [
-            { "language": "fr", "value": "IPN" }
+            { "language": "fr", "value": "UFR LLSHS" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Institut de Physique Nucléaire de Lyon" }
+            { "language": "fr", "value": "UFR Lettres, Langues et Sciences Humaines et Sociales" }
         ],
-        "institutionNames": ["Université Claude Bernard Lyon 1", "CNRS"],
-        "membersCount": 120,
-        "publicationsCount": 198,
-        "oaRate": 85,
-        "halRate": 70,
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 6200,
+        "publicationsCount": 890,
+        "oaRate": 48,
+        "halRate": 42,
         "descriptions": [
-            { "language": "fr", "value": "Recherche en physique nucléaire." }
+            { "language": "fr", "value": "Unité de formation en lettres, langues, sciences humaines et sociales." }
         ],
         "external": false,
-        "slug": "ipn"
+        "slug": "ufr-llshs"
     },
     {
-        "uid": "lab-3",
+        "uid": "comp-iae",
+        "generic_type": "composante",
+        "national_type": "Institut",
+        "main_mission": "teaching",
+        "acronym": "IAE Nantes",
+        "parent_uid": "inst-nu",
+        "short_labels": [
+            { "language": "fr", "value": "IAE Nantes" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "IAE Nantes — Économie et Management" }
+        ],
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 3100,
+        "publicationsCount": 310,
+        "oaRate": 41,
+        "halRate": 35,
+        "descriptions": [
+            { "language": "fr", "value": "Institut d'administration des entreprises, école universitaire de management." }
+        ],
+        "external": false,
+        "slug": "iae-nantes"
+    },
+    {
+        "uid": "comp-polytech",
+        "generic_type": "composante",
+        "national_type": "École interne",
+        "main_mission": "teaching",
+        "acronym": "Polytech Nantes",
+        "parent_uid": "inst-nu",
+        "short_labels": [
+            { "language": "fr", "value": "Polytech Nantes" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Polytech Nantes — École Polytechnique de l'Université de Nantes" }
+        ],
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 2400,
+        "publicationsCount": 420,
+        "oaRate": 59,
+        "halRate": 53,
+        "descriptions": [
+            { "language": "fr", "value": "École interne d'ingénieurs de Nantes Université." }
+        ],
+        "external": false,
+        "slug": "polytech-nantes"
+    },
+    {
+        "uid": "unit-bu",
+        "generic_type": "unit",
+        "national_type": "SCD",
+        "main_mission": "administrative_services",
+        "acronym": "BU Nantes",
+        "parent_uid": "inst-nu",
+        "rnsr": null,
+        "short_labels": [
+            { "language": "fr", "value": "BU Nantes" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Service Commun de Documentation — Nantes Université" }
+        ],
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 145,
+        "publicationsCount": 0,
+        "oaRate": 0,
+        "halRate": 0,
+        "descriptions": [
+            { "language": "fr", "value": "Réseau de bibliothèques universitaires couvrant l'ensemble des disciplines." }
+        ],
+        "external": false,
+        "slug": "bu-nantes"
+    },
+    {
+        "uid": "lab-ls2n",
         "generic_type": "unit",
         "national_type": "UMR",
         "main_mission": "research",
         "acronym": "LS2N",
-        "parent_uid": "inst-nu",
+        "parent_uid": "comp-ufr-st",
         "rnsr": "201521843V",
         "short_labels": [
             { "language": "fr", "value": "LS2N" },
@@ -289,186 +238,209 @@
         "oaRate": 58,
         "halRate": 52,
         "descriptions": [
-            { "language": "fr", "value": "Sciences du numérique, informatique et automatique." }
+            { "language": "fr", "value": "Informatique, automatique et traitement du signal. UMR CNRS 6004." }
         ],
         "external": false,
         "slug": "ls2n"
     },
     {
-        "uid": "lab-4",
-        "generic_type": "unit",
-        "national_type": "UMR",
+        "uid": "team-tasc",
+        "generic_type": "team",
+        "national_type": null,
         "main_mission": "research",
-        "acronym": "IRIT",
-        "parent_uid": "inst-ut3",
-        "rnsr": "199312237R",
+        "acronym": "TASC",
+        "parent_uid": "lab-ls2n",
+        "rnsr": null,
         "short_labels": [
-            { "language": "fr", "value": "IRIT" }
+            { "language": "fr", "value": "TASC" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Institut de Recherche en Informatique de Toulouse" }
+            { "language": "fr", "value": "Tests, Architecture et Systèmes de Communications" }
         ],
-        "institutionNames": ["Université Toulouse 3", "CNRS"],
-        "membersCount": 700,
-        "publicationsCount": 980,
-        "oaRate": 63,
-        "halRate": 78,
+        "institutionNames": ["Nantes Université", "CNRS"],
+        "membersCount": 28,
+        "publicationsCount": 42,
+        "oaRate": 61,
+        "halRate": 55,
         "descriptions": [
-            { "language": "fr", "value": "Informatique et télécommunications." }
+            { "language": "fr", "value": "Vérification et test de systèmes embarqués et de circuits intégrés." }
         ],
         "external": false,
-        "slug": "irit"
+        "slug": "tasc"
     },
     {
-        "uid": "lab-5",
-        "generic_type": "unit",
-        "national_type": "UMR",
+        "uid": "team-alma",
+        "generic_type": "team",
+        "national_type": null,
         "main_mission": "research",
-        "acronym": "LIRMM",
-        "parent_uid": "inst-montpellier",
-        "rnsr": "199211571G",
+        "acronym": "ALMA",
+        "parent_uid": "lab-ls2n",
+        "rnsr": null,
         "short_labels": [
-            { "language": "fr", "value": "LIRMM" }
+            { "language": "fr", "value": "ALMA" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Laboratoire d'Informatique, de Robotique et de Microélectronique de Montpellier" }
+            { "language": "fr", "value": "Langages et Modèles à objets" }
         ],
-        "institutionNames": ["Université de Montpellier", "CNRS"],
-        "membersCount": 420,
-        "publicationsCount": 610,
-        "oaRate": 45,
-        "halRate": 60,
-        "descriptions": [
-            { "language": "fr", "value": "Informatique, robotique, microélectronique." }
-        ],
-        "external": false,
-        "slug": "lirmm"
-    },
-    {
-        "uid": "lab-6",
-        "generic_type": "unit",
-        "national_type": "UMR",
-        "main_mission": "research",
-        "acronym": "GREYC",
-        "parent_uid": "inst-caen",
-        "rnsr": "200017285V",
-        "short_labels": [
-            { "language": "fr", "value": "GREYC" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Groupe de Recherche en Informatique, Image et Instrumentation de Caen" }
-        ],
-        "institutionNames": ["Université de Caen Normandie", "CNRS"],
-        "membersCount": 160,
-        "publicationsCount": 210,
+        "institutionNames": ["Nantes Université", "CNRS"],
+        "membersCount": 22,
+        "publicationsCount": 31,
         "oaRate": 55,
-        "halRate": 48,
+        "halRate": 49,
         "descriptions": [
-            { "language": "fr", "value": "Informatique, image et instrumentation." }
+            { "language": "fr", "value": "Ingénierie des modèles, langages dédiés et transformation de modèles." }
         ],
         "external": false,
-        "slug": "greyc"
+        "slug": "alma"
     },
     {
-        "uid": "lab-7",
+        "uid": "lab-lmjl",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
+        "acronym": "LMJL",
+        "parent_uid": "comp-ufr-st",
+        "rnsr": "199812942B",
+        "short_labels": [
+            { "language": "fr", "value": "LMJL" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }
+        ],
+        "institutionNames": ["Nantes Université", "CNRS"],
+        "membersCount": 130,
+        "publicationsCount": 210,
+        "oaRate": 72,
+        "halRate": 68,
+        "descriptions": [
+            { "language": "fr", "value": "Mathématiques pures et appliquées. UMR CNRS 6629." }
+        ],
+        "external": false,
+        "slug": "lmjl"
+    },
+    {
+        "uid": "lab-cens",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
+        "acronym": "CENS",
+        "parent_uid": "comp-ufr-llshs",
+        "rnsr": "200310057G",
+        "short_labels": [
+            { "language": "fr", "value": "CENS" }
+        ],
+        "long_labels": [
+            { "language": "fr", "value": "Centre Nantais de Sociologie" }
+        ],
+        "institutionNames": ["Nantes Université", "CNRS"],
+        "membersCount": 68,
+        "publicationsCount": 95,
+        "oaRate": 51,
+        "halRate": 44,
+        "descriptions": [
+            { "language": "fr", "value": "Sociologie des organisations, du travail et des inégalités. UMR CNRS 6025." }
+        ],
+        "external": false,
+        "slug": "cens"
+    },
+    {
+        "uid": "lab-lemna",
         "generic_type": "unit",
         "national_type": "UR",
         "main_mission": "research",
-        "acronym": "CERI SN",
-        "parent_uid": "inst-avignon",
-        "rnsr": "200721867N",
+        "acronym": "LEMNA",
+        "parent_uid": "comp-iae",
+        "rnsr": "200111990U",
         "short_labels": [
-            { "language": "fr", "value": "CERI SN" }
+            { "language": "fr", "value": "LEMNA" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Centre d'Enseignement et de Recherche en Informatique — Sciences du Numérique" }
+            { "language": "fr", "value": "Laboratoire d'Économie et de Management Nantes-Atlantique" }
         ],
-        "institutionNames": ["Avignon Université"],
-        "membersCount": 45,
-        "publicationsCount": 68,
-        "oaRate": 40,
-        "halRate": 35,
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 72,
+        "publicationsCount": 98,
+        "oaRate": 39,
+        "halRate": 32,
         "descriptions": [
-            { "language": "fr", "value": "Informatique et sciences du numérique." }
+            { "language": "fr", "value": "Économie, gestion et management. Unité propre de Nantes Université." }
         ],
         "external": false,
-        "slug": "ceri-sn"
+        "slug": "lemna"
     },
     {
-        "uid": "lab-8",
+        "uid": "lab-gem",
         "generic_type": "unit",
         "national_type": "UMR",
         "main_mission": "research",
-        "acronym": "I3S",
-        "parent_uid": "inst-cotedazur",
-        "rnsr": "199512909N",
+        "acronym": "GeM",
+        "parent_uid": "inst-cn",
+        "rnsr": "200210284Y",
         "short_labels": [
-            { "language": "fr", "value": "I3S" }
+            { "language": "fr", "value": "GeM" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Laboratoire d'Informatique, Signaux et Systèmes de Sophia Antipolis" }
+            { "language": "fr", "value": "Institut de Recherche en Génie Civil et Mécanique" }
         ],
-        "institutionNames": ["Université Côte d'Azur", "CNRS"],
-        "membersCount": 220,
-        "publicationsCount": 305,
-        "oaRate": 67,
-        "halRate": 58,
+        "institutionNames": ["Centrale Nantes", "Nantes Université", "CNRS"],
+        "membersCount": 250,
+        "publicationsCount": 380,
+        "oaRate": 70,
+        "halRate": 76,
         "descriptions": [
-            { "language": "fr", "value": "Informatique, signaux et systèmes." }
+            { "language": "fr", "value": "Génie civil, mécanique des solides et des structures. UMR CNRS 6183." }
         ],
         "external": false,
-        "slug": "i3s"
+        "slug": "gem"
     },
     {
-        "uid": "unit-9",
+        "uid": "lab-lheea",
         "generic_type": "unit",
-        "national_type": "UAR",
-        "main_mission": "scientific_services",
-        "acronym": "MeSU",
-        "parent_uid": "inst-su",
-        "rnsr": "201220379C",
+        "national_type": "UMR",
+        "main_mission": "research",
+        "acronym": "LHEEA",
+        "parent_uid": "inst-cn",
+        "rnsr": "200311403X",
         "short_labels": [
-            { "language": "fr", "value": "MeSU" }
+            { "language": "fr", "value": "LHEEA" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Mésocentre de calcul — Sorbonne Université" },
-            { "language": "en", "value": "Computing Center — Sorbonne Université" }
+            { "language": "fr", "value": "Laboratoire en Hydrodynamique, Énergétique et Environnement Atmosphérique" }
         ],
-        "institutionNames": ["Sorbonne Université", "CNRS"],
-        "membersCount": 18,
-        "publicationsCount": 8,
-        "oaRate": 100,
-        "halRate": 88,
+        "institutionNames": ["Centrale Nantes", "CNRS"],
+        "membersCount": 105,
+        "publicationsCount": 188,
+        "oaRate": 74,
+        "halRate": 80,
         "descriptions": [
-            { "language": "fr", "value": "Infrastructure de calcul intensif mutualisée." }
+            { "language": "fr", "value": "Hydrodynamique marine, énergies renouvelables offshore. UMR CNRS 6598." }
         ],
         "external": false,
-        "slug": "mesu"
+        "slug": "lheea"
     },
     {
-        "uid": "unit-10",
+        "uid": "lab-crenau",
         "generic_type": "unit",
-        "national_type": null,
-        "local_types": [{ "language": "fr", "value": "Service commun de documentation" }],
-        "main_mission": "administrative_services",
-        "acronym": "BU Sciences",
-        "parent_uid": "inst-nu",
-        "rnsr": null,
+        "national_type": "UMR",
+        "main_mission": "research",
+        "acronym": "CRENAU",
+        "parent_uid": "inst-ensa",
+        "rnsr": "200711237F",
         "short_labels": [
-            { "language": "fr", "value": "BU Sciences" }
+            { "language": "fr", "value": "CRENAU" }
         ],
         "long_labels": [
-            { "language": "fr", "value": "Bibliothèque universitaire — Pôle Sciences" }
+            { "language": "fr", "value": "Centre de Recherche Nantais Architectures Urbanités" }
         ],
-        "institutionNames": ["Nantes Université"],
-        "membersCount": 32,
-        "publicationsCount": 0,
-        "oaRate": 0,
-        "halRate": 0,
+        "institutionNames": ["ENSA Nantes", "CNRS", "Ministère de la Culture"],
+        "membersCount": 42,
+        "publicationsCount": 58,
+        "oaRate": 46,
+        "halRate": 40,
         "descriptions": [
-            { "language": "fr", "value": "Service commun de documentation, pôle sciences et techniques." }
+            { "language": "fr", "value": "Architecture, urbanisme et paysage. UMR CNRS/MC 1563." }
         ],
         "external": false,
-        "slug": "bu-sciences"
+        "slug": "crenau"
     }
 ]

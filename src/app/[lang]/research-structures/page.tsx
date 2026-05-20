@@ -40,12 +40,14 @@ const GENERIC_TYPE_LABELS: Record<string, string> = {
   institution: 'Institution',
   composante: 'Composante',
   unit: "Unité de recherche",
+  team: 'Équipe',
 }
 
-const GENERIC_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'default'> = {
+const GENERIC_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'default' | 'warning'> = {
   institution: 'primary',
   composante: 'secondary',
   unit: 'default',
+  team: 'warning',
 }
 
 const MISSION_LABELS: Record<string, string> = {
@@ -167,11 +169,14 @@ function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: strin
         {nationalType && (
           <Chip label={nationalType} size='small' sx={{ height: 16, fontSize: 10 }} />
         )}
-        {genericType === 'institution' && (
-          <Chip label='Institution' size='small' color='primary' variant='outlined' sx={{ height: 16, fontSize: 10 }} />
-        )}
-        {genericType === 'composante' && (
-          <Chip label='Composante' size='small' color='secondary' variant='outlined' sx={{ height: 16, fontSize: 10 }} />
+        {genericType !== 'unit' && genericType in GENERIC_TYPE_LABELS && (
+          <Chip
+            label={GENERIC_TYPE_LABELS[genericType]}
+            size='small'
+            color={GENERIC_TYPE_COLORS[genericType] ?? 'default'}
+            variant='outlined'
+            sx={{ height: 16, fontSize: 10 }}
+          />
         )}
       </Box>
       <Typography
