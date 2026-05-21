@@ -62,6 +62,16 @@ export const mockService = {
     return structuresData.find((s) => s.slug === structureSlug) ?? null
   },
 
+  getResearchStructureByUid: (uid: string) =>
+    structuresData.find((s) => s.uid === uid) ?? null,
+
+  getStructureMembers: (structureUid: string) => {
+    const structure = structuresData.find((s) => s.uid === structureUid)
+    if (!structure || !('members' in structure) || !Array.isArray(structure.members)) return []
+    const memberUids = structure.members as string[]
+    return personsData.filter((p) => memberUids.includes(p.uid))
+  },
+
   getLaboratories: (searchTerm = '') => {
     const labs = structuresData.filter((s) => s.generic_type === 'unit')
     const filtered = searchTerm

@@ -7,27 +7,20 @@
         "firstName": "Jean",
         "lastName": "Dupont",
         "slug": "jean-dupont",
+        "statut": "MCF",
+        "publis24m": 12,
+        "oaRate": 67,
+        "halRate": 58,
         "identifiers": [
-            {
-                "type": "orcid",
-                "value": "0000-0001-2345-6789"
-            },
-            {
-                "type": "idref",
-                "value": "123456789"
-            }
+            { "type": "orcid", "value": "0000-0001-2345-6789" },
+            { "type": "idref", "value": "123456789" }
         ],
         "memberships": [
             {
                 "researchStructure": {
-                    "uid": "lab-1",
-                    "acronym": "LIP6",
-                    "names": [
-                        {
-                            "language": "fr",
-                            "value": "Laboratoire d'Informatique de Paris 6"
-                        }
-                    ]
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
                 }
             }
         ]
@@ -40,23 +33,203 @@
         "firstName": "Marie",
         "lastName": "Curie",
         "slug": "marie-curie",
+        "statut": "DR",
+        "publis24m": 31,
+        "oaRate": 84,
+        "halRate": 79,
         "identifiers": [
-            {
-                "type": "orcid",
-                "value": "0000-0002-9876-5432"
-            }
+            { "type": "orcid", "value": "0000-0002-9876-5432" }
         ],
         "memberships": [
             {
                 "researchStructure": {
-                    "uid": "lab-2",
-                    "acronym": "IPN",
-                    "names": [
-                        {
-                            "language": "fr",
-                            "value": "Institut de Physique Nucléaire"
-                        }
-                    ]
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-1",
+        "external": false,
+        "email": "isabelle.cordier@univ-nantes.fr",
+        "displayName": "Isabelle Cordier",
+        "firstName": "Isabelle",
+        "lastName": "Cordier",
+        "slug": "isabelle-cordier",
+        "statut": "Pr.",
+        "publis24m": 45,
+        "oaRate": 72,
+        "halRate": 68,
+        "identifiers": [{ "type": "orcid", "value": "0000-0003-1111-2222" }],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-2",
+        "external": false,
+        "email": "thomas.renaud@univ-nantes.fr",
+        "displayName": "Thomas Renaud",
+        "firstName": "Thomas",
+        "lastName": "Renaud",
+        "slug": "thomas-renaud",
+        "statut": "MCF",
+        "publis24m": 28,
+        "oaRate": 58,
+        "halRate": 52,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-3",
+        "external": false,
+        "email": "fatima.elamrani@cnrs.fr",
+        "displayName": "Fatima El Amrani",
+        "firstName": "Fatima",
+        "lastName": "El Amrani",
+        "slug": "fatima-el-amrani",
+        "statut": "DR",
+        "publis24m": 38,
+        "oaRate": 81,
+        "halRate": 75,
+        "identifiers": [{ "type": "orcid", "value": "0000-0003-3333-4444" }],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-4",
+        "external": false,
+        "email": "julien.beaumont@cnrs.fr",
+        "displayName": "Julien Beaumont",
+        "firstName": "Julien",
+        "lastName": "Beaumont",
+        "slug": "julien-beaumont",
+        "statut": "CR",
+        "publis24m": 22,
+        "oaRate": 65,
+        "halRate": 60,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-5",
+        "external": false,
+        "email": "clara.leroux@etu.univ-nantes.fr",
+        "displayName": "Clara Leroux",
+        "firstName": "Clara",
+        "lastName": "Leroux",
+        "slug": "clara-leroux",
+        "statut": "Doctorant",
+        "publis24m": 8,
+        "oaRate": 90,
+        "halRate": 85,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-6",
+        "external": false,
+        "email": "antoine.perrin@univ-nantes.fr",
+        "displayName": "Antoine Perrin",
+        "firstName": "Antoine",
+        "lastName": "Perrin",
+        "slug": "antoine-perrin",
+        "statut": "Post-doc",
+        "publis24m": 12,
+        "oaRate": 88,
+        "halRate": 80,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-7",
+        "external": false,
+        "email": "sophie.marchand@univ-nantes.fr",
+        "displayName": "Sophie Marchand",
+        "firstName": "Sophie",
+        "lastName": "Marchand",
+        "slug": "sophie-marchand",
+        "statut": "MCF",
+        "publis24m": 19,
+        "oaRate": 54,
+        "halRate": 48,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
+                }
+            }
+        ]
+    },
+    {
+        "uid": "person-ls2n-8",
+        "external": false,
+        "email": "laurent.viguier@univ-nantes.fr",
+        "displayName": "Laurent Viguier",
+        "firstName": "Laurent",
+        "lastName": "Viguier",
+        "slug": "laurent-viguier",
+        "statut": "Ingé.",
+        "publis24m": 3,
+        "oaRate": 33,
+        "halRate": 28,
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-ls2n",
+                    "acronym": "LS2N",
+                    "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
                 }
             }
         ]

@@ -1,11 +1,19 @@
 # Page : Détail d'une structure de recherche
 
 **Route :** `/[lang]/research-structures/[uid]`  
-**Statut :** non implémentée — cette page est à construire.
+**Statut :** implémentée (`src/app/[lang]/research-structures/[uid]/`)
+
+**Composants :** `StructureHero` · `StructureKpis` · `PublicationsChart` (ECharts) · `MembersTable` · `SidebarIdentifiers` · `SidebarAbout` · `SidebarDisciplines` · `SidebarSources` · `SubstructuresTable` · `TabsUnitContent`
 
 ## Contexte
 
 Fiche d'une structure, quel que soit son `generic_type` (institution, composante, unit, team). Le contenu s'adapte au type : une institution affiche ses sous-structures, une unité affiche ses membres et équipes. La même route sert tous les types, y compris les nœuds de référence co-tutelle (voir "Multi-tutelles" ci-dessous).
+
+L'utilisateur type est un responsable scientifique, directeur de laboratoire, chargé de mission recherche ou bibliothécaire. Ses besoins :
+- prendre la mesure d'une structure en moins de 10 secondes (KPIs, identifiants, tutelles)
+- comprendre la dynamique de production (graphique publications × accès ouvert)
+- accéder aux membres et aux données rattachées
+- naviguer vers les structures parentes ou filles
 
 **Périmètre de la maquette :** EPE Nantes Université — données réelles fictivisées.
 
@@ -35,6 +43,23 @@ type ResearchStructure = {
 }
 ```
 
+Données à ajouter dans le mock pour les types `unit` et `team` :
+
+```ts
+// À ajouter sur les unités et équipes :
+members: string[]                       // uids de chercheurs
+disciplines: { label: string; pct: number }[]   // part de la production par discipline
+publicationsByYear: {
+  year: number
+  open: number      // accès ouvert
+  closed: number    // accès fermé
+  unknown: number   // type d'accès inconnu
+}[]
+
+// À ajouter sur les institutions et composantes :
+childUids: string[]                     // uids des structures filles directes (dénormalisé)
+```
+
 ---
 
 ## En-tête (commun à tous les types)
@@ -60,8 +85,28 @@ type ResearchStructure = {
 - RNSR si disponible
 - **Tutelle principale** : lien → fiche de la structure parente (`parent_uid`)
 - **Co-tutelles** : liste des `secondary_parent_uids` (périmètre) + tutelles hors périmètre issues de `institutionNames` — avec ou sans lien selon qu'elles ont une fiche dans l'appli
-- **Breadcrumb** : reconstruit depuis `parent_uid` en remontant récursivement
+- **Breadcrumb** : reconstruit depuis `parent_uid` en remontant récursivement. Le retour vers `/research-structures` restaure l'état de la liste (vue à plat / hiérarchique, filtres actifs, position de scroll) via `history.state` ou `sessionStorage`
 - Bouton retour → `/research-structures`
+
+---
+
+## Layout de la page
+
+Pour les types `unit` et `team`, la page utilise une grille 2 colonnes :
+
+```
+┌───────────────────────────────────────┐  ┌──────────────────┐
+│  KPIs (×4)                            │  │  Identifiants    │
+├───────────────────────────────────────┤  ├──────────────────┤
+│  Graphique publications × accès       │  │  À propos        │
+├───────────────────────────────────────┤  ├──────────────────┤
+│  Membres (table aperçu)               │  │  Disciplines     │
+│                                       │  ├──────────────────┤
+│  [Onglets : Équipes · Publications]   │  │  Sources         │
+└───────────────────────────────────────┘  └──────────────────┘
+```
+
+Pour les types `institution` et `composante`, le layout est plus simple : liste des sous-structures en colonne principale, À propos en secondaire.
 
 ---
 
@@ -124,6 +169,85 @@ Description, responsable d'équipe, appartenance à l'unité parente → lien fi
 
 ---
 
+## KPIs (unités et équipes)
+
+4 indicateurs en grille, chacun avec valeur principale et delta contextuel :
+
+| KPI | Valeur | Delta affiché |
+|-----|--------|---------------|
+| **Membres** | `membersCount` | `X % permanents` |
+| **Publications 24m** | `publicationsCount` | Évolution N vs N-1 (vert si > 0, rouge si < 0) |
+| **Accès ouvert** | `oaRate %` | Cible institutionnelle (ex. « cible 60 % ») |
+| **Dépôt HAL** | `halRate %` | Variation en points sur 12 mois (ex. `+5 pts`) |
+
+Le clic sur un KPI ouvre la page concernée pré-filtrée (Publications, Chercheurs…).
+
+---
+
+## Graphique « Publications par année et taux d'accès » (unités et équipes)
+
+Barres empilées sur les 5 dernières années (configurable 3–10) :
+- **Accès ouvert** (vert `#3FB97A`)
+- **Accès fermé** (bleu `#3B79D8`)
+- **Type inconnu** (gris `#9AA39E`)
+
+Fonctionnalités :
+- Tooltip au survol : année, total par série, taux OA
+- Toggle « En valeur » ↔ « En pourcentage » (barres normalisées à 100 %)
+- Toggle « Inclure les chapitres » / « Restreindre aux articles »
+- Export PNG/CSV des données du graphique
+
+---
+
+## Table « Membres récents » (unités et équipes)
+
+Aperçu des membres les plus actifs (5–8 lignes), triés par publications 24m décroissant.
+
+| Col | Contenu |
+|-----|---------|
+| Chercheur | Avatar initiales + nom → lien `/researchers/[uid]` |
+| Statut | Chip : Pr., MCF, DR, CR, Doctorant, Post-doc, Ingé., ATER |
+| Publications 24m | Nombre aligné à droite |
+| OA | Barre de progression + pourcentage |
+| HAL | Chip avec pourcentage |
+
+Lien « Voir tous les membres → » vers la page Chercheurs filtrée sur cette structure.
+
+Clic sur une ligne → fiche chercheur.
+
+---
+
+## Sidebar — Identifiants (unités et équipes)
+
+Liste verticale des identifiants avec lien vers le référentiel externe (liens `target="_blank"`, `rel="noopener"`) :
+
+| Identifiant | Lien |
+|-------------|------|
+| RNSR | `https://appliweb.dgri.education.fr/rnsr/{rnsr}` |
+| ROR | `https://ror.org/{ror}` + bouton copie |
+| Collection HAL | `https://hal.science/{collection}` |
+| IdRef | `https://www.idref.fr/{idref}` |
+| Wikidata | `https://www.wikidata.org/wiki/{qid}` |
+| Scopus ID | Lien vers la fiche affiliation Scopus |
+
+Identifiant absent : afficher « — ».
+
+---
+
+## Sidebar — Disciplines (unités et équipes)
+
+Classement des disciplines/thématiques par part de la production scientifique (source : classification OpenAlex ou taxonomie locale). Barre de progression par ligne, pourcentage à droite. Max 5 affichées.
+
+---
+
+## Sidebar — Couverture des sources (unités et équipes)
+
+Pour chaque source externe (HAL, ScanR, OpenAlex, Crossref, Scopus, Web of Science) : barre de progression + pourcentage.  
+Couleur conditionnelle : vert si ≥ 80 %, ambre (`#E8A33D`) si 50–79 %, rouge si < 50 %.  
+Au survol : tooltip « N publications référencées sur M attendues ».
+
+---
+
 ## Multi-tutelles sur la fiche détail
 
 **Problème :** LS2N a `parent_uid = "comp-ufr-st"` (Nantes Université) et `secondary_parent_uids = ["inst-cn"]` (Centrale Nantes). Comment présenter les tutelles sur la fiche ?
@@ -176,16 +300,36 @@ La maquette utilise des chiffres saisis manuellement pour chaque nœud. En produ
 
 ---
 
-## Données mock à enrichir pour implémenter la page
+## États
 
-```ts
-// Sur les unités et équipes :
-members: string[]           // uids de chercheurs
-// Sur les institutions et composantes :
-childUids: string[]         // uids des structures filles directes (dénormalisé)
-```
+| État | Comportement |
+|------|-------------|
+| Chargement initial | Skeletons sur le hero, les KPIs, le graphique et les cartes sidebar |
+| Structure introuvable (404) | Message « Cette structure n'existe pas ou plus » + bouton « Retour à la liste » |
+| Identifiant absent | Afficher « — » |
+| Aucune publication sur la période | Message inline dans le graphique |
+| Erreur sur une section | Bandeau d'erreur localisé à la section + bouton « Réessayer » ; le reste de la page reste fonctionnel |
 
-Les équipes (TASC, ALMA) sont déjà liées à LS2N via `parent_uid` — pas besoin d'enrichissement supplémentaire pour l'onglet Équipes.
+---
+
+## Responsive
+
+- ≥ 1280 px : grille 2 colonnes (colonne principale + 320 px)
+- 960–1279 px : la colonne secondaire passe sous la colonne principale, en deux colonnes (Identifiants + Disciplines | À propos + Sources)
+- < 960 px : tout en une colonne, KPIs en 2×2
+- < 720 px : les chips du hero wrappent, les boutons d'action passent sous le titre
+
+---
+
+## Accessibilité
+
+- H1 unique sur la page (nom complet de la structure).
+- Chips et boutons icône : `aria-label` explicite.
+- Liens externes (ROR, Wikidata, RNSR…) : `aria-label` complet (ex. « Ouvrir la fiche ROR dans un nouvel onglet »).
+- Barres de progression : `role="progressbar"`, `aria-valuenow`, `aria-valuemin=0`, `aria-valuemax=100`, `aria-label` explicite.
+- Graphique barres empilées : `role="img"` + `aria-label` résumant les données ; tableau de données équivalent caché en `sr-only`.
+- Tableau membres : `<th scope="col">`, navigation clavier complète.
+- Focus visibles partout ; contraste AA respecté sur les chips et pourcentages.
 
 ---
 
@@ -208,4 +352,6 @@ Les équipes (TASC, ALMA) sont déjà liées à LS2N via `parent_uid` — pas be
 
 ❓ **Historique des tutelles** : une UMR peut changer de tutelle principale. Faut-il afficher un historique (ex. "rattachée à X depuis 2021, avant à Y") ?
 
-❓ **Accès à la fiche depuis un nœud de référence** : le clic sur ↗ LS2N (sous Centrale Nantes) mène à la fiche LS2N. Faut-il indiquer sur la fiche que l'utilisateur y a accédé via Centrale Nantes ("vous y avez accédé via Centrale Nantes"), ou la fiche est-elle toujours identique quel que soit le chemin d'entrée ?
+❓ **Accès à la fiche depuis un nœud de référence** : le clic sur ↗ LS2N (sous Centrale Nantes) mène à la fiche LS2N. Faut-il indiquer sur la fiche que l'utilisateur y a accédé via Centrale Nantes, ou la fiche est-elle toujours identique quel que soit le chemin d'entrée ?
+
+❓ **Nœud de référence — afficher les chiffres ?** Faut-il afficher membres/publications sur le nœud de référence dans la vue liste (risque de double comptage apparent) ou les masquer avec `—` ?

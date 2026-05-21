@@ -5,23 +5,19 @@
         "national_type": "Université",
         "main_mission": "teaching",
         "acronym": "NU",
-        "parent_uid": "inst-epe-nu",
-        "short_labels": [
-            { "language": "fr", "value": "Nantes Université" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Nantes Université" }
-        ],
+        "parent_uid": null,
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "Nantes Université" }],
+        "long_labels": [{ "language": "fr", "value": "Nantes Université" }],
         "institutionNames": [],
         "membersCount": 56000,
         "publicationsCount": 5800,
         "oaRate": 62,
         "halRate": 58,
-        "descriptions": [
-            { "language": "fr", "value": "Université pluridisciplinaire, membre de l'EPE Nantes Université." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "Université pluridisciplinaire fondée en 2022. Regroupe Nantes Université historique, Centrale Nantes et l'ENSA Nantes au sein d'un établissement public expérimental. Elle forme plus de 42 000 étudiants et conduit une politique de recherche ambitieuse dans tous les champs disciplinaires." }],
         "external": false,
-        "slug": "nantes-universite"
+        "slug": "nantes-universite",
+        "childUids": ["comp-ufr-st", "comp-ufr-llshs", "comp-iae", "comp-polytech", "unit-bu"]
     },
     {
         "uid": "inst-cn",
@@ -30,22 +26,18 @@
         "main_mission": "teaching",
         "acronym": "Centrale Nantes",
         "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "Centrale Nantes" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "École Centrale de Nantes" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "Centrale Nantes" }],
+        "long_labels": [{ "language": "fr", "value": "École Centrale de Nantes" }],
         "institutionNames": [],
         "membersCount": 3200,
         "publicationsCount": 1100,
         "oaRate": 67,
         "halRate": 72,
-        "descriptions": [
-            { "language": "fr", "value": "Grande école d'ingénieurs, membre de l'EPE Nantes Université." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "Grande école d'ingénieurs membre de l'EPE Nantes Université. Forme des ingénieurs généralistes de haut niveau et conduit des recherches en génie civil, mécanique, hydrodynamique et systèmes numériques." }],
         "external": false,
-        "slug": "centrale-nantes"
+        "slug": "centrale-nantes",
+        "childUids": ["lab-gem", "lab-lheea"]
     },
     {
         "uid": "inst-ensa",
@@ -54,22 +46,18 @@
         "main_mission": "teaching",
         "acronym": "ENSA Nantes",
         "parent_uid": null,
-        "short_labels": [
-            { "language": "fr", "value": "ENSA Nantes" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "École Nationale Supérieure d'Architecture de Nantes" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "ENSA Nantes" }],
+        "long_labels": [{ "language": "fr", "value": "École Nationale Supérieure d'Architecture de Nantes" }],
         "institutionNames": [],
         "membersCount": 1400,
         "publicationsCount": 120,
         "oaRate": 44,
         "halRate": 38,
-        "descriptions": [
-            { "language": "fr", "value": "École nationale d'architecture, membre de l'EPE Nantes Université." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "École nationale supérieure d'architecture, membre de l'EPE Nantes Université. Conduit des recherches en architecture, urbanisme et paysage au sein du laboratoire CRENAU." }],
         "external": false,
-        "slug": "ensa-nantes"
+        "slug": "ensa-nantes",
+        "childUids": ["lab-crenau"]
     },
     {
         "uid": "comp-ufr-st",
@@ -78,22 +66,18 @@
         "main_mission": "teaching",
         "acronym": "UFR Sciences",
         "parent_uid": "inst-nu",
-        "short_labels": [
-            { "language": "fr", "value": "UFR Sciences" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "UFR Sciences et Techniques" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "UFR Sciences" }],
+        "long_labels": [{ "language": "fr", "value": "UFR Sciences et Techniques" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 8500,
         "publicationsCount": 2100,
         "oaRate": 65,
         "halRate": 60,
-        "descriptions": [
-            { "language": "fr", "value": "Unité de formation et de recherche en sciences fondamentales et appliquées." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "Unité de formation et de recherche en sciences fondamentales et appliquées. Regroupe les formations de licence, master et doctorat en mathématiques, physique, chimie, informatique et sciences de la terre." }],
         "external": false,
-        "slug": "ufr-sciences"
+        "slug": "ufr-sciences",
+        "childUids": ["lab-ls2n", "lab-lmjl"]
     },
     {
         "uid": "comp-ufr-llshs",
@@ -102,22 +86,18 @@
         "main_mission": "teaching",
         "acronym": "UFR LLSHS",
         "parent_uid": "inst-nu",
-        "short_labels": [
-            { "language": "fr", "value": "UFR LLSHS" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "UFR Lettres, Langues et Sciences Humaines et Sociales" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "UFR LLSHS" }],
+        "long_labels": [{ "language": "fr", "value": "UFR Lettres, Langues et Sciences Humaines et Sociales" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 6200,
         "publicationsCount": 890,
         "oaRate": 48,
         "halRate": 42,
-        "descriptions": [
-            { "language": "fr", "value": "Unité de formation en lettres, langues, sciences humaines et sociales." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "Unité de formation en lettres, langues, sciences humaines et sociales. Abrite le Centre Nantais de Sociologie (CENS) et plusieurs équipes en linguistique, histoire et géographie." }],
         "external": false,
-        "slug": "ufr-llshs"
+        "slug": "ufr-llshs",
+        "childUids": ["lab-cens"]
     },
     {
         "uid": "comp-iae",
@@ -126,22 +106,18 @@
         "main_mission": "teaching",
         "acronym": "IAE Nantes",
         "parent_uid": "inst-nu",
-        "short_labels": [
-            { "language": "fr", "value": "IAE Nantes" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "IAE Nantes — Économie et Management" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "IAE Nantes" }],
+        "long_labels": [{ "language": "fr", "value": "IAE Nantes — Économie et Management" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 3100,
         "publicationsCount": 310,
         "oaRate": 41,
         "halRate": 35,
-        "descriptions": [
-            { "language": "fr", "value": "Institut d'administration des entreprises, école universitaire de management." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "Institut d'administration des entreprises, école universitaire de management. Abrite le LEMNA, laboratoire d'économie et management de référence dans l'ouest de la France." }],
         "external": false,
-        "slug": "iae-nantes"
+        "slug": "iae-nantes",
+        "childUids": ["lab-lemna"]
     },
     {
         "uid": "comp-polytech",
@@ -150,22 +126,18 @@
         "main_mission": "teaching",
         "acronym": "Polytech Nantes",
         "parent_uid": "inst-nu",
-        "short_labels": [
-            { "language": "fr", "value": "Polytech Nantes" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Polytech Nantes — École Polytechnique de l'Université de Nantes" }
-        ],
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "Polytech Nantes" }],
+        "long_labels": [{ "language": "fr", "value": "Polytech Nantes — École Polytechnique de l'Université de Nantes" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 2400,
         "publicationsCount": 420,
         "oaRate": 59,
         "halRate": 53,
-        "descriptions": [
-            { "language": "fr", "value": "École interne d'ingénieurs de Nantes Université." }
-        ],
+        "descriptions": [{ "language": "fr", "value": "École interne d'ingénieurs de Nantes Université, formant des ingénieurs dans sept spécialités dont le génie électrique, l'informatique et le génie civil." }],
         "external": false,
-        "slug": "polytech-nantes"
+        "slug": "polytech-nantes",
+        "childUids": []
     },
     {
         "uid": "unit-bu",
@@ -174,23 +146,25 @@
         "main_mission": "administrative_services",
         "acronym": "BU Nantes",
         "parent_uid": "inst-nu",
+        "secondary_parent_uids": [],
         "rnsr": null,
-        "short_labels": [
-            { "language": "fr", "value": "BU Nantes" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Service Commun de Documentation — Nantes Université" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "BU Nantes" }],
+        "long_labels": [{ "language": "fr", "value": "Service Commun de Documentation — Nantes Université" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 145,
         "publicationsCount": 0,
         "oaRate": 0,
         "halRate": 0,
-        "descriptions": [
-            { "language": "fr", "value": "Réseau de bibliothèques universitaires couvrant l'ensemble des disciplines." }
-        ],
+        "halDelta": 0,
+        "publicationsDelta": 0,
+        "descriptions": [{ "language": "fr", "value": "Réseau de bibliothèques universitaires couvrant l'ensemble des disciplines, avec plus de 900 000 documents disponibles sur 12 sites." }],
         "external": false,
-        "slug": "bu-nantes"
+        "slug": "bu-nantes",
+        "identifiers": {},
+        "members": [],
+        "publicationsByYear": [],
+        "disciplines": [],
+        "sources": []
     },
     {
         "uid": "lab-ls2n",
@@ -214,11 +188,52 @@
         "publicationsCount": 520,
         "oaRate": 58,
         "halRate": 52,
-        "descriptions": [
-            { "language": "fr", "value": "Informatique, automatique et traitement du signal. UMR CNRS 6004." }
-        ],
+        "halDelta": 5,
+        "publicationsDelta": 3,
+        "descriptions": [{ "language": "fr", "value": "Le LS2N est une unité mixte de recherche CNRS (UMR 6004) qui fédère les recherches en informatique, automatique et traitement du signal de Nantes Université et Centrale Nantes. Ses 350 membres travaillent sur l'intelligence artificielle, les systèmes embarqués, la vérification formelle, la robotique et les réseaux de communication." }],
         "external": false,
-        "slug": "ls2n"
+        "slug": "ls2n",
+        "identifiers": {
+            "ror": "04ezmvf85",
+            "halCollection": "LS2N",
+            "idref": "200210321M",
+            "wikidata": "Q30263641",
+            "scopusId": "60019367"
+        },
+        "members": [
+            "person-ls2n-1",
+            "person-ls2n-2",
+            "person-ls2n-3",
+            "person-ls2n-4",
+            "person-ls2n-5",
+            "person-ls2n-6",
+            "person-ls2n-7",
+            "person-ls2n-8",
+            "person-1",
+            "person-2"
+        ],
+        "publicationsByYear": [
+            { "year": 2020, "open": 56, "closed": 42, "unknown": 24 },
+            { "year": 2021, "open": 68, "closed": 38, "unknown": 20 },
+            { "year": 2022, "open": 82, "closed": 35, "unknown": 18 },
+            { "year": 2023, "open": 95, "closed": 33, "unknown": 14 },
+            { "year": 2024, "open": 108, "closed": 28, "unknown": 10 }
+        ],
+        "disciplines": [
+            { "label": "Informatique", "pct": 45 },
+            { "label": "Automatique", "pct": 22 },
+            { "label": "Traitement du signal", "pct": 18 },
+            { "label": "Intelligence artificielle", "pct": 10 },
+            { "label": "Mathématiques appliquées", "pct": 5 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 78, "found": 405, "total": 520 },
+            { "name": "ScanR", "coverage": 82, "found": 426, "total": 520 },
+            { "name": "OpenAlex", "coverage": 91, "found": 473, "total": 520 },
+            { "name": "Crossref", "coverage": 65, "found": 338, "total": 520 },
+            { "name": "Scopus", "coverage": 55, "found": 286, "total": 520 },
+            { "name": "Web of Science", "coverage": 48, "found": 250, "total": 520 }
+        ]
     },
     {
         "uid": "team-tasc",
@@ -227,23 +242,42 @@
         "main_mission": "research",
         "acronym": "TASC",
         "parent_uid": "lab-ls2n",
+        "secondary_parent_uids": [],
         "rnsr": null,
-        "short_labels": [
-            { "language": "fr", "value": "TASC" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Tests, Architecture et Systèmes de Communications" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "TASC" }],
+        "long_labels": [{ "language": "fr", "value": "Tests, Architecture et Systèmes de Communications" }],
         "institutionNames": ["Nantes Université", "CNRS"],
         "membersCount": 28,
         "publicationsCount": 42,
         "oaRate": 61,
         "halRate": 55,
-        "descriptions": [
-            { "language": "fr", "value": "Vérification et test de systèmes embarqués et de circuits intégrés." }
-        ],
+        "halDelta": 3,
+        "publicationsDelta": 8,
+        "descriptions": [{ "language": "fr", "value": "Équipe de recherche spécialisée dans la vérification et le test de systèmes embarqués, de circuits intégrés et de systèmes de communication. Développe des méthodes formelles et des outils automatisés pour la validation de systèmes complexes." }],
         "external": false,
-        "slug": "tasc"
+        "slug": "tasc",
+        "identifiers": {
+            "halCollection": "TASC"
+        },
+        "members": ["person-ls2n-1", "person-ls2n-3", "person-ls2n-5", "person-ls2n-7"],
+        "publicationsByYear": [
+            { "year": 2020, "open": 5, "closed": 4, "unknown": 3 },
+            { "year": 2021, "open": 6, "closed": 3, "unknown": 2 },
+            { "year": 2022, "open": 8, "closed": 3, "unknown": 2 },
+            { "year": 2023, "open": 9, "closed": 2, "unknown": 1 },
+            { "year": 2024, "open": 11, "closed": 2, "unknown": 1 }
+        ],
+        "disciplines": [
+            { "label": "Vérification formelle", "pct": 55 },
+            { "label": "Circuits intégrés", "pct": 30 },
+            { "label": "Systèmes embarqués", "pct": 15 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 74, "found": 31, "total": 42 },
+            { "name": "OpenAlex", "coverage": 86, "found": 36, "total": 42 },
+            { "name": "Scopus", "coverage": 60, "found": 25, "total": 42 },
+            { "name": "Web of Science", "coverage": 52, "found": 22, "total": 42 }
+        ]
     },
     {
         "uid": "team-alma",
@@ -252,23 +286,42 @@
         "main_mission": "research",
         "acronym": "ALMA",
         "parent_uid": "lab-ls2n",
+        "secondary_parent_uids": [],
         "rnsr": null,
-        "short_labels": [
-            { "language": "fr", "value": "ALMA" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Langages et Modèles à objets" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "ALMA" }],
+        "long_labels": [{ "language": "fr", "value": "Langages et Modèles à objets" }],
         "institutionNames": ["Nantes Université", "CNRS"],
         "membersCount": 22,
         "publicationsCount": 31,
         "oaRate": 55,
         "halRate": 49,
-        "descriptions": [
-            { "language": "fr", "value": "Ingénierie des modèles, langages dédiés et transformation de modèles." }
-        ],
+        "halDelta": 2,
+        "publicationsDelta": -5,
+        "descriptions": [{ "language": "fr", "value": "Équipe de recherche en ingénierie des modèles, langages dédiés (DSL) et transformation de modèles. Développe des approches dirigées par les modèles pour la conception et la vérification de systèmes logiciels complexes." }],
         "external": false,
-        "slug": "alma"
+        "slug": "alma",
+        "identifiers": {
+            "halCollection": "ALMA"
+        },
+        "members": ["person-ls2n-2", "person-ls2n-4", "person-ls2n-6", "person-ls2n-8"],
+        "publicationsByYear": [
+            { "year": 2020, "open": 4, "closed": 3, "unknown": 2 },
+            { "year": 2021, "open": 5, "closed": 3, "unknown": 2 },
+            { "year": 2022, "open": 6, "closed": 2, "unknown": 1 },
+            { "year": 2023, "open": 7, "closed": 2, "unknown": 1 },
+            { "year": 2024, "open": 6, "closed": 2, "unknown": 1 }
+        ],
+        "disciplines": [
+            { "label": "Ingénierie des modèles", "pct": 50 },
+            { "label": "Langages dédiés", "pct": 35 },
+            { "label": "Transformations de modèles", "pct": 15 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 68, "found": 21, "total": 31 },
+            { "name": "OpenAlex", "coverage": 81, "found": 25, "total": 31 },
+            { "name": "Scopus", "coverage": 55, "found": 17, "total": 31 },
+            { "name": "Web of Science", "coverage": 45, "found": 14, "total": 31 }
+        ]
     },
     {
         "uid": "lab-lmjl",
@@ -277,23 +330,47 @@
         "main_mission": "research",
         "acronym": "LMJL",
         "parent_uid": "comp-ufr-st",
+        "secondary_parent_uids": [],
         "rnsr": "199812942B",
-        "short_labels": [
-            { "language": "fr", "value": "LMJL" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "LMJL" }],
+        "long_labels": [{ "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }],
         "institutionNames": ["Nantes Université", "CNRS"],
         "membersCount": 130,
         "publicationsCount": 210,
         "oaRate": 72,
         "halRate": 68,
-        "descriptions": [
-            { "language": "fr", "value": "Mathématiques pures et appliquées. UMR CNRS 6629." }
-        ],
+        "halDelta": 4,
+        "publicationsDelta": 6,
+        "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6629) dédiée aux mathématiques pures et appliquées. Ses thèmes de recherche couvrent l'analyse, la géométrie, les probabilités et statistiques, la topologie et l'analyse numérique." }],
         "external": false,
-        "slug": "lmjl"
+        "slug": "lmjl",
+        "identifiers": {
+            "rnsr": "199812942B",
+            "halCollection": "LMJL",
+            "ror": "02fpbwj23"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 22, "closed": 10, "unknown": 6 },
+            { "year": 2021, "open": 26, "closed": 9, "unknown": 5 },
+            { "year": 2022, "open": 32, "closed": 8, "unknown": 4 },
+            { "year": 2023, "open": 38, "closed": 7, "unknown": 3 },
+            { "year": 2024, "open": 40, "closed": 6, "unknown": 2 }
+        ],
+        "disciplines": [
+            { "label": "Mathématiques pures", "pct": 52 },
+            { "label": "Analyse et EDP", "pct": 25 },
+            { "label": "Probabilités et statistiques", "pct": 15 },
+            { "label": "Géométrie algébrique", "pct": 8 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 84, "found": 176, "total": 210 },
+            { "name": "ScanR", "coverage": 79, "found": 166, "total": 210 },
+            { "name": "OpenAlex", "coverage": 88, "found": 185, "total": 210 },
+            { "name": "Crossref", "coverage": 72, "found": 151, "total": 210 },
+            { "name": "Scopus", "coverage": 60, "found": 126, "total": 210 },
+            { "name": "Web of Science", "coverage": 58, "found": 122, "total": 210 }
+        ]
     },
     {
         "uid": "lab-cens",
@@ -302,23 +379,46 @@
         "main_mission": "research",
         "acronym": "CENS",
         "parent_uid": "comp-ufr-llshs",
+        "secondary_parent_uids": [],
         "rnsr": "200310057G",
-        "short_labels": [
-            { "language": "fr", "value": "CENS" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Centre Nantais de Sociologie" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "CENS" }],
+        "long_labels": [{ "language": "fr", "value": "Centre Nantais de Sociologie" }],
         "institutionNames": ["Nantes Université", "CNRS"],
         "membersCount": 68,
         "publicationsCount": 95,
         "oaRate": 51,
         "halRate": 44,
-        "descriptions": [
-            { "language": "fr", "value": "Sociologie des organisations, du travail et des inégalités. UMR CNRS 6025." }
-        ],
+        "halDelta": -2,
+        "publicationsDelta": 4,
+        "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6025) spécialisée en sociologie des organisations, du travail et des inégalités sociales. Conduit des enquêtes empiriques sur les transformations du marché du travail et les nouvelles formes de régulation sociale." }],
         "external": false,
-        "slug": "cens"
+        "slug": "cens",
+        "identifiers": {
+            "rnsr": "200310057G",
+            "halCollection": "CENS"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 9, "closed": 9, "unknown": 4 },
+            { "year": 2021, "open": 11, "closed": 8, "unknown": 4 },
+            { "year": 2022, "open": 13, "closed": 7, "unknown": 3 },
+            { "year": 2023, "open": 14, "closed": 7, "unknown": 3 },
+            { "year": 2024, "open": 16, "closed": 6, "unknown": 2 }
+        ],
+        "disciplines": [
+            { "label": "Sociologie", "pct": 60 },
+            { "label": "Sciences politiques", "pct": 20 },
+            { "label": "Économie du travail", "pct": 15 },
+            { "label": "Études de genre", "pct": 5 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 62, "found": 59, "total": 95 },
+            { "name": "ScanR", "coverage": 58, "found": 55, "total": 95 },
+            { "name": "OpenAlex", "coverage": 74, "found": 70, "total": 95 },
+            { "name": "Crossref", "coverage": 45, "found": 43, "total": 95 },
+            { "name": "Scopus", "coverage": 38, "found": 36, "total": 95 },
+            { "name": "Web of Science", "coverage": 30, "found": 29, "total": 95 }
+        ]
     },
     {
         "uid": "lab-lemna",
@@ -327,23 +427,45 @@
         "main_mission": "research",
         "acronym": "LEMNA",
         "parent_uid": "comp-iae",
+        "secondary_parent_uids": [],
         "rnsr": "200111990U",
-        "short_labels": [
-            { "language": "fr", "value": "LEMNA" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Laboratoire d'Économie et de Management Nantes-Atlantique" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "LEMNA" }],
+        "long_labels": [{ "language": "fr", "value": "Laboratoire d'Économie et de Management Nantes-Atlantique" }],
         "institutionNames": ["Nantes Université"],
         "membersCount": 72,
         "publicationsCount": 98,
         "oaRate": 39,
         "halRate": 32,
-        "descriptions": [
-            { "language": "fr", "value": "Économie, gestion et management. Unité propre de Nantes Université." }
-        ],
+        "halDelta": 1,
+        "publicationsDelta": -3,
+        "descriptions": [{ "language": "fr", "value": "Unité de recherche propre de Nantes Université en économie, gestion et management. Ses travaux couvrent l'économie industrielle, le management stratégique, la finance et le management des ressources humaines." }],
         "external": false,
-        "slug": "lemna"
+        "slug": "lemna",
+        "identifiers": {
+            "rnsr": "200111990U",
+            "halCollection": "LEMNA"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 8, "closed": 13, "unknown": 6 },
+            { "year": 2021, "open": 9, "closed": 12, "unknown": 5 },
+            { "year": 2022, "open": 11, "closed": 11, "unknown": 4 },
+            { "year": 2023, "open": 12, "closed": 10, "unknown": 4 },
+            { "year": 2024, "open": 11, "closed": 10, "unknown": 3 }
+        ],
+        "disciplines": [
+            { "label": "Économie", "pct": 45 },
+            { "label": "Gestion", "pct": 35 },
+            { "label": "Finance", "pct": 20 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 45, "found": 44, "total": 98 },
+            { "name": "ScanR", "coverage": 50, "found": 49, "total": 98 },
+            { "name": "OpenAlex", "coverage": 68, "found": 67, "total": 98 },
+            { "name": "Crossref", "coverage": 55, "found": 54, "total": 98 },
+            { "name": "Scopus", "coverage": 42, "found": 41, "total": 98 },
+            { "name": "Web of Science", "coverage": 35, "found": 34, "total": 98 }
+        ]
     },
     {
         "uid": "lab-gem",
@@ -354,22 +476,44 @@
         "parent_uid": "inst-cn",
         "secondary_parent_uids": ["inst-nu"],
         "rnsr": "200210284Y",
-        "short_labels": [
-            { "language": "fr", "value": "GeM" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Institut de Recherche en Génie Civil et Mécanique" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "GeM" }],
+        "long_labels": [{ "language": "fr", "value": "Institut de Recherche en Génie Civil et Mécanique" }],
         "institutionNames": ["Centrale Nantes", "Nantes Université", "CNRS"],
         "membersCount": 250,
         "publicationsCount": 380,
         "oaRate": 70,
         "halRate": 76,
-        "descriptions": [
-            { "language": "fr", "value": "Génie civil, mécanique des solides et des structures. UMR CNRS 6183." }
-        ],
+        "halDelta": 6,
+        "publicationsDelta": 9,
+        "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6183) en génie civil, mécanique des solides et des structures. Ses recherches portent sur les matériaux de construction, la mécanique des roches, les géomatériaux et la durabilité des ouvrages." }],
         "external": false,
-        "slug": "gem"
+        "slug": "gem",
+        "identifiers": {
+            "rnsr": "200210284Y",
+            "halCollection": "GeM",
+            "ror": "05qk3hm49"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 48, "closed": 28, "unknown": 14 },
+            { "year": 2021, "open": 56, "closed": 25, "unknown": 12 },
+            { "year": 2022, "open": 66, "closed": 22, "unknown": 10 },
+            { "year": 2023, "open": 74, "closed": 20, "unknown": 9 },
+            { "year": 2024, "open": 82, "closed": 18, "unknown": 8 }
+        ],
+        "disciplines": [
+            { "label": "Génie civil", "pct": 48 },
+            { "label": "Mécanique des solides", "pct": 32 },
+            { "label": "Matériaux", "pct": 20 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 85, "found": 323, "total": 380 },
+            { "name": "ScanR", "coverage": 80, "found": 304, "total": 380 },
+            { "name": "OpenAlex", "coverage": 92, "found": 350, "total": 380 },
+            { "name": "Crossref", "coverage": 78, "found": 296, "total": 380 },
+            { "name": "Scopus", "coverage": 70, "found": 266, "total": 380 },
+            { "name": "Web of Science", "coverage": 65, "found": 247, "total": 380 }
+        ]
     },
     {
         "uid": "lab-lheea",
@@ -378,23 +522,46 @@
         "main_mission": "research",
         "acronym": "LHEEA",
         "parent_uid": "inst-cn",
+        "secondary_parent_uids": [],
         "rnsr": "200311403X",
-        "short_labels": [
-            { "language": "fr", "value": "LHEEA" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Laboratoire en Hydrodynamique, Énergétique et Environnement Atmosphérique" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "LHEEA" }],
+        "long_labels": [{ "language": "fr", "value": "Laboratoire en Hydrodynamique, Énergétique et Environnement Atmosphérique" }],
         "institutionNames": ["Centrale Nantes", "CNRS"],
         "membersCount": 105,
         "publicationsCount": 188,
         "oaRate": 74,
         "halRate": 80,
-        "descriptions": [
-            { "language": "fr", "value": "Hydrodynamique marine, énergies renouvelables offshore. UMR CNRS 6598." }
-        ],
+        "halDelta": 7,
+        "publicationsDelta": 12,
+        "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6598) spécialisée dans l'hydrodynamique marine et les énergies renouvelables offshore. Dispose de bassins d'essais de classe mondiale pour l'étude des interactions houle-structure." }],
         "external": false,
-        "slug": "lheea"
+        "slug": "lheea",
+        "identifiers": {
+            "rnsr": "200311403X",
+            "halCollection": "LHEEA",
+            "ror": "01j4ybr68"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 26, "closed": 12, "unknown": 6 },
+            { "year": 2021, "open": 30, "closed": 11, "unknown": 5 },
+            { "year": 2022, "open": 36, "closed": 10, "unknown": 4 },
+            { "year": 2023, "open": 40, "closed": 9, "unknown": 4 },
+            { "year": 2024, "open": 44, "closed": 8, "unknown": 3 }
+        ],
+        "disciplines": [
+            { "label": "Hydrodynamique", "pct": 42 },
+            { "label": "Énergies marines renouvelables", "pct": 38 },
+            { "label": "Aérodynamique", "pct": 20 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 88, "found": 165, "total": 188 },
+            { "name": "ScanR", "coverage": 83, "found": 156, "total": 188 },
+            { "name": "OpenAlex", "coverage": 93, "found": 175, "total": 188 },
+            { "name": "Crossref", "coverage": 80, "found": 150, "total": 188 },
+            { "name": "Scopus", "coverage": 72, "found": 135, "total": 188 },
+            { "name": "Web of Science", "coverage": 68, "found": 128, "total": 188 }
+        ]
     },
     {
         "uid": "lab-crenau",
@@ -403,22 +570,44 @@
         "main_mission": "research",
         "acronym": "CRENAU",
         "parent_uid": "inst-ensa",
+        "secondary_parent_uids": [],
         "rnsr": "200711237F",
-        "short_labels": [
-            { "language": "fr", "value": "CRENAU" }
-        ],
-        "long_labels": [
-            { "language": "fr", "value": "Centre de Recherche Nantais Architectures Urbanités" }
-        ],
+        "short_labels": [{ "language": "fr", "value": "CRENAU" }],
+        "long_labels": [{ "language": "fr", "value": "Centre de Recherche Nantais Architectures Urbanités" }],
         "institutionNames": ["ENSA Nantes", "CNRS", "Ministère de la Culture"],
         "membersCount": 42,
         "publicationsCount": 58,
         "oaRate": 46,
         "halRate": 40,
-        "descriptions": [
-            { "language": "fr", "value": "Architecture, urbanisme et paysage. UMR CNRS/MC 1563." }
-        ],
+        "halDelta": -1,
+        "publicationsDelta": 7,
+        "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche (UMR CNRS/Ministère de la Culture 1563) dédiée à l'architecture, l'urbanisme et le paysage. Ses recherches portent sur les pratiques architecturales et urbaines contemporaines, le patrimoine bâti et la transition écologique en architecture." }],
         "external": false,
-        "slug": "crenau"
+        "slug": "crenau",
+        "identifiers": {
+            "rnsr": "200711237F",
+            "halCollection": "CRENAU"
+        },
+        "members": [],
+        "publicationsByYear": [
+            { "year": 2020, "open": 6, "closed": 7, "unknown": 4 },
+            { "year": 2021, "open": 7, "closed": 6, "unknown": 3 },
+            { "year": 2022, "open": 8, "closed": 6, "unknown": 3 },
+            { "year": 2023, "open": 9, "closed": 5, "unknown": 3 },
+            { "year": 2024, "open": 10, "closed": 5, "unknown": 2 }
+        ],
+        "disciplines": [
+            { "label": "Architecture", "pct": 50 },
+            { "label": "Urbanisme", "pct": 30 },
+            { "label": "Paysage", "pct": 20 }
+        ],
+        "sources": [
+            { "name": "HAL", "coverage": 55, "found": 32, "total": 58 },
+            { "name": "ScanR", "coverage": 48, "found": 28, "total": 58 },
+            { "name": "OpenAlex", "coverage": 62, "found": 36, "total": 58 },
+            { "name": "Crossref", "coverage": 40, "found": 23, "total": 58 },
+            { "name": "Scopus", "coverage": 34, "found": 20, "total": 58 },
+            { "name": "Web of Science", "coverage": 28, "found": 16, "total": 58 }
+        ]
     }
 ]
