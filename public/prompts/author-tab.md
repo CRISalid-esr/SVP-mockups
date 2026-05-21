@@ -52,7 +52,8 @@ Mes publications → [fiche publication]
 │         │   Carte auteur 1 (sans drag handle)                         │
 │         │   Carte auteur 2 …                                          │
 │         │                                                             │
-│         │ [+ Ajouter un auteur]   [Annuler]   [Enregistrer]          │
+│         │ MODE RANGS NON DÉFINIS : [+ Ajouter un auteur]              │
+│         │ [Annuler les modifications]   [Enregistrer] (si pas de modif) │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -109,9 +110,9 @@ Mes publications → [fiche publication]
 
 ✅ Un mapping entre les rôles LOC et les fonctions requises par HAL sera effectué côté serveur lors du dépôt ; ce mapping n'est pas visible dans cet onglet.
 
-❓ **Si quelqu'un change un rôle accidentellement**, y a-t-il une validation ou un moyen d'annuler (hormis le bouton global « Annuler les modifications ») ?
+✅ **Rôle absent dans les données source** : la fonction **« Contributeur »** est utilisée par défaut. Le sélecteur affiche alors une bordure orange et le message **« Fonction par défaut — à vérifier »** en dessous. L'avertissement disparaît dès que l'utilisateur choisit explicitement une valeur. Un auteur ajouté manuellement démarre également avec cet avertissement.
 
-❓ **Workflow si le rôle est générique** (`contributor` sans précision) : affichage par défaut ?
+❓ **Si quelqu'un change un rôle accidentellement**, y a-t-il une validation ou un moyen d'annuler (hormis le bouton global « Annuler les modifications ») ?
 
 ### 4.4 Ajout d'un auteur
 
@@ -167,9 +168,11 @@ Mes publications → [fiche publication]
 
 ## 7. Actions de bas de page
 
-✅ À gauche : **« + Ajouter un auteur »** (bouton secondaire).
+✅ **« + Ajouter un auteur »** : visible uniquement en mode rangs non définis. En mode rangs définis, les liens « + Insérer un auteur ici » entre chaque carte remplissent ce rôle — le bouton en bas serait un doublon.
 
-✅ À droite : **« Annuler les modifications »** + **« Enregistrer »**.
+✅ **« Annuler les modifications »** : toujours visible à droite.
+
+✅ **« Enregistrer »** (bouton de bas de page) : visible uniquement quand la bannière sticky n'est pas affichée (aucune modification en attente). Quand la bannière est présente, le bouton « Enregistrer » qu'elle contient suffit — afficher les deux serait un doublon.
 
 ---
 
@@ -178,7 +181,7 @@ Mes publications → [fiche publication]
 | # | Thème | Question |
 |---|-------|----------|
 | 1 | Rangs | Lors du passage mode « non définis » → « définis », quels rangs sont attribués ? L'utilisateur peut-il revenir en arrière ? |
-| 2 | Rôles | Comportement par défaut si le rôle est générique (`contributor`) ? |
+| 2 | ~~Rôles~~ | ✅ Rôle absent → « Contributeur » par défaut avec avertissement orange ; disparaît à la première sélection explicite. |
 | 3 | Rôles | Validation ou annulation du changement de rôle accidentel ? |
 | 4 | ~~Terminologie~~ | ✅ Retenu : « Auteur identifié / Auteur non identifié » |
 | 5 | Navigation | Modale de confirmation si l'utilisateur quitte l'onglet sans enregistrer ? |
