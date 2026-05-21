@@ -75,7 +75,7 @@ childUids: string[]                     // uids des structures filles directes (
 │                                                                  │
 │  LS2N  ⬦UMR                                                     │
 │  Laboratoire des Sciences du Numérique de Nantes                 │
-│  [Recherche]  RNSR 201521843V                                    │
+│  [Recherche]                                                     │
 │                                                                  │
 │  Tutelle principale : UFR Sciences — Nantes Université           │
 │  Co-tutelles : Centrale Nantes · CNRS                            │
@@ -87,7 +87,6 @@ childUids: string[]                     // uids des structures filles directes (
 - Acronyme en grand + chip `national_type`
 - Nom long localisé
 - Chip mission coloré
-- RNSR si disponible
 - **Tutelle principale** : lien → fiche de la structure parente (`parent_uid`)
 - **Co-tutelles** : liste des `secondary_parent_uids` (périmètre) + tutelles hors périmètre issues de `institutionNames` — avec ou sans lien selon qu'elles ont une fiche dans l'appli
 - **Membre de** : liste des structures intermédiaires déclarées dans `member_of_uids` (ex. pôles, regroupements thématiques) — liens vers leurs fiches. Affiché uniquement si le champ est non vide.
@@ -162,7 +161,7 @@ Sous-structures filles de type `team` (`parent_uid = this.uid`) :
 Stats sur 24 mois : nombre, taux OA, taux HAL. Lien vers liste publications filtrée.
 
 **À propos**
-Description, adresse postale, site web, identifiants (RNSR, ROR, locaux). Tutelles avec lien.
+Description, adresse postale, site web. Tutelles avec lien. Les identifiants (RNSR, ROR…) sont dans la sidebar Identifiants.
 
 ---
 

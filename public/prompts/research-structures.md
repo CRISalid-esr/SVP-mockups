@@ -73,7 +73,7 @@ Le badge affiché dans l'UI est toujours `national_type` (ex. "UMR", "EPE", "UFR
 | Col | Header           | Contenu                                                                                                                  |
 |-----|------------------|--------------------------------------------------------------------------------------------------------------------------|
 | 1   | ☐                | Checkbox sélection.                                                                                                      |
-| 2   | **Structure**    | Acronyme gras + **un seul chip `national_type`** (ex. "UMR", "EPE", "UFR"). Nom long en sous-texte gris 12 px, tronqué. RNSR si disponible. |
+| 2   | **Structure**    | Acronyme gras + **un seul chip `national_type`** (ex. "UMR", "EPE", "UFR"). Nom long en sous-texte gris 12 px, tronqué. |
 | 3   | **Tutelles**     | Noms de `institutionNames` séparés par virgule. Filtre multi-select. Vide pour les institutions racines.                 |
 | 4   | **Membres**      | Nombre aligné à droite, gras.                                                                                            |
 | 5   | **Publications** | Nombre aligné à droite, gras. Tooltip "24 derniers mois". `—` si 0.                                                     |
