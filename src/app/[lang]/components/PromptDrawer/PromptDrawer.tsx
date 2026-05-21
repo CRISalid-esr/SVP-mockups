@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from 'react'
 import { publicPath } from '@/utils/publicPath'
 
 function getPromptKey(pathname: string, tab: string | null): string | null {
-  const withoutLang = pathname.replace(/^\/[a-z]{2}/, '')
-  if (withoutLang === '/research-structures') return 'structures-liste'
+  const withoutLang = pathname.replace(/^\/[a-z]{2}/, '').replace(/\/$/, '')
+  if (withoutLang === '/research-structures') return 'research-structures'
   if (withoutLang.startsWith('/research-structures/')) return 'structures-detail'
   if (withoutLang === '/researchers') return 'chercheurs-liste'
   if (withoutLang.startsWith('/researchers/')) return 'chercheurs-detail'
