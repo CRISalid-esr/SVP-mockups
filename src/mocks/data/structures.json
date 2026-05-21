@@ -634,6 +634,13 @@
         "descriptions": [{ "language": "fr", "value": "Structure transversale fédérant les unités de recherche en sciences et technologies de Nantes Université (LS2N, LMJL, GeM…). Coordonne la politique scientifique, les projets interdisciplinaires et la valorisation de la recherche dans ces domaines." }],
         "external": false,
         "slug": "pole-sciences-technologies",
+        "perimeterConfig": {
+            "scopes": [
+                { "structureUid": "lab-ls2n" },
+                { "structureUid": "lab-lmjl" },
+                { "structureUid": "lab-gem", "filter": { "type": "employer", "institutionUid": "inst-nu" } }
+            ]
+        },
         "identifiers": {},
         "members": [],
         "publicationsByYear": [],

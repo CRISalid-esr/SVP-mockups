@@ -1,3 +1,14 @@
+export type MemberScope = {
+  structureUid: string
+  filter?:
+    | { type: 'employer'; institutionUid: string }
+    | { type: 'campus'; campus: string }
+}
+
+export type PerimeterConfig = {
+  scopes: MemberScope[]
+}
+
 export type StructureIdentifiers = {
   ror?: string
   halCollection?: string
@@ -52,6 +63,7 @@ export type StructureRaw = {
   sources?: Source[]
   childUids?: string[]
   member_of_uids?: string[]   // structures intermédiaires (pôles, regroupements) dont cette entité est membre
+  perimeterConfig?: PerimeterConfig
 }
 
 export type PersonRaw = {

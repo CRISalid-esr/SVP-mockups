@@ -12,6 +12,7 @@ import {
   EquipesTab,
   MembersTable,
   MembresTab,
+  PerimeterEditor,
   PublicationsChart,
   PublicationsTab,
   SidebarAbout,
@@ -69,6 +70,10 @@ export default function StructureDetailPage() {
     ? allStructures.filter((s) => s.generic_type === 'team' && s.parent_uid === uid)
     : []
 
+  // Structure intermédiaire = unit/team dont d'autres structures déclarent être membres
+  const isIntermediateStructure =
+    isUnitOrTeam && allStructures.some((s) => s.member_of_uids?.includes(uid))
+
   // ── Tabs definition ─────────────────────────────────────────────────────────
 
   const tabs = isUnitOrTeam
@@ -76,16 +81,19 @@ export default function StructureDetailPage() {
         { value: 'membres', label: `Membres (${members.length})` },
         ...(childTeams.length > 0 ? [{ value: 'equipes', label: `Équipes (${childTeams.length})` }] : []),
         { value: 'publications', label: 'Publications' },
+        ...(isIntermediateStructure ? [{ value: 'perimetre', label: 'Périmètre' }] : []),
       ]
     : structure.generic_type === 'institution'
     ? [
         { value: 'structures', label: 'Structures rattachées' },
         { value: 'publications', label: 'Publications' },
         { value: 'apropos', label: 'À propos' },
+        { value: 'perimetre', label: 'Périmètre' },
       ]
     : [
         { value: 'unites', label: 'Unités rattachées' },
         { value: 'apropos', label: 'À propos' },
+        { value: 'perimetre', label: 'Périmètre' },
       ]
 
   const renderTabContent = () => {
@@ -101,6 +109,8 @@ export default function StructureDetailPage() {
       case 'structures':
       case 'unites':
         return <SubstructuresTable structure={structure} allStructures={allStructures} lang={lang} />
+      case 'perimetre':
+        return <PerimeterEditor structure={structure} allStructures={allStructures} lang={lang} />
       default:
         return null
     }
