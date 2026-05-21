@@ -778,15 +778,17 @@ const Authors = () => {
         )
       })}
 
-      {/* ── Add author ────────────────────────────────────────────────────── */}
-      <Button
-        variant="text"
-        startIcon={<Add sx={{ fontSize: 18 }} />}
-        onClick={() => addAuthor()}
-        sx={{ color: TEAL, textTransform: 'none', fontWeight: 600, mb: 2, mt: ranksFromSource ? 0.5 : 0, '&:hover': { bgcolor: TEAL_LIGHT } }}
-      >
-        Ajouter un auteur
-      </Button>
+      {/* ── Add author (rangs non définis uniquement — sinon le lien est entre chaque carte) */}
+      {!ranksFromSource && (
+        <Button
+          variant="text"
+          startIcon={<Add sx={{ fontSize: 18 }} />}
+          onClick={() => addAuthor()}
+          sx={{ color: TEAL, textTransform: 'none', fontWeight: 600, mb: 2, '&:hover': { bgcolor: TEAL_LIGHT } }}
+        >
+          Ajouter un auteur
+        </Button>
+      )}
 
       {/* ── Bottom action bar ─────────────────────────────────────────────── */}
       <Divider sx={{ mb: 2 }} />
@@ -796,11 +798,13 @@ const Authors = () => {
           sx={{ color: MUTED, textTransform: 'none', '&:hover': { bgcolor: SURFACE } }}>
           Annuler les modifications
         </Button>
-        <Button variant="contained"
-          onClick={() => setIsDirty(false)}
-          sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
-          Enregistrer
-        </Button>
+        {!isDirty && (
+          <Button variant="contained"
+            onClick={() => setIsDirty(false)}
+            sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
+            Enregistrer
+          </Button>
+        )}
       </Box>
     </Box>
   )
