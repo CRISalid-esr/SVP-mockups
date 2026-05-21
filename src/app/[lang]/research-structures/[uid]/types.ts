@@ -51,6 +51,7 @@ export type StructureRaw = {
   disciplines?: Discipline[]
   sources?: Source[]
   childUids?: string[]
+  member_of_uids?: string[]   // structures intermédiaires (pôles, regroupements) dont cette entité est membre
 }
 
 export type PersonRaw = {

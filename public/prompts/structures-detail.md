@@ -3,7 +3,7 @@
 **Route :** `/[lang]/research-structures/[uid]`  
 **Statut :** implémentée (`src/app/[lang]/research-structures/[uid]/`)
 
-**Composants :** `StructureHero` · `StructureKpis` · `PublicationsChart` (ECharts) · `MembersTable` · `SidebarIdentifiers` · `SidebarAbout` · `SidebarDisciplines` · `SidebarSources` · `SubstructuresTable` · `TabsUnitContent`
+**Composants :** `StructureHero` · `StructureKpis` · `PublicationsChart` (ECharts) · `MembersTable` · `SidebarIdentifiers` · `SidebarAbout` · `SidebarMemberships` · `SidebarDisciplines` · `SidebarSources` · `SubstructuresTable` · `TabsUnitContent`
 
 ## Contexte
 
@@ -33,6 +33,7 @@ type ResearchStructure = {
   institutionNames: string[]           // toutes tutelles (y compris hors périmètre ex. CNRS)
   parent_uid: string | null            // tutelle principale dans l'arbre
   secondary_parent_uids: string[]      // co-tutelles dans le périmètre
+  member_of_uids?: string[]            // structures intermédiaires (pôles, regroupements) dont cette entité est membre
   membersCount: number
   publicationsCount: number            // 24 derniers mois
   oaRate: number                       // 0–100
@@ -85,6 +86,7 @@ childUids: string[]                     // uids des structures filles directes (
 - RNSR si disponible
 - **Tutelle principale** : lien → fiche de la structure parente (`parent_uid`)
 - **Co-tutelles** : liste des `secondary_parent_uids` (périmètre) + tutelles hors périmètre issues de `institutionNames` — avec ou sans lien selon qu'elles ont une fiche dans l'appli
+- **Membre de** : liste des structures intermédiaires déclarées dans `member_of_uids` (ex. pôles, regroupements thématiques) — liens vers leurs fiches. Affiché uniquement si le champ est non vide.
 - **Breadcrumb** : reconstruit depuis `parent_uid` en remontant récursivement. Le retour vers `/research-structures` restaure l'état de la liste (vue à plat / hiérarchique, filtres actifs, position de scroll) via `history.state` ou `sessionStorage`
 - Bouton retour → `/research-structures`
 
@@ -102,7 +104,11 @@ Pour les types `unit` et `team`, la page utilise une grille 2 colonnes :
 ├───────────────────────────────────────┤  ├──────────────────┤
 │  Membres (table aperçu)               │  │  Disciplines     │
 │                                       │  ├──────────────────┤
-│  [Onglets : Équipes · Publications]   │  │  Sources         │
+│  [Onglets : Équipes · Publications]   │  │  Membres (pôle)  │
+│                                       │  ├──────────────────┤
+│                                       │  │  Disciplines     │
+│                                       │  ├──────────────────┤
+│                                       │  │  Sources         │
 └───────────────────────────────────────┘  └──────────────────┘
 ```
 
@@ -245,6 +251,46 @@ Classement des disciplines/thématiques par part de la production scientifique (
 Pour chaque source externe (HAL, ScanR, OpenAlex, Crossref, Scopus, Web of Science) : barre de progression + pourcentage.  
 Couleur conditionnelle : vert si ≥ 80 %, ambre (`#E8A33D`) si 50–79 %, rouge si < 50 %.  
 Au survol : tooltip « N publications référencées sur M attendues ».
+
+---
+
+## Relations de membership (`member_of`)
+
+Certaines entités appartiennent à des **structures intermédiaires** qui ne sont pas leur tutelle hiérarchique : pôles thématiques, regroupements transversaux, fédérations documentaires, etc. Cette relation est distincte de la tutelle (`parent_uid`) et de la co-tutelle (`secondary_parent_uids`).
+
+**Modèle :** une entité peut déclarer `member_of_uids: string[]` pointant vers une ou plusieurs structures intermédiaires.
+
+**Exemple implémenté — Pôle S&T :**
+- `lab-ls2n`, `lab-lmjl` et `lab-gem` sont membres de `unit-pole-st` (Pôle Sciences & Technologies)
+- Le Pôle S&T est une structure transversale de Nantes Université qui fédère les unités de recherche en sciences et technologies
+- La tutelle hiérarchique de chaque laboratoire reste inchangée (ex. LS2N → UFR Sciences)
+- `unit-pole-st` est lui-même rattaché à `inst-nu` en tant que `unit` de type `Pôle`
+
+**Affichage sur la fiche :**
+
+*Sur la fiche membre (ex. LS2N)* — dans l'en-tête `StructureHero` :
+```
+Tutelle principale : UFR Sciences — Nantes Université
+Membre de :         Pôle Sciences & Technologies — Nantes Université  →  [lien]
+```
+
+*Sur la fiche de la structure intermédiaire (ex. Pôle S&T)* — dans la sidebar `SidebarMemberships` :
+```
+┌──────────────────────────────────────┐
+│ Membres  · 3 structures              │
+│──────────────────────────────────────│
+│  LS2N                           →   │
+│  Laboratoire des Sciences du Num…   │
+│  LMJL                           →   │
+│  GeM                            →   │
+└──────────────────────────────────────┘
+```
+`SidebarMemberships` est un lookup inverse : il affiche toutes les structures dont `member_of_uids` contient l'uid courant.
+
+**Choix de conception :**
+- La relation `member_of` est faible (non hiérarchique) : elle n'influe pas sur le breadcrumb ni sur les stats agrégées.
+- Elle est distinguée visuellement des tutelles (libellé « Membre de : » vs « Tutelle principale : »).
+- Symétrie : la relation est visible des deux côtés (membre → pôle, pôle → membres).
 
 ---
 

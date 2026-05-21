@@ -17,7 +17,7 @@
         "descriptions": [{ "language": "fr", "value": "Université pluridisciplinaire fondée en 2022. Regroupe Nantes Université historique, Centrale Nantes et l'ENSA Nantes au sein d'un établissement public expérimental. Elle forme plus de 42 000 étudiants et conduit une politique de recherche ambitieuse dans tous les champs disciplinaires." }],
         "external": false,
         "slug": "nantes-universite",
-        "childUids": ["comp-ufr-st", "comp-ufr-llshs", "comp-iae", "comp-polytech", "unit-bu"]
+        "childUids": ["comp-ufr-st", "comp-ufr-llshs", "comp-iae", "comp-polytech", "unit-bu", "unit-pole-st"]
     },
     {
         "uid": "inst-cn",
@@ -193,6 +193,7 @@
         "descriptions": [{ "language": "fr", "value": "Le LS2N est une unité mixte de recherche CNRS (UMR 6004) qui fédère les recherches en informatique, automatique et traitement du signal de Nantes Université et Centrale Nantes. Ses 350 membres travaillent sur l'intelligence artificielle, les systèmes embarqués, la vérification formelle, la robotique et les réseaux de communication." }],
         "external": false,
         "slug": "ls2n",
+        "member_of_uids": ["unit-pole-st"],
         "identifiers": {
             "ror": "04ezmvf85",
             "halCollection": "LS2N",
@@ -344,6 +345,7 @@
         "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6629) dédiée aux mathématiques pures et appliquées. Ses thèmes de recherche couvrent l'analyse, la géométrie, les probabilités et statistiques, la topologie et l'analyse numérique." }],
         "external": false,
         "slug": "lmjl",
+        "member_of_uids": ["unit-pole-st"],
         "identifiers": {
             "rnsr": "199812942B",
             "halCollection": "LMJL",
@@ -488,6 +490,7 @@
         "descriptions": [{ "language": "fr", "value": "Unité mixte de recherche CNRS (UMR 6183) en génie civil, mécanique des solides et des structures. Ses recherches portent sur les matériaux de construction, la mécanique des roches, les géomatériaux et la durabilité des ouvrages." }],
         "external": false,
         "slug": "gem",
+        "member_of_uids": ["unit-pole-st"],
         "identifiers": {
             "rnsr": "200210284Y",
             "halCollection": "GeM",
@@ -609,5 +612,32 @@
             { "name": "Scopus", "coverage": 34, "found": 20, "total": 58 },
             { "name": "Web of Science", "coverage": 28, "found": 16, "total": 58 }
         ]
+    },
+    {
+        "uid": "unit-pole-st",
+        "generic_type": "unit",
+        "national_type": "Pôle",
+        "main_mission": "research",
+        "acronym": "Pôle S&T",
+        "parent_uid": "inst-nu",
+        "secondary_parent_uids": [],
+        "rnsr": null,
+        "short_labels": [{ "language": "fr", "value": "Pôle S&T" }],
+        "long_labels": [{ "language": "fr", "value": "Pôle Sciences & Technologies — Nantes Université" }],
+        "institutionNames": ["Nantes Université"],
+        "membersCount": 730,
+        "publicationsCount": 1110,
+        "oaRate": 65,
+        "halRate": 63,
+        "halDelta": 5,
+        "publicationsDelta": 8,
+        "descriptions": [{ "language": "fr", "value": "Structure transversale fédérant les unités de recherche en sciences et technologies de Nantes Université (LS2N, LMJL, GeM…). Coordonne la politique scientifique, les projets interdisciplinaires et la valorisation de la recherche dans ces domaines." }],
+        "external": false,
+        "slug": "pole-sciences-technologies",
+        "identifiers": {},
+        "members": [],
+        "publicationsByYear": [],
+        "disciplines": [],
+        "sources": []
     }
 ]

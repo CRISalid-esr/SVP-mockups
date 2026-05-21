@@ -17,6 +17,7 @@ import {
   SidebarAbout,
   SidebarDisciplines,
   SidebarIdentifiers,
+  SidebarMemberships,
   SidebarSources,
   StructureHero,
   StructureKpis,
@@ -159,6 +160,7 @@ export default function StructureDetailPage() {
           >
             <SidebarIdentifiers structure={structure} />
             <SidebarAbout structure={structure} lang={lang} />
+            <SidebarMemberships structure={structure} allStructures={allStructures} lang={lang} />
             {(structure.disciplines ?? []).length > 0 && (
               <SidebarDisciplines disciplines={structure.disciplines!} />
             )}

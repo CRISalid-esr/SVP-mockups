@@ -54,6 +54,10 @@ export default function StructureHero({ structure, allStructures, lang }: Props)
     .map((uid) => allStructures.find((s) => s.uid === uid))
     .filter(Boolean) as StructureRaw[]
 
+  const memberOfStructures = (structure.member_of_uids ?? [])
+    .map((uid) => allStructures.find((s) => s.uid === uid))
+    .filter(Boolean) as StructureRaw[]
+
   const inScopeInstitutionNames = new Set([
     parentStructure?.acronym,
     ...secondaryParents.map((s) => s.acronym),
@@ -173,6 +177,28 @@ export default function StructureHero({ structure, allStructures, lang }: Props)
                   </Typography>
                   <OpenInNewIcon sx={{ fontSize: 12, color: 'text.disabled' }} />
                 </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {memberOfStructures.length > 0 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Typography variant='body2' sx={{ color: 'text.secondary', minWidth: 140 }}>
+              Membre de :
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              {memberOfStructures.map((s) => (
+                <Link
+                  key={s.uid}
+                  component={NextLink}
+                  href={`/${lang}/research-structures/${s.uid}`}
+                  underline='hover'
+                  variant='body2'
+                  fontWeight='medium'
+                >
+                  {s.long_labels.find((l) => l.language === lang)?.value ?? s.long_labels[0]?.value ?? s.acronym}
+                </Link>
               ))}
             </Box>
           </Box>
