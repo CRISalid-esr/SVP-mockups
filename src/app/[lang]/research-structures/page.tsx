@@ -56,7 +56,6 @@ type Structure = {
   publicationsCount: number
   oaRate: number
   halRate: number
-  rnsr?: string
   parentUid: string | null
   secondaryParentUids: string[]
   slug: string
@@ -150,7 +149,7 @@ function buildTree(flat: Structure[]): Structure[] {
 // ─── Name cell (shared between flat and tree views) ──────────────────────────
 
 function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: string) => void }) {
-  const { acronym, name, rnsr, nationalType, isReference, originalUid } = row
+  const { acronym, name, nationalType, isReference, originalUid } = row
   const targetUid = originalUid ?? row.uid
 
   if (isReference) {
@@ -211,11 +210,6 @@ function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: strin
       >
         {name}
       </Typography>
-      {rnsr && (
-        <Typography variant='caption' color='text.disabled'>
-          {`RNSR ${rnsr}`}
-        </Typography>
-      )}
     </Box>
   )
 }
@@ -536,7 +530,6 @@ const ResearchStructuresPage = () => {
       publicationsCount: (s as { publicationsCount?: number }).publicationsCount ?? 0,
       oaRate: (s as { oaRate?: number }).oaRate ?? 0,
       halRate: (s as { halRate?: number }).halRate ?? 0,
-      rnsr: (s as { rnsr?: string }).rnsr,
       parentUid: (s as { parent_uid?: string | null }).parent_uid ?? null,
       secondaryParentUids: (s as { secondary_parent_uids?: string[] }).secondary_parent_uids ?? [],
       slug: s.slug ?? s.uid,

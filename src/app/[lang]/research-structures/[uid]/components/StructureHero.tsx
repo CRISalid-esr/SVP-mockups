@@ -119,11 +119,6 @@ export default function StructureHero({ structure, allStructures, lang }: Props)
           color={missionColor}
           sx={{ fontWeight: 500 }}
         />
-        {structure.rnsr && (
-          <Typography variant='caption' sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
-            RNSR {structure.rnsr}
-          </Typography>
-        )}
       </Box>
 
       {/* Long label */}
