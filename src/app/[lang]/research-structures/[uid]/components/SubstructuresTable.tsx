@@ -7,7 +7,7 @@ import { StructureRaw } from '../types'
 
 const GENERIC_LABELS: Record<string, string> = {
   institution: 'Institution',
-  composante: 'Composante',
+  institution_subdivision: 'Composante',
   unit: 'Unité',
   team: 'Équipe',
 }

@@ -38,7 +38,7 @@ export type Source = {
 
 export type StructureRaw = {
   uid: string
-  generic_type: 'institution' | 'composante' | 'unit' | 'team'
+  generic_type: 'institution' | 'institution_subdivision' | 'unit' | 'team'
   national_type: string | null
   main_mission: string
   acronym: string

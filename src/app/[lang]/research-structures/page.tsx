@@ -39,30 +39,16 @@ import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 
 const GENERIC_TYPE_LABELS: Record<string, string> = {
   institution: 'Institution',
-  composante: 'Composante',
-  unit: "Unité de recherche",
+  institution_subdivision: 'Composante',
+  unit: 'Unité de recherche',
   team: 'Équipe',
 }
 
 const GENERIC_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'default' | 'warning'> = {
   institution: 'primary',
-  composante: 'secondary',
+  institution_subdivision: 'secondary',
   unit: 'default',
   team: 'warning',
-}
-
-const MISSION_LABELS: Record<string, string> = {
-  research: 'Recherche',
-  scientific_services: 'Services scientifiques',
-  administrative_services: 'Services administratifs',
-  teaching: 'Enseignement',
-}
-
-const MISSION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'secondary'> = {
-  research: 'success',
-  scientific_services: 'info',
-  administrative_services: 'warning',
-  teaching: 'secondary',
 }
 
 type Structure = {
@@ -71,7 +57,6 @@ type Structure = {
   name: string
   genericType: string
   nationalType: string | null
-  mainMission: string
   institutionNames: string[]
   membersCount: number
   publicationsCount: number
@@ -111,14 +96,12 @@ function RateBar({ value, color }: { value: number; color: string }) {
 }
 
 function exportToCsv(rows: { original: Structure }[]) {
-  const headers = ['Acronyme', 'Nom', 'Type générique', 'Type national', 'Mission', 'Tutelles', 'Membres', 'Publications (24 mois)', 'OA %', 'HAL %']
+  const headers = ['Acronyme', 'Nom', 'Type', 'Tutelles', 'Membres', 'Publications (24 mois)', 'OA %', 'HAL %']
   const lines = rows.map(({ original: d }) =>
     [
       d.acronym,
       `"${d.name.replace(/"/g, '""')}"`,
-      GENERIC_TYPE_LABELS[d.genericType] ?? d.genericType,
-      d.nationalType ?? '',
-      MISSION_LABELS[d.mainMission] ?? d.mainMission,
+      d.nationalType ?? GENERIC_TYPE_LABELS[d.genericType] ?? d.genericType,
       `"${d.institutionNames.join(' / ')}"`,
       d.membersCount,
       d.publicationsCount,
@@ -173,7 +156,7 @@ function buildTree(flat: Structure[]): Structure[] {
 // ─── Name cell (shared between flat and tree views) ──────────────────────────
 
 function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: string) => void }) {
-  const { acronym, name, rnsr, nationalType, genericType, isReference, originalUid } = row
+  const { acronym, name, rnsr, nationalType, isReference, originalUid } = row
   const targetUid = originalUid ?? row.uid
 
   if (isReference) {
@@ -219,15 +202,6 @@ function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: strin
         </Typography>
         {nationalType && (
           <Chip label={nationalType} size='small' sx={{ height: 16, fontSize: 10 }} />
-        )}
-        {genericType !== 'unit' && genericType in GENERIC_TYPE_LABELS && (
-          <Chip
-            label={GENERIC_TYPE_LABELS[genericType]}
-            size='small'
-            color={GENERIC_TYPE_COLORS[genericType] ?? 'default'}
-            variant='outlined'
-            sx={{ height: 16, fontSize: 10 }}
-          />
         )}
       </Box>
       <Typography
@@ -299,28 +273,6 @@ function FlatTable({ data, lang, theme, onNavigate }: {
             <Chip
               label={GENERIC_TYPE_LABELS[t] ?? t}
               color={GENERIC_TYPE_COLORS[t] ?? 'default'}
-              size='small'
-              variant='outlined'
-            />
-          )
-        },
-      },
-      {
-        accessorKey: 'mainMission',
-        header: 'Mission',
-        size: 170,
-        filterVariant: 'multi-select',
-        filterSelectOptions: Object.entries(MISSION_LABELS).map(([value, label]) => ({ value, label })),
-        filterFn: (row, _id, filterValue: string[]) => {
-          if (!filterValue || filterValue.length === 0) return true
-          return filterValue.includes(row.original.mainMission)
-        },
-        Cell({ row }) {
-          const m = row.original.mainMission
-          return (
-            <Chip
-              label={MISSION_LABELS[m] ?? m}
-              color={MISSION_COLORS[m] ?? 'default'}
               size='small'
               variant='outlined'
             />
@@ -483,22 +435,6 @@ function TreeTable({ data, lang, theme, onNavigate }: {
         },
       },
       {
-        accessorKey: 'mainMission',
-        header: 'Mission',
-        size: 170,
-        Cell({ row }) {
-          const m = row.original.mainMission
-          return (
-            <Chip
-              label={MISSION_LABELS[m] ?? m}
-              color={MISSION_COLORS[m] ?? 'default'}
-              size='small'
-              variant='outlined'
-            />
-          )
-        },
-      },
-      {
         accessorKey: 'membersCount',
         header: 'Membres',
         size: 100,
@@ -623,7 +559,6 @@ const ResearchStructuresPage = () => {
         '',
       genericType: (s as { generic_type?: string }).generic_type ?? 'unit',
       nationalType: (s as { national_type?: string | null }).national_type ?? null,
-      mainMission: (s as { main_mission?: string }).main_mission ?? 'research',
       institutionNames: (s as { institutionNames?: string[] }).institutionNames ?? [],
       membersCount: (s as { membersCount?: number }).membersCount ?? 0,
       publicationsCount: (s as { publicationsCount?: number }).publicationsCount ?? 0,

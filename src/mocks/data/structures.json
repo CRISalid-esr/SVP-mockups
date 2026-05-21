@@ -2,7 +2,7 @@
     {
         "uid": "inst-nu",
         "generic_type": "institution",
-        "national_type": "Université",
+        "national_type": "EPE",
         "main_mission": "teaching",
         "acronym": "NU",
         "parent_uid": null,
@@ -22,7 +22,7 @@
     {
         "uid": "inst-cn",
         "generic_type": "institution",
-        "national_type": "École d'ingénieurs",
+        "national_type": "GE",
         "main_mission": "teaching",
         "acronym": "Centrale Nantes",
         "parent_uid": null,
@@ -42,7 +42,7 @@
     {
         "uid": "inst-ensa",
         "generic_type": "institution",
-        "national_type": "École d'architecture",
+        "national_type": "GE",
         "main_mission": "teaching",
         "acronym": "ENSA Nantes",
         "parent_uid": null,
@@ -61,7 +61,7 @@
     },
     {
         "uid": "comp-ufr-st",
-        "generic_type": "composante",
+        "generic_type": "institution_subdivision",
         "national_type": "UFR",
         "main_mission": "teaching",
         "acronym": "UFR Sciences",
@@ -81,7 +81,7 @@
     },
     {
         "uid": "comp-ufr-llshs",
-        "generic_type": "composante",
+        "generic_type": "institution_subdivision",
         "national_type": "UFR",
         "main_mission": "teaching",
         "acronym": "UFR LLSHS",
@@ -101,8 +101,8 @@
     },
     {
         "uid": "comp-iae",
-        "generic_type": "composante",
-        "national_type": "Institut",
+        "generic_type": "institution_subdivision",
+        "national_type": "FAC",
         "main_mission": "teaching",
         "acronym": "IAE Nantes",
         "parent_uid": "inst-nu",
@@ -121,8 +121,8 @@
     },
     {
         "uid": "comp-polytech",
-        "generic_type": "composante",
-        "national_type": "École interne",
+        "generic_type": "institution_subdivision",
+        "national_type": "FAC",
         "main_mission": "teaching",
         "acronym": "Polytech Nantes",
         "parent_uid": "inst-nu",
@@ -142,7 +142,7 @@
     {
         "uid": "unit-bu",
         "generic_type": "unit",
-        "national_type": "SCD",
+        "national_type": "UAR",
         "main_mission": "administrative_services",
         "acronym": "BU Nantes",
         "parent_uid": "inst-nu",

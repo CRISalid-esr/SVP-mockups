@@ -46,7 +46,7 @@ export default function StructureDetailPage() {
 
     if (s) {
       if (s.generic_type === 'institution') setSelectedTab('structures')
-      else if (s.generic_type === 'composante') setSelectedTab('unites')
+      else if (s.generic_type === 'institution_subdivision') setSelectedTab('unites')
       else setSelectedTab('membres')
     }
 
