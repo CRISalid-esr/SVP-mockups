@@ -44,12 +44,6 @@ const GENERIC_TYPE_LABELS: Record<string, string> = {
   team: 'Équipe',
 }
 
-const GENERIC_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'default' | 'warning'> = {
-  institution: 'primary',
-  institution_subdivision: 'secondary',
-  unit: 'default',
-  team: 'warning',
-}
 
 type Structure = {
   uid: string
@@ -255,28 +249,6 @@ function FlatTable({ data, lang, theme, onNavigate }: {
         },
         Cell({ row }) {
           return <NameCell row={row.original} onNavigate={onNavigate} />
-        },
-      },
-      {
-        accessorKey: 'genericType',
-        header: 'Type',
-        size: 150,
-        filterVariant: 'multi-select',
-        filterSelectOptions: Object.entries(GENERIC_TYPE_LABELS).map(([value, label]) => ({ value, label })),
-        filterFn: (row, _id, filterValue: string[]) => {
-          if (!filterValue || filterValue.length === 0) return true
-          return filterValue.includes(row.original.genericType)
-        },
-        Cell({ row }) {
-          const t = row.original.genericType
-          return (
-            <Chip
-              label={GENERIC_TYPE_LABELS[t] ?? t}
-              color={GENERIC_TYPE_COLORS[t] ?? 'default'}
-              size='small'
-              variant='outlined'
-            />
-          )
         },
       },
       {
