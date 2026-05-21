@@ -3,7 +3,7 @@
 **Route :** `/[lang]/research-structures/[uid]`  
 **Statut :** implémentée (`src/app/[lang]/research-structures/[uid]/`)
 
-**Composants :** `StructureHero` · `StructureKpis` · `PublicationsChart` (ECharts) · `MembersTable` · `SidebarIdentifiers` · `SidebarAbout` · `SidebarMemberships` · `SidebarDisciplines` · `SidebarSources` · `SubstructuresTable` · `TabsUnitContent`
+**Composants :** `StructureHero` · `StructureKpis` · `PublicationsChart` (ECharts) · `SidebarIdentifiers` · `SidebarAbout` · `SidebarMemberships` · `SidebarDisciplines` · `SidebarSources` · `SubstructuresTable` · `TabsUnitContent`
 
 ## Contexte
 
@@ -105,10 +105,8 @@ Pour les types `unit` et `team`, la page utilise une grille 2 colonnes :
 ├───────────────────────────────────────┤  ├──────────────────┤
 │  Graphique publications × accès       │  │  À propos        │
 ├───────────────────────────────────────┤  ├──────────────────┤
-│  Membres (table aperçu)               │  │  Disciplines     │
-│                                       │  ├──────────────────┤
-│  [Onglets : Équipes · Publications]   │  │  Membres (pôle)  │
-│                                       │  ├──────────────────┤
+│  [Onglets : Membres · Équipes ·       │  │  Membres (pôle)  │
+│             Publications]             │  ├──────────────────┤
 │                                       │  │  Disciplines     │
 │                                       │  ├──────────────────┤
 │                                       │  │  Sources         │
@@ -205,24 +203,6 @@ Fonctionnalités :
 - Toggle « En valeur » ↔ « En pourcentage » (barres normalisées à 100 %)
 - Toggle « Inclure les chapitres » / « Restreindre aux articles »
 - Export PNG/CSV des données du graphique
-
----
-
-## Table « Membres récents » (unités et équipes)
-
-Aperçu des membres les plus actifs (5–8 lignes), triés par publications 24m décroissant.
-
-| Col | Contenu |
-|-----|---------|
-| Chercheur | Avatar initiales + nom → lien `/researchers/[uid]` |
-| Statut | Chip : Pr., MCF, DR, CR, Doctorant, Post-doc, Ingé., ATER |
-| Publications 24m | Nombre aligné à droite |
-| OA | Barre de progression + pourcentage |
-| HAL | Chip avec pourcentage |
-
-Lien « Voir tous les membres → » vers la page Chercheurs filtrée sur cette structure.
-
-Clic sur une ligne → fiche chercheur.
 
 ---
 

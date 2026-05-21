@@ -10,7 +10,6 @@ import structuresData from '@/mocks/data/structures.json'
 import {
   AProposTab,
   EquipesTab,
-  MembersTable,
   MembresTab,
   PerimeterEditor,
   PublicationsChart,
@@ -153,7 +152,6 @@ export default function StructureDetailPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <StructureKpis structure={structure} />
             <PublicationsChart publicationsByYear={structure.publicationsByYear ?? []} />
-            <MembersTable members={members} lang={lang} structureUid={uid} />
             <Box>
               {tabBar}
               {renderTabContent()}

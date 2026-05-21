@@ -1,7 +1,6 @@
 export { default as StructureHero } from './StructureHero'
 export { default as StructureKpis } from './StructureKpis'
 export { default as PublicationsChart } from './PublicationsChart'
-export { default as MembersTable } from './MembersTable'
 export { default as SidebarIdentifiers } from './SidebarIdentifiers'
 export { default as SidebarAbout } from './SidebarAbout'
 export { default as SidebarDisciplines } from './SidebarDisciplines'
