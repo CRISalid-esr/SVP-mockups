@@ -19,8 +19,11 @@ La page expose deux vues complémentaires accessibles par onglets :
 ```ts
 type ResearchStructure = {
   uid: string
-  generic_type: "institution" | "composante" | "unit" | "team"
-  national_type: string | null       // ex. "UMR", "UAR", "UR", "UFR", "Université", "EPE"
+  generic_type: "institution" | "institution_subdivision" | "unit" | "team"
+  national_type: string | null       // codes du référentiel : "EPE", "GE", "UNIV", "COMUE", "EPST"
+                                     // "UFR", "FAC"
+                                     // "UMR", "UAR", "UR", "FDR", "IRL"
+                                     // "TEAM", "THEME"
   local_types?: Literal[]            // désignations libres si pas de national_type
   main_mission: "research" | "scientific_services" | "administrative_services" | "teaching"
   acronym: string                    // issu de short_labels
@@ -36,17 +39,13 @@ type ResearchStructure = {
 }
 ```
 
-Libellés `generic_type` :
-- `institution` → **Institution** (chip primary)
-- `composante` → **Composante** (chip secondary)
-- `unit` → **Unité de recherche** (chip default)
-- `team` → **Équipe** (chip warning)
+Correspondance `generic_type` → catégorie affichée :
+- `institution` → **Institution**
+- `institution_subdivision` → **Composante** (UFR, Faculté…)
+- `unit` → **Unité de recherche** (UMR, UR, UAR…)
+- `team` → **Équipe** (TEAM, THEME)
 
-Libellés `main_mission` :
-- `research` → **Recherche** (chip vert)
-- `scientific_services` → **Services scientifiques** (chip bleu)
-- `administrative_services` → **Services administratifs** (chip orange)
-- `teaching` → **Enseignement** (chip violet)
+Le badge affiché dans l'UI est toujours `national_type` (ex. "UMR", "EPE", "UFR") — jamais le libellé générique.
 
 ---
 
@@ -60,10 +59,10 @@ Libellés `main_mission` :
 │         │ ┌──────────────────────────────────────────────────────────────┐   │
 │         │ │ Toolbar : [🔍] [Filtres] [Densité] [Plein écran] [Col] [✕]  │   │
 │         │ ├──────────────────────────────────────────────────────────────┤   │
-│         │ │ ☐ Structure       Type       Mission   Tutelles  Mbr  Pub  OA  HAL │
-│         │ │ ☐ NU ⬦Université  Institution  Enseign.  —      56k  5.8k 62% 58% │
-│         │ │ ☐ LS2N ⬦UMR      Unité        Recherche NU/CN/CNRS 350 520 58% 52%│
-│         │ │ ↗ LS2N ⬦UMR      Unité (réf.) …                              │   │
+│         │ │ ☐ Structure          Tutelles         Mbr   Pub   OA    HAL  │   │
+│         │ │ ☐ NU ⬦EPE            —               56k  5.8k  62%   58%   │   │
+│         │ │ ☐ LS2N ⬦UMR          NU / CN / CNRS  350   520  58%   52%   │   │
+│         │ │ ↗ LS2N ⬦UMR [réf.]  …                                       │   │
 │         │ │ …                                                              │   │
 │         │ └──────────────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -71,44 +70,42 @@ Libellés `main_mission` :
 
 ### Colonnes
 
-| Col | Header           | Contenu                                                                                                                        |
-|-----|------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| 1   | ☐                | Checkbox sélection.                                                                                                            |
-| 2   | **Structure**    | Acronyme gras + chip `national_type` + chip `generic_type` (si non-unité). Nom long en sous-texte gris 12 px, tronqué. RNSR si disponible. |
-| 3   | **Type**         | Chip `generic_type` (Institution / Composante / Unité / Équipe). Filtre multi-select.                                         |
-| 4   | **Mission**      | Chip coloré. Filtre multi-select.                                                                                              |
-| 5   | **Tutelles**     | Noms de `institutionNames` séparés par virgule. Filtre multi-select. Vide pour les institutions racines.                       |
-| 6   | **Membres**      | Nombre aligné à droite, gras.                                                                                                  |
-| 7   | **Publications** | Nombre aligné à droite, gras. Tooltip "24 derniers mois". `—` si 0.                                                           |
-| 8   | **OA**           | Barre de progression 54×6 px + pourcentage (vert). `—` si 0.                                                                  |
-| 9   | **HAL**          | Barre de progression + pourcentage (couleur primaire). `—` si 0.                                                              |
-| 10  | (sans header)    | Bouton "Détail →" → `/research-structures/[uid]`.                                                                             |
+| Col | Header           | Contenu                                                                                                                  |
+|-----|------------------|--------------------------------------------------------------------------------------------------------------------------|
+| 1   | ☐                | Checkbox sélection.                                                                                                      |
+| 2   | **Structure**    | Acronyme gras + **un seul chip `national_type`** (ex. "UMR", "EPE", "UFR"). Nom long en sous-texte gris 12 px, tronqué. RNSR si disponible. |
+| 3   | **Tutelles**     | Noms de `institutionNames` séparés par virgule. Filtre multi-select. Vide pour les institutions racines.                 |
+| 4   | **Membres**      | Nombre aligné à droite, gras.                                                                                            |
+| 5   | **Publications** | Nombre aligné à droite, gras. Tooltip "24 derniers mois". `—` si 0.                                                     |
+| 6   | **OA**           | Barre de progression 54×6 px + pourcentage (vert). `—` si 0.                                                            |
+| 7   | **HAL**          | Barre de progression + pourcentage (couleur primaire). `—` si 0.                                                        |
+| 8   | (sans header)    | Bouton "Détail →" → `/research-structures/[uid]`.                                                                        |
 
 ---
 
 ## Vue hiérarchique
 
 ```
-▼ Nantes Université ⬦Université
+▼ Nantes Université ⬦EPE
   ▼ UFR Sciences ⬦UFR
-    ▼ LS2N ⬦UMR          Recherche  350  520  58%  52%   ← occurrence principale
-        TASC ⬦Équipe      Recherche   28   42  61%  55%
-        ALMA ⬦Équipe      Recherche   22   31  55%  49%
-      LMJL ⬦UMR          Recherche  130  210  72%  68%
+    ▼ LS2N ⬦UMR          350  520  58%  52%   ← occurrence principale
+        TASC ⬦TEAM         28   42  61%  55%
+        ALMA ⬦TEAM         22   31  55%  49%
+      LMJL ⬦UMR          130  210  72%  68%
   ▼ UFR LLSHS ⬦UFR
-      CENS ⬦UMR           Recherche   68   95  51%  44%
-  ▼ IAE Nantes ⬦Institut
-      LEMNA ⬦UR            Recherche   72   98  39%  32%
-    Polytech Nantes ⬦École interne
-    BU Nantes ⬦SCD        Adm.       145    0   —    —
+      CENS ⬦UMR            68   95  51%  44%
+  ▼ IAE Nantes ⬦FAC
+      LEMNA ⬦UR             72   98  39%  32%
+    Polytech Nantes ⬦FAC
+    BU Nantes ⬦UAR        145    0   —    —
 
-▼ Centrale Nantes ⬦École d'ingénieurs
-  ↗ LS2N ⬦UMR  [co-tutelle]                              ← référence grisée/italique
-    GeM ⬦UMR             Recherche  250  380  70%  76%
-    LHEEA ⬦UMR           Recherche  105  188  74%  80%
+▼ Centrale Nantes ⬦GE
+  ↗ LS2N ⬦UMR  [co-tutelle]                    ← référence grisée/italique
+    GeM ⬦UMR             250  380  70%  76%
+    LHEEA ⬦UMR           105  188  74%  80%
 
-▼ ENSA Nantes ⬦École d'architecture
-    CRENAU ⬦UMR          Recherche   42   58  46%  40%
+▼ ENSA Nantes ⬦GE
+    CRENAU ⬦UMR           42   58  46%  40%
 ```
 
 La hiérarchie est construite depuis `parent_uid`. Les nœuds sont développés par défaut. Le tri et les filtres par colonne sont désactivés en vue hiérarchique pour ne pas casser l'arbre.

@@ -7,7 +7,7 @@
 
 ## Contexte
 
-Fiche d'une structure, quel que soit son `generic_type` (institution, composante, unit, team). Le contenu s'adapte au type : une institution affiche ses sous-structures, une unité affiche ses membres et équipes. La même route sert tous les types, y compris les nœuds de référence co-tutelle (voir "Multi-tutelles" ci-dessous).
+Fiche d'une structure, quel que soit son `generic_type` (institution, institution_subdivision, unit, team). Le contenu s'adapte au type : une institution affiche ses sous-structures, une unité affiche ses membres et équipes. La même route sert tous les types, y compris les nœuds de référence co-tutelle (voir "Multi-tutelles" ci-dessous).
 
 L'utilisateur type est un responsable scientifique, directeur de laboratoire, chargé de mission recherche ou bibliothécaire. Ses besoins :
 - prendre la mesure d'une structure en moins de 10 secondes (KPIs, identifiants, tutelles)
@@ -24,8 +24,12 @@ L'utilisateur type est un responsable scientifique, directeur de laboratoire, ch
 ```ts
 type ResearchStructure = {
   uid: string
-  generic_type: "institution" | "composante" | "unit" | "team"
-  national_type: string | null         // "UMR", "UAR", "UR", "UFR", "SCD", "EPE"…
+  generic_type: "institution" | "institution_subdivision" | "unit" | "team"
+  national_type: string | null         // codes du référentiel :
+                                       // institution      → "EPE", "GE", "UNIV", "COMUE", "EPST"
+                                       // institution_subdivision → "UFR", "FAC"
+                                       // unit             → "UMR", "UAR", "UR", "FDR", "IRL"
+                                       // team             → "TEAM", "THEME"
   local_types?: { language: string; value: string }[]
   main_mission: "research" | "scientific_services" | "administrative_services" | "teaching"
   short_labels: { language: string; value: string }[]
@@ -57,7 +61,7 @@ publicationsByYear: {
   unknown: number   // type d'accès inconnu
 }[]
 
-// À ajouter sur les institutions et composantes :
+// À ajouter sur les institutions et institution_subdivision :
 childUids: string[]                     // uids des structures filles directes (dénormalisé)
 ```
 
@@ -112,7 +116,7 @@ Pour les types `unit` et `team`, la page utilise une grille 2 colonnes :
 └───────────────────────────────────────┘  └──────────────────┘
 ```
 
-Pour les types `institution` et `composante`, le layout est plus simple : liste des sous-structures en colonne principale, À propos en secondaire.
+Pour les types `institution` et `institution_subdivision`, le layout est plus simple : liste des sous-structures en colonne principale, À propos en secondaire.
 
 ---
 
@@ -131,13 +135,13 @@ Description, site web, identifiants locaux.
 
 ---
 
-### `composante` — UFR Sciences, UFR LLSHS, IAE Nantes, Polytech Nantes
+### `institution_subdivision` — UFR Sciences, UFR LLSHS, IAE Nantes, Polytech Nantes
 
 **Unités rattachées**
 Tableau des unités filles (`parent_uid = this.uid`) : acronyme, mission, membres, publications, taux OA, lien fiche.
 
 **Membres**
-Personnes directement rattachées à la composante (hors unités filles) — si la donnée est disponible.
+Personnes directement rattachées à la subdivision (hors unités filles) — si la donnée est disponible.
 
 **À propos**
 Description, adresse, site web.
@@ -332,7 +336,7 @@ Pour les nœuds de référence (LS2N affiché sous Centrale Nantes dans la vue l
 
 ## Agrégation des statistiques
 
-**Problème :** les membres et publications d'une institution (ex. Nantes Université) doivent-ils inclure récursivement ceux de toutes ses sous-structures (composantes + unités + équipes) ?
+**Problème :** les membres et publications d'une institution (ex. Nantes Université) doivent-ils inclure récursivement ceux de toutes ses sous-structures (institution_subdivision + unités + équipes) ?
 
 **Options :**
 
@@ -342,7 +346,7 @@ Pour les nœuds de référence (LS2N affiché sous Centrale Nantes dans la vue l
 | **Niveau direct seulement** | Simple, sans double comptage | Sous-estime fortement l'activité d'une institution |
 | **Dénormalisé en base** | Performant, contrôlé | Nécessite une tâche de calcul périodique |
 
-La maquette utilise des chiffres saisis manuellement pour chaque nœud. En production, la solution dénormalisée (champs précalculés, mis à jour par batch) est recommandée pour les institutions et composantes, les unités et équipes étant agrégées à la volée.
+La maquette utilise des chiffres saisis manuellement pour chaque nœud. En production, la solution dénormalisée (champs précalculés, mis à jour par batch) est recommandée pour les institutions et institution_subdivision, les unités et équipes étant agrégées à la volée.
 
 ---
 
@@ -392,7 +396,7 @@ La maquette utilise des chiffres saisis manuellement pour chaque nœud. En produ
 
 ❓ **Co-tutelles hors périmètre (CNRS)** : afficher une ligne de texte seule, ou renvoyer vers une fiche "structure externe" simplifiée (nom, type, site web) ?
 
-❓ **Onglet Publications sur les composantes** : les composantes ont-elles des publications propres, ou faut-il agréger celles de leurs unités filles ?
+❓ **Onglet Publications sur les `institution_subdivision`** : les UFR/Facultés ont-elles des publications propres, ou faut-il agréger celles de leurs unités filles ?
 
 ❓ **Structures sans membres connus** : faut-il masquer l'onglet Membres ou afficher un message "données non disponibles" ?
 
