@@ -670,7 +670,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                             theme.typography.lineHeight.lineHeight24px,
                         },
                       }}
-                      primary={<Trans>side_bar_researchers</Trans>}
+                      primary={<Trans id="side_bar_researchers">{'Chercheurs'}</Trans>}
                     />
                   )}
                 </ListItem>

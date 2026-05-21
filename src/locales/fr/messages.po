@@ -1099,8 +1099,8 @@ msgstr "Unités"
 msgid "side_bar_my_account"
 msgstr "Mon compte"
 
-#: src/app/[lang]/components/Sidebar/Sidebar.tsx:623
-#: src/app/[lang]/researchers/page.tsx:9
+#. js-lingui-explicit-id
+#: src/app/[lang]/components/Sidebar/Sidebar.tsx:673
 msgid "side_bar_researchers"
 msgstr "Chercheurs"
 
