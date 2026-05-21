@@ -9,7 +9,9 @@
 
 ## 1. Contexte
 
-Cet onglet permet de gérer les contributions (auteurs + affiliations) d'une publication avant son dépôt dans HAL. Il est l'étape clé du parcours de dépôt : HAL exige que chaque auteur soit retrouvé dans HAL et chaque affiliation alignée sur une structure HAL (reliée à un identifiant ROR).
+Cet onglet permet de gérer les contributions (auteurs + affiliations) d'une publication, en particulier pour préparer un éventuel dépôt dans HAL. Il permet à l'utilisateur d'identifier les auteurs dans HAL (via leur IdHAL) et d'aligner les affiliations sur des structures HAL (reliées à un identifiant ROR).
+
+L'alignement des auteurs et des affiliations **n'est pas un préalable obligatoire** au dépôt dans HAL : l'onglet « Déposer dans HAL » reste accessible quelle que soit l'avancée de l'alignement.
 
 L'utilisateur type est un chercheur ou un bibliothécaire qui dépose 5 à 20 publications par session.
 
@@ -24,10 +26,8 @@ Mes publications → [fiche publication]
    ├── Domaines
    ├── Sources
    ├── Auteurs           ◄── CET ONGLET
-   └── Déposer dans HAL  ◄── étape suivante
+   └── Déposer dans HAL
 ```
-
-🟡 L'onglet « Déposer dans HAL » est désactivé tant que des auteurs ou des affiliations sont manquants dans HAL.
 
 ---
 
@@ -37,13 +37,20 @@ Mes publications → [fiche publication]
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Sidebar │ Topbar : titre publication + onglets                       │
 │         ├────────────────────────────────────────────────────────────│
-│         │ [Bannière d'état]                                           │
-│         │ [Barre de progression]                                      │
+│         │ [En-tête sticky : titre + toggle "Rangs définis" + compteurs] │
+│         │ [Bannière flottante "modifications non enregistrées"]       │
 │         │                                                             │
-│         │ Cartes d'auteur (une par auteur, dans l'ordre de signature) │
-│         │   • drag handle + flèches ▴▾ + corbeille                   │
-│         │   • colonne gauche : identité + statut HAL                  │
-│         │   • colonne droite : affiliations                           │
+│         │ MODE RANGS DÉFINIS :                                        │
+│         │   [+ Insérer un auteur ici]                                 │
+│         │   Carte auteur 1 (drag handle + flèches ▴▾)                │
+│         │   [+ Insérer un auteur ici]                                 │
+│         │   Carte auteur 2 …                                          │
+│         │   [+ Insérer un auteur ici]                                 │
+│         │   …                                                         │
+│         │                                                             │
+│         │ MODE RANGS NON DÉFINIS :                                    │
+│         │   Carte auteur 1 (sans drag handle)                         │
+│         │   Carte auteur 2 …                                          │
 │         │                                                             │
 │         │ [+ Ajouter un auteur]   [Annuler]   [Enregistrer]          │
 └──────────────────────────────────────────────────────────────────────┘
@@ -53,23 +60,21 @@ Mes publications → [fiche publication]
 
 ## 4. Contributions (auteurs)
 
-### 4.1 Affichage et ordre
+### 4.1 Ordre et rangs
 
-✅ Chaque contribution est affichée dans une carte à deux colonnes :
-- colonne gauche : auteur et ses identifiants
-- colonne droite : affiliations
+✅ Les rangs des contributeurs peuvent être **définis dans les données sources** (ex. OpenAlex) ou **non définis**.
 
-✅ Les cartes sont affichées selon le rang des contributions s'il est renseigné ; sinon selon l'ordre en base.
+✅ Un toggle **« Rangs définis »** en haut de la page permet de passer d'un mode à l'autre :
+- **Rangs définis** → les cartes s'affichent dans l'ordre des rangs ; un handle (6 points) et des flèches ▴ / ▾ permettent de réordonner ; des liens **« + Insérer un auteur ici »** apparaissent entre chaque carte.
+- **Rangs non définis** → les cartes s'affichent dans l'ordre de la base ; aucune réorganisation possible ; pas de drag handle ni de flèches.
 
-✅ Un handle (6 points) et des flèches ▴ / ▾ à côté du nom permettent de modifier l'ordre.
+✅ En mode rangs définis, les liens **« + Insérer un auteur ici »** permettent d'insérer un auteur directement à la position souhaitée sans avoir à le déplacer après coup (utile pour une liste de 30 auteurs ou plus).
 
-✅ Une icône corbeille en haut à gauche de chaque carte permet de supprimer la contribution.
+✅ Le bouton **« + Ajouter un auteur »** en bas du formulaire ajoute toujours un auteur en fin de liste.
 
-❓ **Si les contributions n'ont pas de rang, dans quel ordre les affiche-t-on ?** Ordre de la base de données ?
+✅ Une icône corbeille en haut à droite de chaque carte permet de supprimer la contribution.
 
-❓ **Si l'utilisateur modifie l'ordre, assigne-t-on des rangs à toutes les contributions ?** Est-ce que l'utilisateur voit ces rangs ? Peut-il revenir à la version non ordonnée ?
-
-❓ **Si les contributions sont ordonnées, une nouvelle contribution est-elle forcément ajoutée en fin de liste ?** Si oui, il sera fastidieux de la replacer.
+❓ **Quand on passe du mode « rangs non définis » au mode « rangs définis »**, des rangs séquentiels sont-ils assignés dans l'ordre courant ? L'utilisateur peut-il revenir au mode « non définis » en perdant ces rangs ?
 
 ### 4.2 Statut HAL de l'auteur
 
@@ -79,39 +84,44 @@ Mes publications → [fiche publication]
 
 ✅ Quand une personne trouvée dans HAL est sélectionnée, ses identifiants sont enregistrés et son statut passe à « Auteur identifié ».
 
-✅ Un bouton « Modifier » permet d'effacer les identifiants enregistrés et de revenir au statut « Non trouvé dans HAL ».
+✅ Un bouton **« Changer »** permet d'effacer les identifiants enregistrés et de revenir au statut « Auteur non identifié ».
 
-✅ **Terminologie retenue : « Auteur identifié » / « Auteur non identifié »** (proposition Joachim, validée). Raison : lors de l'import SWORD, le CCSD ne demande pas l'alignement de tous les contributeurs sur HAL mais seulement un identifiant. C'est l'algorithme HAL qui fait l'alignement sur AureHAL d'après l'identifiant fourni et la date de publication. Il est préférable de laisser cet algorithme travailler plutôt que de demander aux utilisateurs de désambiguïser contre AureHAL les auteurs déjà identifiés.
+✅ **Terminologie retenue : « Auteur identifié » / « Auteur non identifié »** (validée). Raison : lors de l'import SWORD, le CCSD ne demande pas la désambiguïsation contre AureHAL mais un identifiant. C'est l'algorithme HAL qui fait l'alignement.
 
-❓ **Comment afficher les identifiants si l'auteur en a plusieurs ?**
-
-🟡 Badge IdHAL vert si aligné, badge ORCID vert si présent et aligné. Badge orange « ⚠ Sans IdHAL » si non aligné.
+✅ **Ligne de statut** : sur la ligne « Auteur identifié », les identifiants disponibles s'affichent dans cet ordre, chacun avec une icône et un tooltip affichant la valeur :
+1. Picto ORCID (si présent)
+2. Picto IdRef (si présent)
+3. Picto HAL / IdHAL (si présent)
+4. Picto Scopus (si présent)
+5. Lien **« Changer »**
 
 🟡 En cas de non-alignement : liste de candidats HAL avec score de correspondance. Le candidat primaire (meilleur score) est mis en avant avec un bouton « Confirmer ».
 
-🟡 Score de correspondance (`MatchChip`) : ≥ 90 % vert, 70–89 % ambre, < 70 % gris.
+🟡 Score de correspondance : ≥ 85 % vert, 65–84 % ambre, < 65 % gris.
 
-### 4.3 Rôles
+### 4.3 Rôles (Fonction)
 
-✅ Le rôle du contributeur, tel que défini en base, est affiché dans un menu « Rôles ».
+✅ Le rôle du contributeur est affiché dans un menu déroulant **« Fonction »**.
 
-❓ **Quelle liste de rôles utiliser ?** Celle de SoVisu+ (Library of Congress) ou celle de HAL ? Si LOC, la liste est très longue — prévoir une recherche dans le menu.
+✅ Le référentiel des rôles est la **liste des Contributor Roles de la Library of Congress** (`http://id.loc.gov/vocabulary/relators`), déjà utilisée dans SoVisu+. C'est le type `LocRelator` de l'application.
 
-❓ **Si quelqu'un change un rôle accidentellement, y a-t-il une validation ou un moyen d'annuler ?**
+✅ La liste étant longue (~300 entrées), le menu doit proposer une **recherche textuelle** (autocomplete ou filtre).
 
-❓ **Workflow si l'on n'a pas de rôle** (i.e. rôle générique « contributeur ») ?
+✅ Un mapping entre les rôles LOC et les fonctions requises par HAL sera effectué côté serveur lors du dépôt ; ce mapping n'est pas visible dans cet onglet.
+
+❓ **Si quelqu'un change un rôle accidentellement**, y a-t-il une validation ou un moyen d'annuler (hormis le bouton global « Annuler les modifications ») ?
+
+❓ **Workflow si le rôle est générique** (`contributor` sans précision) : affichage par défaut ?
 
 ### 4.4 Ajout d'un auteur
 
-✅ L'utilisateur peut ajouter une contribution en cliquant sur « + Ajouter un auteur ».
+✅ L'utilisateur peut ajouter une contribution via **« + Ajouter un auteur »** (fin de liste) ou via **« + Insérer un auteur ici »** (entre deux cartes, mode rangs définis uniquement).
 
-✅ La nouvelle carte ne contient pas de nom ni d'affiliation. Elle contient un champ autocomplete pour chercher dans HAL.
-
-✅ L'utilisateur peut sélectionner un auteur depuis l'autocomplete HAL. Tant qu'il ne l'a pas fait, aucune contribution n'est enregistrée et aucune affiliation ne peut être ajoutée.
+✅ La nouvelle carte contient un champ autocomplete pour chercher dans HAL. Tant que l'auteur n'est pas sélectionné, aucune contribution n'est enregistrée et aucune affiliation ne peut être ajoutée.
 
 ✅ L'utilisateur peut supprimer la nouvelle contribution via l'icône corbeille.
 
-🟡 Si aucun résultat : option « Créer un auteur sans identifiant HAL ».
+🟡 Si aucun résultat dans HAL : option « Créer un auteur sans identifiant HAL ».
 
 ---
 
@@ -121,41 +131,37 @@ Mes publications → [fiche publication]
 
 ✅ Chaque affiliation a sa propre carte. Les affiliations ne sont pas ordonnées.
 
-✅ Si l'organisation a au moins un identifiant : la carte affiche son nom en titre + icône corbeille pour la supprimer.
+✅ Si l'organisation a au moins un identifiant : la carte affiche son nom en titre + chip ROR + icône corbeille.
 
-✅ Si l'organisation n'est pas identifiée : étiquette « Non identifiée » + champ autocomplete pour rechercher dans HAL.
+✅ Si l'organisation n'est pas identifiée : étiquette orange « Affiliation HAL manquante » + texte importé brut + liste de candidats HAL (code labo, nom, tutelles, ROR, nombre de chercheurs, score).
 
-❓ **Pour les structures de recherche tierces** : on n'a pas forcément de nom court / nom long, mais un ou plusieurs noms (souvent parce que l'organisation a changé de nom). Comment gérer ce cas ?
+❓ **Pour les structures de recherche tierces** : plusieurs noms possibles (changements de nom). Comment les afficher ?
 
-❓ **Si une organisation d'affiliation a plusieurs identifiants, comment les affiche-t-on ?**
-
-🟡 Affiliation alignée : carte verte avec code labo en gras, libellé long, chip ROR.
-
-🟡 Affiliation non alignée : carte orange avec la chaîne brute importée + liste de candidats (code labo, nom complet, tutelles, ROR, nombre de chercheurs, score de correspondance).
+❓ **Si une organisation a plusieurs identifiants**, comment les présenter ?
 
 ### 5.2 Ajout d'une affiliation
 
 ✅ En cliquant sur « + Ajouter une affiliation HAL », un autocomplete HAL apparaît.
 
-✅ Si l'utilisateur ne sélectionne rien dans cet autocomplete, cela n'a aucun effet.
-
 ✅ Si l'utilisateur sélectionne une option, une nouvelle carte d'affiliation alignée apparaît.
 
-❓ **Quand on ajoute un nouvel auteur**, tant qu'il n'a pas été sélectionné dans HAL, peut-on lui ajouter une affiliation ?
+❓ **Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ?**
 
 ---
 
-## 6. Bannière d'état
+## 6. Bannière modifications non enregistrées
 
-✅ En haut de la page, une bannière indique l'état d'avancement :
-- Si des auteurs ou affiliations sont manquants : bannière d'alerte (orange / ambre) avec le compte et un CTA « Aligner toutes les meilleures correspondances ».
-- Si tout est aligné : bannière de succès (verte).
+✅ En haut de la page, une bannière **sticky** reste visible lorsque l'utilisateur scrolle vers le bas.
 
-✅ Barre de progression sous la bannière : X / Y auteurs trouvés dans HAL.
+✅ La bannière s'affiche dès qu'une modification a été faite sur la page (ajout/suppression d'auteur, changement de rôle, alignement confirmé, etc.).
 
-✅ Bouton « Aligner toutes les meilleures correspondances » : confirme automatiquement les candidats dont le score ≥ 85 % (seuil actuel).
+✅ La bannière indique : **« Des modifications n'ont pas été enregistrées »** et propose deux actions : **« Enregistrer »** et **« Annuler les modifications »**.
 
-🟡 Le CTA demande confirmation avant d'appliquer (modale listant les alignements à effectuer). L'action est réversible via un toast « Annuler » pendant quelques secondes.
+✅ Quand l'utilisateur clique sur « Enregistrer » (bannière ou bouton de bas de page), la bannière disparaît.
+
+✅ Quand l'utilisateur clique sur « Annuler les modifications », le formulaire revient à son état initial et la bannière disparaît.
+
+🟡 **Si l'utilisateur quitte l'onglet** (navigation vers un autre onglet de la fiche) sans avoir enregistré : afficher une modale de confirmation « Vous avez des modifications non enregistrées. Voulez-vous les enregistrer avant de continuer ? »
 
 ---
 
@@ -163,7 +169,7 @@ Mes publications → [fiche publication]
 
 ✅ À gauche : **« + Ajouter un auteur »** (bouton secondaire).
 
-✅ À droite : **« Annuler »** + **« Enregistrer »**.
+✅ À droite : **« Annuler les modifications »** + **« Enregistrer »**.
 
 ---
 
@@ -171,17 +177,14 @@ Mes publications → [fiche publication]
 
 | # | Thème | Question |
 |---|-------|----------|
-| 1 | Ordre | Ordre d'affichage si pas de rang en base ? |
-| 2 | Ordre | Assigner des rangs à toutes les contributions quand l'utilisateur en réordonne une ? Possibilité de revenir à l'ordre initial ? |
-| 3 | Ordre | Nouvelle contribution forcément ajoutée en fin de liste ? |
+| 1 | Rangs | Lors du passage mode « non définis » → « définis », quels rangs sont attribués ? L'utilisateur peut-il revenir en arrière ? |
+| 2 | Rôles | Comportement par défaut si le rôle est générique (`contributor`) ? |
+| 3 | Rôles | Validation ou annulation du changement de rôle accidentel ? |
 | 4 | ~~Terminologie~~ | ✅ Retenu : « Auteur identifié / Auteur non identifié » |
-| 5 | Identifiants | Comment afficher plusieurs identifiants pour un même auteur ? |
-| 6 | Rôles | Liste LOC ou liste HAL ? Recherche dans le menu si LOC ? |
-| 7 | Rôles | Validation ou annulation si changement accidentel du rôle ? |
-| 8 | Rôles | Workflow si rôle générique « contributeur » (pas de rôle explicite) ? |
-| 9 | Structures | Nom court/long absent pour les structures tierces — comment afficher ? |
-| 10 | Structures | Plusieurs identifiants sur une organisation — affichage ? |
-| 11 | Ajout auteur | Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ? |
+| 5 | Navigation | Modale de confirmation si l'utilisateur quitte l'onglet sans enregistrer ? |
+| 6 | Structures | Nom court/long absent pour les structures tierces — comment afficher ? |
+| 7 | Structures | Plusieurs identifiants sur une organisation — affichage ? |
+| 8 | Ajout auteur | Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ? |
 
 ---
 
@@ -192,9 +195,13 @@ type Author = {
   id: string
   first: string
   last: string
-  role: string
+  role: LocRelator         // référentiel LOC
+  rank?: number            // undefined si rangs non définis dans la source
   orcid?: string
-  idhal:
+  idref?: string
+  idhal?: string
+  scopus?: string
+  idhalAligned:
     | { value: string; aligned: true }
     | { aligned: false; candidates: IdHalCandidate[] }
     | { aligned: 'skip' }
