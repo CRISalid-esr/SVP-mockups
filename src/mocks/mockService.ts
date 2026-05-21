@@ -57,6 +57,9 @@ export const mockService = {
     return personsData.find((p) => p.slug === personSlug) ?? null
   },
 
+  getPersonByUid: (uid: string) =>
+    (personsData as Record<string, unknown>[]).find((p) => p.uid === uid) ?? null,
+
   getResearchStructureBySlug: (slug: string) => {
     const structureSlug = slug.replace('research-structure:', '')
     return structuresData.find((s) => s.slug === structureSlug) ?? null

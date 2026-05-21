@@ -614,6 +614,27 @@
         ]
     },
     {
+        "uid": "inst-cnrs",
+        "generic_type": "institution",
+        "national_type": "EPST",
+        "main_mission": "research",
+        "acronym": "CNRS",
+        "parent_uid": null,
+        "secondary_parent_uids": [],
+        "short_labels": [{ "language": "fr", "value": "CNRS" }],
+        "long_labels": [{ "language": "fr", "value": "Centre National de la Recherche Scientifique" }],
+        "institutionNames": [],
+        "membersCount": 32000,
+        "publicationsCount": 0,
+        "oaRate": 0,
+        "halRate": 0,
+        "descriptions": [{ "language": "fr", "value": "Organisme public de recherche français placé sous la tutelle du ministère chargé de la recherche. Cotutelle de nombreuses unités mixtes de recherche rattachées à Nantes Université." }],
+        "external": true,
+        "slug": "cnrs",
+        "childUids": [],
+        "identifiers": { "ror": "02feahw73" }
+    },
+    {
         "uid": "unit-pole-st",
         "generic_type": "unit",
         "national_type": "Pôle",

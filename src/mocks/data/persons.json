@@ -2,7 +2,7 @@
     {
         "uid": "person-1",
         "external": false,
-        "email": "jean.dupont@universite.fr",
+        "email": "jean.dupont@univ-nantes.fr",
         "displayName": "Jean Dupont",
         "firstName": "Jean",
         "lastName": "Dupont",
@@ -11,8 +11,14 @@
         "publis24m": 12,
         "oaRate": 67,
         "halRate": 58,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
         "identifiers": [
             { "type": "orcid", "value": "0000-0001-2345-6789" },
+            { "type": "idhals", "value": "jean-dupont" },
             { "type": "idref", "value": "123456789" }
         ],
         "memberships": [
@@ -21,14 +27,30 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
+        ],
+        "hdr": false,
+        "researchDomains": ["Informatique", "Intelligence artificielle", "Réseaux de neurones"],
+        "keywords": ["machine learning", "graph neural networks", "edge computing", "distributed systems"],
+        "publicationsByYear": [
+            { "year": 2020, "open": 4, "closed": 3, "unknown": 2 },
+            { "year": 2021, "open": 5, "closed": 2, "unknown": 1 },
+            { "year": 2022, "open": 6, "closed": 2, "unknown": 1 },
+            { "year": 2023, "open": 7, "closed": 2, "unknown": 1 },
+            { "year": 2024, "open": 8, "closed": 1, "unknown": 1 }
+        ],
+        "coAuthors": [
+            { "uid": "person-ls2n-3", "displayName": "Fatima El Amrani", "publicationsCount": 7 },
+            { "uid": "person-2", "displayName": "Marie Curie", "publicationsCount": 5 },
+            { "uid": "person-ls2n-1", "displayName": "Isabelle Cordier", "publicationsCount": 3 }
         ]
     },
     {
         "uid": "person-2",
         "external": false,
-        "email": "marie.curie@recherche.fr",
+        "email": "marie.curie@cnrs.fr",
         "displayName": "Marie Curie",
         "firstName": "Marie",
         "lastName": "Curie",
@@ -37,8 +59,14 @@
         "publis24m": 31,
         "oaRate": 84,
         "halRate": 79,
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
         "identifiers": [
-            { "type": "orcid", "value": "0000-0002-9876-5432" }
+            { "type": "orcid", "value": "0000-0002-9876-5432" },
+            { "type": "idhals", "value": "marie-curie" }
         ],
         "memberships": [
             {
@@ -46,8 +74,24 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
+        ],
+        "hdr": true,
+        "researchDomains": ["Physique", "Chimie", "Radioactivité"],
+        "keywords": ["radioactivité", "isotopes", "rayonnement", "biophysique"],
+        "publicationsByYear": [
+            { "year": 2020, "open": 10, "closed": 4, "unknown": 2 },
+            { "year": 2021, "open": 12, "closed": 3, "unknown": 1 },
+            { "year": 2022, "open": 14, "closed": 3, "unknown": 1 },
+            { "year": 2023, "open": 16, "closed": 2, "unknown": 1 },
+            { "year": 2024, "open": 18, "closed": 2, "unknown": 1 }
+        ],
+        "coAuthors": [
+            { "uid": "person-1", "displayName": "Jean Dupont", "publicationsCount": 5 },
+            { "uid": "person-ls2n-3", "displayName": "Fatima El Amrani", "publicationsCount": 9 },
+            { "uid": "person-ls2n-1", "displayName": "Isabelle Cordier", "publicationsCount": 4 }
         ]
     },
     {
@@ -62,14 +106,23 @@
         "publis24m": 45,
         "oaRate": 72,
         "halRate": 68,
-        "identifiers": [{ "type": "orcid", "value": "0000-0003-1111-2222" }],
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
+        "identifiers": [
+            { "type": "orcid", "value": "0000-0003-1111-2222" },
+            { "type": "idhals", "value": "isabelle-cordier" }
+        ],
         "memberships": [
             {
                 "researchStructure": {
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -85,6 +138,11 @@
         "publis24m": 28,
         "oaRate": 58,
         "halRate": 52,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -92,7 +150,8 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -108,14 +167,23 @@
         "publis24m": 38,
         "oaRate": 81,
         "halRate": 75,
-        "identifiers": [{ "type": "orcid", "value": "0000-0003-3333-4444" }],
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
+        "identifiers": [
+            { "type": "orcid", "value": "0000-0003-3333-4444" },
+            { "type": "idhals", "value": "fatima-el-amrani" }
+        ],
         "memberships": [
             {
                 "researchStructure": {
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -131,6 +199,11 @@
         "publis24m": 22,
         "oaRate": 65,
         "halRate": 60,
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -138,7 +211,8 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -154,6 +228,11 @@
         "publis24m": 8,
         "oaRate": 90,
         "halRate": 85,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -161,7 +240,8 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -177,6 +257,11 @@
         "publis24m": 12,
         "oaRate": 88,
         "halRate": 80,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -184,7 +269,8 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
@@ -200,6 +286,11 @@
         "publis24m": 19,
         "oaRate": 54,
         "halRate": 48,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -207,14 +298,15 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     },
     {
         "uid": "person-ls2n-8",
         "external": false,
-        "email": "laurent.viguier@univ-nantes.fr",
+        "email": "laurent.viguier@cnrs.fr",
         "displayName": "Laurent Viguier",
         "firstName": "Laurent",
         "lastName": "Viguier",
@@ -223,6 +315,11 @@
         "publis24m": 3,
         "oaRate": 33,
         "halRate": 28,
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
         "identifiers": [],
         "memberships": [
             {
@@ -230,7 +327,161 @@
                     "uid": "lab-ls2n",
                     "acronym": "LS2N",
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
-                }
+                },
+                "membershipType": "stat_mmb"
+            }
+        ]
+    },
+    {
+        "uid": "person-lmjl-1",
+        "external": false,
+        "email": "paul.dumont@univ-nantes.fr",
+        "displayName": "Paul Dumont",
+        "firstName": "Paul",
+        "lastName": "Dumont",
+        "slug": "paul-dumont",
+        "statut": "Pr.",
+        "publis24m": 27,
+        "oaRate": 62,
+        "halRate": 55,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
+        "identifiers": [
+            { "type": "orcid", "value": "0000-0004-1111-2222" },
+            { "type": "idhals", "value": "paul-dumont" }
+        ],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-lmjl",
+                    "acronym": "LMJL",
+                    "names": [{ "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }]
+                },
+                "membershipType": "stat_mmb"
+            }
+        ]
+    },
+    {
+        "uid": "person-lmjl-2",
+        "external": false,
+        "email": "helene.rousseau@univ-nantes.fr",
+        "displayName": "Hélène Rousseau",
+        "firstName": "Hélène",
+        "lastName": "Rousseau",
+        "slug": "helene-rousseau",
+        "statut": "MCF",
+        "publis24m": 14,
+        "oaRate": 71,
+        "halRate": 64,
+        "institution": {
+            "uid": "inst-nu",
+            "acronym": "NU",
+            "names": [{ "language": "fr", "value": "Nantes Université" }]
+        },
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-lmjl",
+                    "acronym": "LMJL",
+                    "names": [{ "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }]
+                },
+                "membershipType": "stat_mmb"
+            }
+        ]
+    },
+    {
+        "uid": "person-lmjl-3",
+        "external": false,
+        "email": "marc.legrand@cnrs.fr",
+        "displayName": "Marc Legrand",
+        "firstName": "Marc",
+        "lastName": "Legrand",
+        "slug": "marc-legrand",
+        "statut": "CR",
+        "publis24m": 18,
+        "oaRate": 78,
+        "halRate": 70,
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
+        "identifiers": [
+            { "type": "idhals", "value": "marc-legrand" }
+        ],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-lmjl",
+                    "acronym": "LMJL",
+                    "names": [{ "language": "fr", "value": "Laboratoire de Mathématiques Jean Leray" }]
+                },
+                "membershipType": "stat_mmb"
+            }
+        ]
+    },
+    {
+        "uid": "person-gem-1",
+        "external": false,
+        "email": "sophie.martin@ec-nantes.fr",
+        "displayName": "Sophie Martin",
+        "firstName": "Sophie",
+        "lastName": "Martin",
+        "slug": "sophie-martin-gem",
+        "statut": "MCF",
+        "publis24m": 9,
+        "oaRate": 56,
+        "halRate": 44,
+        "institution": {
+            "uid": "inst-cn",
+            "acronym": "CN",
+            "names": [{ "language": "fr", "value": "Centrale Nantes" }]
+        },
+        "identifiers": [],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-gem",
+                    "acronym": "GeM",
+                    "names": [{ "language": "fr", "value": "Institut de Recherche en Génie Civil et Mécanique" }]
+                },
+                "membershipType": "stat_mmb"
+            }
+        ]
+    },
+    {
+        "uid": "person-gem-2",
+        "external": false,
+        "email": "carlos.silva@cnrs.fr",
+        "displayName": "Carlos Silva",
+        "firstName": "Carlos",
+        "lastName": "Silva",
+        "slug": "carlos-silva",
+        "statut": "DR",
+        "publis24m": 34,
+        "oaRate": 88,
+        "halRate": 82,
+        "institution": {
+            "uid": "inst-cnrs",
+            "acronym": "CNRS",
+            "names": [{ "language": "fr", "value": "CNRS" }]
+        },
+        "identifiers": [
+            { "type": "orcid", "value": "0000-0005-9999-8888" },
+            { "type": "idhals", "value": "carlos-silva" }
+        ],
+        "memberships": [
+            {
+                "researchStructure": {
+                    "uid": "lab-gem",
+                    "acronym": "GeM",
+                    "names": [{ "language": "fr", "value": "Institut de Recherche en Génie Civil et Mécanique" }]
+                },
+                "membershipType": "stat_mmb"
             }
         ]
     }

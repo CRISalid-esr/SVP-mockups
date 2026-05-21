@@ -8,11 +8,11 @@
 
 ## Contexte et problème
 
-Pour les institutions, composantes et structures intermédiaires (pôles, fédérations…), le périmètre de comptage des membres et publications n'est **pas réductible à une règle unique**. Exemples réels :
+Pour les institutions, composantes et structures intermédiaires (pôles, fédérations…), le périmètre de comptage des membres et publications n'est **pas réductible à une règle unique**. Exemples fictifs :
 
 | Structure | Règle de comptage |
 |-----------|-------------------|
-| Pôle S&T (Nantes Université) | Tous les membres de LS2N + tous les membres de LMJL + membres de GeM **employés par NU** |
+| Pôle S&T (Nantes Université) | Tous les membres de LS2N + tous les membres de LMJL + membres de GEM **employés par NU** |
 | Autre pôle | Somme des chercheurs **employés par le pôle** lui-même |
 | Pôle campus | Somme des chercheurs **localisés sur le campus** |
 
@@ -120,4 +120,4 @@ D'autres filtres sont envisageables en production (statut, date d'entrée, rôle
 
 ❓ **Historique des périmètres** : si le périmètre change, les stats historiques doivent-elles être recalculées ou conservées telles quelles ?
 
-❓ **Droits d'accès** : l'onglet Périmètre est visible de tous dans la maquette. En production, il devrait être réservé aux administrateurs de la structure.
+❓ **Droits d'accès** : l'onglet Périmètre est visible de tous dans la maquette. En production, il devra être réservé aux administrateurs de la structure.
