@@ -111,8 +111,8 @@ type Affiliation = {
 type AuthorState = {
   uid: string
   displayName: string
-  role: string
-  roleIsDefault?: boolean
+  roles: string[]
+  rolesAreDefault?: boolean
   rank?: number
   external: boolean
   orcid?: string
@@ -130,14 +130,14 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
     const uid = c.person.uid ?? `author-${i}`
     const displayName = c.person.displayName ?? ''
     const rank = c.rank != null ? c.rank : undefined
-    const roleIsDefault = !c.roles || c.roles.length === 0
-    const role = roleIsDefault ? 'contributor' : (c.roles[0] as string)
+    const rolesAreDefault = !c.roles || c.roles.length === 0
+    const roles = rolesAreDefault ? ['contributor'] : (c.roles as string[])
     const external = c.person.external ?? false
     const pos = rank ?? i + 1
 
     if (pos === 1) {
       return {
-        uid, displayName, role, roleIsDefault, rank, external,
+        uid, displayName, roles, rolesAreDefault, rank, external,
         orcid: '0000-0001-2345-6789',
         idhal: 'jean-dupont',
         affiliations: [
@@ -147,7 +147,7 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
     }
     if (pos === 2) {
       return {
-        uid, displayName, role, roleIsDefault, rank, external,
+        uid, displayName, roles, rolesAreDefault, rank, external,
         idhalCandidates: [
           { idhal: 'sophie-martin', fullName: 'Sophie Martin', affiliations: 'LS2N, Nantes · IRD', publications: 12, matchScore: 92, orcid: '0000-0002-9876-5432' },
           { idhal: 'sophie-martin-inrae', fullName: 'Sophie Martin', affiliations: 'INRAE Montpellier', publications: 3, matchScore: 71 },
@@ -166,10 +166,10 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
     }
     if (pos === 3) {
       // Pierre Bernard : pas de rôle dans les données source → fonction par défaut
-      return { uid, displayName, role: 'contributor', roleIsDefault: true, rank, external, affiliations: [] }
+      return { uid, displayName, roles: ['contributor'], rolesAreDefault: true, rank, external, affiliations: [] }
     }
     return {
-      uid, displayName, role, roleIsDefault, rank, external,
+      uid, displayName, roles, rolesAreDefault, rank, external,
       idhal: 'anne-leclerc',
       affiliations: [
         { halStructureId: '102314', halStructureName: 'EHESS - École des hautes études en sciences sociales', shortName: 'EHESS', ror: '011kdr723' },
@@ -309,7 +309,7 @@ const Authors = () => {
   const addAuthor = (atIndex?: number) => {
     const uid = `new-${Date.now()}`
     setAuthorsDirty((prev) => {
-      const newEntry: AuthorState = { uid, displayName: 'Nouvel auteur', role: 'contributor', roleIsDefault: true, external: true, affiliations: [] }
+      const newEntry: AuthorState = { uid, displayName: 'Nouvel auteur', roles: ['contributor'], rolesAreDefault: true, external: true, affiliations: [] }
       if (ranksFromSource && atIndex !== undefined) {
         const next = [...prev]
         next.splice(atIndex, 0, newEntry)
@@ -566,24 +566,45 @@ const Authors = () => {
 
                   {/* Role selector */}
                   <FormControl size="small" fullWidth>
-                    <InputLabel sx={{ fontSize: '0.8125rem' }}>Fonction</InputLabel>
+                    <InputLabel sx={{ fontSize: '0.8125rem' }}>Fonctions</InputLabel>
                     <Select
-                      value={author.role}
-                      onChange={(e) => update(author.uid, { role: e.target.value, roleIsDefault: false })}
-                      label="Fonction"
+                      multiple
+                      value={author.roles}
+                      onChange={(e) => {
+                        const value = e.target.value as string[]
+                        update(author.uid, { roles: value.length ? value : ['contributor'], rolesAreDefault: false })
+                      }}
+                      label="Fonctions"
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {(selected as string[]).map((val) => {
+                            const roleLabel = AUTHOR_ROLES.find((r) => r.value === val)?.label ?? val
+                            return (
+                              <Chip
+                                key={val}
+                                label={roleLabel}
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.75rem', bgcolor: TEAL_LIGHT, color: TEAL }}
+                              />
+                            )
+                          })}
+                        </Box>
+                      )}
                       sx={{
                         fontSize: '0.8125rem',
-                        ...(author.roleIsDefault && {
+                        ...(author.rolesAreDefault && {
                           '& .MuiOutlinedInput-notchedOutline': { borderColor: WARN_BORDER },
                         }),
                       }}
                     >
                       {AUTHOR_ROLES.map((r) => (
-                        <MenuItem key={r.value} value={r.value} sx={{ fontSize: '0.8125rem' }}>{r.label}</MenuItem>
+                        <MenuItem key={r.value} value={r.value} sx={{ fontSize: '0.8125rem' }}>
+                          {r.label}
+                        </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  {author.roleIsDefault && (
+                  {author.rolesAreDefault && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.75 }}>
                       <WarningAmber sx={{ fontSize: 13, color: WARN }} />
                       <Typography sx={{ fontSize: '0.75rem', color: WARN }}>
