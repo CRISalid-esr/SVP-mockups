@@ -73,8 +73,8 @@ Les stores Zustand (`documentSlice`, `personSlice`, `researchStructureSlice`, `u
 
 **doc-1 a 4 auteurs** (pour démo de l'onglet Auteurs) :
 - Jean Dupont (rang 1) — IdHAL confirmé + ORCID + affiliation LS2N + **2 rôles** (`author`, `editor`)
-- Sophie Martin (rang 2) — sans IdHAL, 3 candidats HAL, 1 affiliation non trouvée avec candidats structures
-- Pierre Bernard (rang 3) — sans IdHAL, sans candidats, sans affiliation, rôle par défaut
+- Sophie Martin (rang 2) — **ORCID** (→ "Auteur identifié") mais sans IdHAL, 3 candidats HAL, 1 affiliation non trouvée avec candidats structures
+- Pierre Bernard (rang 3) — aucun identifiant (→ "Auteur non identifié"), sans candidats, sans affiliation, rôle par défaut
 - Anne Leclerc (rang 4) — IdHAL confirmé + affiliation EHESS
 
 ---
@@ -92,6 +92,8 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 - Affiliations alignées (chip ROR) ou manquantes (texte importé + candidats structures)
 - "Ajouter une affiliation HAL" en accordéon
 - **Rôles multivalués** : `AuthorState.roles: string[]` — sélecteur `<Select multiple>` avec rendu en chips ; rôle par défaut "Contributeur" si aucun rôle en source (bordure orange + avertissement)
+- **Statut "Auteur identifié"** : basé sur `orcid || idref || idhal` (pas Scopus). Le panneau de recherche IdHAL s'affiche quand `!idhal`, en style neutre si déjà identifié via ORCID/IdRef, en orange sinon.
+- **Rangs — sauvegarde** : si le toggle "Rangs définis" est désactivé à la sauvegarde, les rangs sont supprimés (`rank: undefined` sur toutes les contributions). Le toggle s'initialise sur `contributions.some(c => c.rank != null)`.
 - Bannière "Modifications non enregistrées" discrète (liseré gauche, texte gris, boutons texte)
 - Barre du bas : Ajouter un auteur | Annuler | Enregistrer
 

@@ -148,6 +148,7 @@ function initFromContributions(contributions: Contribution[]): AuthorState[] {
     if (pos === 2) {
       return {
         uid, displayName, roles, rolesAreDefault, rank, external,
+        orcid: '0000-0002-9876-5432',
         idhalCandidates: [
           { idhal: 'sophie-martin', fullName: 'Sophie Martin', affiliations: 'LS2N, Nantes · IRD', publications: 12, matchScore: 92, orcid: '0000-0002-9876-5432' },
           { idhal: 'sophie-martin-inrae', fullName: 'Sophie Martin', affiliations: 'INRAE Montpellier', publications: 3, matchScore: 71 },
@@ -222,6 +223,13 @@ const Authors = () => {
     initFromContributions(contributions),
   )
   const [isDirty, setIsDirty] = useState(false)
+
+  const handleSave = () => {
+    if (!ranksFromSource) {
+      setAuthors((prev) => prev.map((a) => ({ ...a, rank: undefined })))
+    }
+    setIsDirty(false)
+  }
   const [ranksFromSource, setRanksFromSource] = useState(() =>
     contributions.some((c) => c.rank != null),
   )
@@ -371,7 +379,7 @@ const Authors = () => {
               variant="text"
               size="small"
               startIcon={<Save sx={{ fontSize: 14 }} />}
-              onClick={() => setIsDirty(false)}
+              onClick={handleSave}
               sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, py: 0.25, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
               Enregistrer
@@ -390,8 +398,9 @@ const Authors = () => {
 
       {/* ── Author cards ──────────────────────────────────────────────────── */}
       {authors.map((author, index) => {
-        const needsIdhal = !author.idhal
-        const hasCandidates = needsIdhal && (author.idhalCandidates?.length ?? 0) > 0
+        const isIdentified = !!(author.orcid || author.idref || author.idhal)
+        const needsHalId = !author.idhal
+        const hasCandidates = needsHalId && (author.idhalCandidates?.length ?? 0) > 0
         const candidatesVisible = showIdhalCandidates[author.uid]
         const expanded = expandedCandidates[author.uid]
         const search = candidateSearch[author.uid] ?? ''
@@ -424,7 +433,7 @@ const Authors = () => {
                   </Box>
 
                   {/* HAL status + identifiers */}
-                  {author.idhal ? (
+                  {isIdentified ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5, flexWrap: 'wrap' }}>
                       <CheckCircle sx={{ color: SUCCESS, fontSize: 16 }} />
                       <Typography sx={{ fontSize: '0.8125rem', color: TEXT, fontWeight: 600 }}>
@@ -442,7 +451,7 @@ const Authors = () => {
                             sx={{ width: 16, height: 16, cursor: 'pointer' }} />
                         </Tooltip>
                       )}
-                      {!author.idhal.startsWith('_anon_') && (
+                      {author.idhal && !author.idhal.startsWith('_anon_') && (
                         <Tooltip title={`IdHAL : ${author.idhal}`}>
                           <Box component="img" src={publicPath('/icons/hal.png')} alt="HAL"
                             sx={{ width: 16, height: 16, cursor: 'pointer' }} />
@@ -454,10 +463,12 @@ const Authors = () => {
                             sx={{ width: 16, height: 16, cursor: 'pointer' }} />
                         </Tooltip>
                       )}
-                      <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
-                        sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto', '&:hover': { color: TEAL } }}>
-                        Changer
-                      </Button>
+                      {author.idhal && (
+                        <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
+                          sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto', '&:hover': { color: TEAL } }}>
+                          Changer
+                        </Button>
+                      )}
                     </Box>
                   ) : (
                     <Chip
@@ -469,8 +480,8 @@ const Authors = () => {
                   )}
 
                   {/* HAL identity panel */}
-                  {needsIdhal && (
-                    <Paper elevation={0} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
+                  {needsHalId && (
+                    <Paper elevation={0} sx={{ bgcolor: isIdentified ? SURFACE : WARN_BG, border: `1px solid ${isIdentified ? BORDER : WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
                       {/* Candidate search */}
                       <TextField
                         size="small"
@@ -819,7 +830,7 @@ const Authors = () => {
         </Button>
         {!isDirty && (
           <Button variant="contained"
-            onClick={() => setIsDirty(false)}
+            onClick={handleSave}
             sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: TEAL_DARK } }}>
             Enregistrer
           </Button>

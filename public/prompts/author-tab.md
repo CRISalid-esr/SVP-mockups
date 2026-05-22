@@ -65,9 +65,13 @@ Mes publications → [fiche publication]
 
 ✅ Les rangs des contributeurs peuvent être **définis dans les données sources** (ex. OpenAlex) ou **non définis**.
 
+✅ Le toggle **« Rangs définis »** reflète l'état réel des données : il est activé si et seulement si les contributions ont des rangs en base. Ce n'est pas un mode par défaut.
+
 ✅ Un toggle **« Rangs définis »** en haut de la page permet de passer d'un mode à l'autre :
 - **Rangs définis** → les cartes s'affichent dans l'ordre des rangs ; un handle (6 points) et des flèches ▴ / ▾ permettent de réordonner ; des liens **« + Insérer un auteur ici »** apparaissent entre chaque carte.
 - **Rangs non définis** → les cartes s'affichent dans l'ordre de la base ; aucune réorganisation possible ; pas de drag handle ni de flèches.
+
+✅ **Suppression des rangs à la sauvegarde** : si l'utilisateur désactive le toggle « Rangs définis » et enregistre, les rangs sont supprimés de la base de données. Au prochain chargement de l'onglet, le toggle sera désactivé (pas de rangs → pas de mode rang).
 
 ✅ En mode rangs définis, les liens **« + Insérer un auteur ici »** permettent d'insérer un auteur directement à la position souhaitée sans avoir à le déplacer après coup (utile pour une liste de 30 auteurs ou plus).
 
@@ -75,17 +79,19 @@ Mes publications → [fiche publication]
 
 ✅ Une icône corbeille en haut à droite de chaque carte permet de supprimer la contribution.
 
-❓ **Quand on passe du mode « rangs non définis » au mode « rangs définis »**, des rangs séquentiels sont-ils assignés dans l'ordre courant ? L'utilisateur peut-il revenir au mode « non définis » en perdant ces rangs ?
+❓ **Quand on passe du mode « rangs non définis » au mode « rangs définis »**, des rangs séquentiels sont-ils assignés dans l'ordre courant ?
 
 ### 4.2 Statut HAL de l'auteur
 
-✅ Si l'on a les identifiants HAL du contributeur en base : afficher le statut **« Auteur identifié »** (vert).
+✅ Un contributeur est **« Auteur identifié »** (vert) dès qu'il possède au moins un des identifiants éligibles : **ORCID, IdRef ou IdHAL**. Le Scopus n'est pas un identifiant éligible.
 
-✅ Si l'on n'a pas ses identifiants : afficher le statut **« Auteur non identifié »** (orange) + champ autocomplete pour rechercher la personne dans HAL.
+✅ Un contributeur sans aucun de ces identifiants affiche le statut **« Auteur non identifié »** (chip orange).
 
-✅ Quand une personne trouvée dans HAL est sélectionnée, ses identifiants sont enregistrés et son statut passe à « Auteur identifié ».
+✅ Le panneau de recherche HAL (pour trouver l'IdHAL) s'affiche dès que l'auteur n'a pas encore d'IdHAL, **même s'il est déjà identifié via ORCID ou IdRef**. Dans ce cas, le panneau est affiché en style neutre (fond gris) plutôt qu'en orange — l'IdHAL reste souhaitable pour le dépôt HAL mais n'est pas bloquant.
 
-✅ Un bouton **« Changer »** permet d'effacer les identifiants enregistrés et de revenir au statut « Auteur non identifié ».
+✅ Quand une personne trouvée dans HAL est sélectionnée (confirmation de l'IdHAL), ses identifiants sont enregistrés.
+
+✅ Un bouton **« Changer »** apparaît sur la ligne de statut uniquement quand un IdHAL est présent, pour permettre de le réinitialiser et relancer la recherche HAL.
 
 ✅ **Terminologie retenue : « Auteur identifié » / « Auteur non identifié »** (validée). Raison : lors de l'import SWORD, le CCSD ne demande pas la désambiguïsation contre AureHAL mais un identifiant. C'est l'algorithme HAL qui fait l'alignement.
 
@@ -180,14 +186,16 @@ Mes publications → [fiche publication]
 
 | # | Thème | Question |
 |---|-------|----------|
-| 1 | Rangs | Lors du passage mode « non définis » → « définis », quels rangs sont attribués ? L'utilisateur peut-il revenir en arrière ? |
+| 1 | Rangs | Lors du passage mode « non définis » → « définis », quels rangs sont attribués ? |
 | 2 | ~~Rôles~~ | ✅ Rôle absent → « Contributeur » par défaut avec avertissement orange ; disparaît à la première sélection explicite. |
 | 3 | Rôles | Validation ou annulation du changement de rôle accidentel ? |
 | 4 | ~~Terminologie~~ | ✅ Retenu : « Auteur identifié / Auteur non identifié » |
-| 5 | Navigation | Modale de confirmation si l'utilisateur quitte l'onglet sans enregistrer ? |
-| 6 | Structures | Nom court/long absent pour les structures tierces — comment afficher ? |
-| 7 | Structures | Plusieurs identifiants sur une organisation — affichage ? |
-| 8 | Ajout auteur | Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ? |
+| 5 | ~~Rangs — sauvegarde~~ | ✅ Si l'utilisateur désactive le mode rangs et enregistre, les rangs sont supprimés en base. |
+| 6 | ~~Statut identifié~~ | ✅ Identifié = ORCID, IdRef ou IdHAL (pas Scopus). |
+| 7 | Navigation | Modale de confirmation si l'utilisateur quitte l'onglet sans enregistrer ? |
+| 8 | Structures | Nom court/long absent pour les structures tierces — comment afficher ? |
+| 9 | Structures | Plusieurs identifiants sur une organisation — affichage ? |
+| 10 | Ajout auteur | Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ? |
 
 ---
 
