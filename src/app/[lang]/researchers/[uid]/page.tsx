@@ -212,7 +212,7 @@ function PublicationsTab({ person, lang }: { person: PersonData; lang: string })
 function SidebarIdentifiers({ identifiers }: { identifiers: IdentifierRaw[] }) {
   const get = (type: string) => identifiers.find((i) => i.type === type)?.value ?? null
   const orcid = get('orcid')
-  const idhals = get('idhals')
+  const idhals = get('id_hal_s')
   const idhali = get('idhali')
   const idref = get('idref')
   const scopus = get('scopus')
@@ -361,7 +361,7 @@ export default function ResearcherDetailPage() {
   const identifiers: IdentifierRaw[] = (person.identifiers as IdentifierRaw[]) ?? []
   const getIdent = (type: string) => identifiers.find((i) => i.type === type)?.value ?? null
   const orcid = getIdent('orcid')
-  const idhals = getIdent('idhals')
+  const idhals = getIdent('id_hal_s')
   const idref = getIdent('idref')
   const scopus = getIdent('scopus')
 

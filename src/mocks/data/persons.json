@@ -18,7 +18,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0001-2345-6789" },
-            { "type": "idhals", "value": "jean-dupont" },
+            { "type": "id_hal_s", "value": "jean-dupont" },
             { "type": "idref", "value": "123456789" }
         ],
         "memberships": [
@@ -66,7 +66,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0002-9876-5432" },
-            { "type": "idhals", "value": "marie-curie" }
+            { "type": "id_hal_s", "value": "marie-curie" }
         ],
         "memberships": [
             {
@@ -113,7 +113,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0003-1111-2222" },
-            { "type": "idhals", "value": "isabelle-cordier" }
+            { "type": "id_hal_s", "value": "isabelle-cordier" }
         ],
         "memberships": [
             {
@@ -174,7 +174,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0003-3333-4444" },
-            { "type": "idhals", "value": "fatima-el-amrani" }
+            { "type": "id_hal_s", "value": "fatima-el-amrani" }
         ],
         "memberships": [
             {
@@ -351,7 +351,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0004-1111-2222" },
-            { "type": "idhals", "value": "paul-dumont" }
+            { "type": "id_hal_s", "value": "paul-dumont" }
         ],
         "memberships": [
             {
@@ -411,7 +411,7 @@
             "names": [{ "language": "fr", "value": "CNRS" }]
         },
         "identifiers": [
-            { "type": "idhals", "value": "marc-legrand" }
+            { "type": "id_hal_s", "value": "marc-legrand" }
         ],
         "memberships": [
             {
@@ -472,7 +472,7 @@
         },
         "identifiers": [
             { "type": "orcid", "value": "0000-0005-9999-8888" },
-            { "type": "idhals", "value": "carlos-silva" }
+            { "type": "id_hal_s", "value": "carlos-silva" }
         ],
         "memberships": [
             {

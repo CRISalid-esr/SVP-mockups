@@ -289,7 +289,7 @@ export default function ResearchersPage() {
         oaRate: (p.oaRate as number) ?? 0,
         halRate: (p.halRate as number) ?? 0,
         orcid: getIdent('orcid'),
-        idhals: getIdent('idhals'),
+        idhals: getIdent('id_hal_s'),
         idref: getIdent('idref'),
         scopus: getIdent('scopus'),
       }
