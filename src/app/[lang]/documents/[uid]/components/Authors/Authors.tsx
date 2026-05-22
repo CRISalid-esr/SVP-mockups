@@ -362,31 +362,29 @@ const Authors = () => {
         </Box>
 
         {isDirty && (
-          <Paper elevation={2} sx={{ bgcolor: WARN_BG, border: `1px solid ${WARN_BORDER}`, borderRadius: '12px', p: 1.5, mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <WarningAmber sx={{ color: WARN, flexShrink: 0, fontSize: 20 }} />
-              <Typography sx={{ color: WARN, fontWeight: 700, fontSize: '0.9375rem', flex: 1 }}>
-                {`Des modifications n'ont pas été enregistrées`}
-              </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Save sx={{ fontSize: 16 }} />}
-                onClick={() => setIsDirty(false)}
-                sx={{ bgcolor: TEAL, textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, '&:hover': { bgcolor: TEAL_DARK } }}
-              >
-                Enregistrer
-              </Button>
-              <Button
-                variant="text"
-                size="small"
-                onClick={resetAuthors}
-                sx={{ color: MUTED, textTransform: 'none', fontSize: '0.8125rem', whiteSpace: 'nowrap', flexShrink: 0 }}
-              >
-                Annuler les modifications
-              </Button>
-            </Box>
-          </Paper>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5, px: 1, py: 0.5, borderLeft: `3px solid ${WARN_BORDER}` }}>
+            <WarningAmber sx={{ color: WARN, flexShrink: 0, fontSize: 15 }} />
+            <Typography sx={{ color: MUTED, fontSize: '0.8125rem', flex: 1 }}>
+              {`Modifications non enregistrées`}
+            </Typography>
+            <Button
+              variant="text"
+              size="small"
+              startIcon={<Save sx={{ fontSize: 14 }} />}
+              onClick={() => setIsDirty(false)}
+              sx={{ color: TEAL, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, py: 0.25, '&:hover': { bgcolor: TEAL_LIGHT } }}
+            >
+              Enregistrer
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={resetAuthors}
+              sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', whiteSpace: 'nowrap', flexShrink: 0, py: 0.25 }}
+            >
+              Annuler
+            </Button>
+          </Box>
         )}
       </Box>
 
