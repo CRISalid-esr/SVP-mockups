@@ -100,9 +100,9 @@ Mes publications → [fiche publication]
 
 🟡 Score de correspondance : ≥ 85 % vert, 65–84 % ambre, < 65 % gris.
 
-### 4.3 Rôles (Fonction)
+### 4.3 Rôles (Fonctions)
 
-✅ Le rôle du contributeur est affiché dans un menu déroulant **« Fonction »**.
+✅ Un contributeur peut avoir **plusieurs rôles** rattachés à une publication (champ multivalué). Les rôles sont affichés dans un menu déroulant **« Fonctions »** en sélection multiple ; les valeurs sélectionnées s'affichent sous forme de chips.
 
 ✅ Le référentiel des rôles est la **liste des Contributor Roles de la Library of Congress** (`http://id.loc.gov/vocabulary/relators`), déjà utilisée dans SoVisu+. C'est le type `LocRelator` de l'application.
 
@@ -110,7 +110,7 @@ Mes publications → [fiche publication]
 
 ✅ Un mapping entre les rôles LOC et les fonctions requises par HAL sera effectué côté serveur lors du dépôt ; ce mapping n'est pas visible dans cet onglet.
 
-✅ **Rôle absent dans les données source** : la fonction **« Contributeur »** est utilisée par défaut. Le sélecteur affiche alors une bordure orange et le message **« Fonction par défaut — à vérifier »** en dessous. L'avertissement disparaît dès que l'utilisateur choisit explicitement une valeur. Un auteur ajouté manuellement démarre également avec cet avertissement.
+✅ **Rôles absents dans les données source** : la fonction **« Contributeur »** est utilisée par défaut. Le sélecteur affiche alors une bordure orange et le message **« Fonction par défaut — à vérifier »** en dessous. L'avertissement disparaît dès que l'utilisateur choisit explicitement une valeur. Un auteur ajouté manuellement démarre également avec cet avertissement.
 
 ❓ **Si quelqu'un change un rôle accidentellement**, y a-t-il une validation ou un moyen d'annuler (hormis le bouton global « Annuler les modifications ») ?
 
@@ -156,7 +156,7 @@ Mes publications → [fiche publication]
 
 ✅ La bannière s'affiche dès qu'une modification a été faite sur la page (ajout/suppression d'auteur, changement de rôle, alignement confirmé, etc.).
 
-✅ La bannière indique : **« Des modifications n'ont pas été enregistrées »** et propose deux actions : **« Enregistrer »** et **« Annuler les modifications »**.
+✅ La bannière indique : **« Modifications non enregistrées »** et propose deux actions : **« Enregistrer »** et **« Annuler »**. Elle est volontairement discrète (liseré gauche, texte gris, boutons texte) pour ne pas surcharger visuellement la page.
 
 ✅ Quand l'utilisateur clique sur « Enregistrer » (bannière ou bouton de bas de page), la bannière disparaît.
 
@@ -198,7 +198,7 @@ type Author = {
   id: string
   first: string
   last: string
-  role: LocRelator         // référentiel LOC
+  roles: LocRelator[]      // multivalué — référentiel LOC
   rank?: number            // undefined si rangs non définis dans la source
   orcid?: string
   idref?: string
