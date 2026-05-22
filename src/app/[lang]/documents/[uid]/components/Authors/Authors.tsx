@@ -8,6 +8,7 @@ import {
   CheckCircle,
   DeleteOutline,
   DragIndicator,
+  Edit,
   ExpandMore,
   KeyboardArrowDown,
   KeyboardArrowUp,
@@ -463,12 +464,15 @@ const Authors = () => {
                             sx={{ width: 16, height: 16, cursor: 'pointer' }} />
                         </Tooltip>
                       )}
-                      {author.idhal && (
-                        <Button size="small" onClick={() => update(author.uid, { idhal: undefined })}
-                          sx={{ color: MUTED, textTransform: 'none', fontSize: '0.75rem', p: 0, minWidth: 'auto', '&:hover': { color: TEAL } }}>
-                          Changer
-                        </Button>
-                      )}
+                      <Tooltip title="Modifier l'auteur associé">
+                        <IconButton
+                          size="small"
+                          onClick={() => update(author.uid, { idhal: undefined, orcid: undefined, idref: undefined })}
+                          sx={{ ml: 1, color: MUTED, p: 0.5, '&:hover': { color: TEAL } }}
+                        >
+                          <Edit sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   ) : (
                     <Chip

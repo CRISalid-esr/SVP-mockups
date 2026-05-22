@@ -91,7 +91,7 @@ Mes publications → [fiche publication]
 
 ✅ Quand une personne trouvée dans HAL est sélectionnée (confirmation de l'IdHAL), ses identifiants sont enregistrés.
 
-✅ Un bouton **« Changer »** apparaît sur la ligne de statut uniquement quand un IdHAL est présent, pour permettre de le réinitialiser et relancer la recherche HAL.
+✅ Un bouton **« Modifier »** (icône crayon, séparé visuellement des pictos identifiants) sur la ligne de statut permet de réinitialiser l'auteur associé et relancer la recherche HAL pour en sélectionner un autre. Il s'agit de remplacer la personne entière, pas seulement ses identifiants.
 
 ✅ **Terminologie retenue : « Auteur identifié » / « Auteur non identifié »** (validée). Raison : lors de l'import SWORD, le CCSD ne demande pas la désambiguïsation contre AureHAL mais un identifiant. C'est l'algorithme HAL qui fait l'alignement.
 
@@ -100,7 +100,7 @@ Mes publications → [fiche publication]
 2. Picto IdRef (si présent)
 3. Picto HAL / IdHAL (si présent)
 4. Picto Scopus (si présent)
-5. Lien **« Changer »**
+5. Bouton **« Modifier »** (icône crayon)
 
 🟡 En cas de non-alignement : liste de candidats HAL avec score de correspondance. Le candidat primaire (meilleur score) est mis en avant avec un bouton « Confirmer ».
 
