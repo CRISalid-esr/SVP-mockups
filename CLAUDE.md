@@ -72,9 +72,9 @@ publicPath('/icons/hal.png')  // → '/SVP-mockups/icons/hal.png' en prod
 Les stores Zustand (`documentSlice`, `personSlice`, `researchStructureSlice`, `userSlice`) vérifient `process.env.NEXT_PUBLIC_USE_MOCK` et appellent `mockService` au lieu des API routes.
 
 **doc-1 a 4 auteurs** (pour démo de l'onglet Auteurs) :
-- Jean Dupont (rang 1) — IdHAL confirmé + ORCID + affiliation LS2N
+- Jean Dupont (rang 1) — IdHAL confirmé + ORCID + affiliation LS2N + **2 rôles** (`author`, `editor`)
 - Sophie Martin (rang 2) — sans IdHAL, 3 candidats HAL, 1 affiliation non trouvée avec candidats structures
-- Pierre Bernard (rang 3) — sans IdHAL, sans candidats, sans affiliation
+- Pierre Bernard (rang 3) — sans IdHAL, sans candidats, sans affiliation, rôle par défaut
 - Anne Leclerc (rang 4) — IdHAL confirmé + affiliation EHESS
 
 ---
@@ -91,6 +91,8 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 - Panneau candidats HAL avec avatars colorés, score de correspondance, bouton Confirmer
 - Affiliations alignées (chip ROR) ou manquantes (texte importé + candidats structures)
 - "Ajouter une affiliation HAL" en accordéon
+- **Rôles multivalués** : `AuthorState.roles: string[]` — sélecteur `<Select multiple>` avec rendu en chips ; rôle par défaut "Contributeur" si aucun rôle en source (bordure orange + avertissement)
+- Bannière "Modifications non enregistrées" discrète (liseré gauche, texte gris, boutons texte)
 - Barre du bas : Ajouter un auteur | Annuler | Enregistrer
 
 **Vocabulaire à maintenir (simplifié pour les utilisateurs non-experts) :**
