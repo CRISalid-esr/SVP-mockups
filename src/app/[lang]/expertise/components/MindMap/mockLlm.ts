@@ -63,7 +63,7 @@ function buildGraphFromPrompt(
 ): { nodes: Node<ExpertiseNodeData>[]; edges: Edge[] } {
   const keywords = extractKeywords(prompt)
   const words = prompt
-    .split(/[\s,\.;:!?]+/)
+    .split(/[\s,.;:!?]+/)
     .filter((w) => w.length > 4)
     .slice(0, 8)
 
