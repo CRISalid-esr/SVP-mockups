@@ -76,7 +76,7 @@ function loadGraph(): ExpertiseGraph {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
-  } catch {}
+  } catch (_e) { /* ignore parse errors */ }
   return INITIAL_GRAPH
 }
 

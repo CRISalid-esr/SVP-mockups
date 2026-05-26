@@ -90,7 +90,7 @@ function loadGraph(): ExpertiseGraph {
   try {
     const raw = localStorage.getItem(GRAPH_KEY)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
-  } catch {}
+  } catch (_e) { /* ignore parse errors */ }
   return INITIAL_GRAPH
 }
 
@@ -99,7 +99,7 @@ function loadAssociations(): Record<string, string[]> {
   try {
     const raw = localStorage.getItem(ACTIVITIES_KEY)
     if (raw) return JSON.parse(raw) as Record<string, string[]>
-  } catch {}
+  } catch (_e) { /* ignore parse errors */ }
   return INITIAL_ASSOCIATIONS
 }
 

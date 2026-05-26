@@ -41,7 +41,7 @@ function loadCards(): ImpactCard[] {
   try {
     const raw = localStorage.getItem(CARDS_KEY)
     if (raw) return JSON.parse(raw) as ImpactCard[]
-  } catch {}
+  } catch (_e) { /* ignore parse errors */ }
   return INITIAL_CARDS
 }
 
