@@ -15,6 +15,7 @@ function getPromptKey(pathname: string, tab: string | null): string | null {
   if (withoutLang === '/researchers') return 'chercheurs-liste'
   if (withoutLang.startsWith('/researchers/')) return 'chercheurs-detail'
   if (withoutLang.startsWith('/documents/') && tab === 'authors') return 'author-tab'
+  if (withoutLang === '/expertise' || withoutLang.startsWith('/expertise/')) return 'expertises'
   return null
 }
 
