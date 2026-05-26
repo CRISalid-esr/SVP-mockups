@@ -105,17 +105,37 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 
 ## Fonctionnalités à développer (restant)
 
-### 🔲 Dépôt dans HAL
+### 🔲 Dépôt dans HAL (à développer)
 Onglet "Déposer dans HAL" déjà présent dans la navigation de `documents/[uid]/page.tsx`.
 Voir l'ancien mockup `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\components\PublicationDetail.tsx` pour la maquette de référence (onglet HAL deposit conditionnel).
 
-### 🔲 Activités de recherche
+### 🔲 Activités de recherche (à développer)
 Page déjà existante : `src/app/[lang]/research-activities/`.
 Composants partiellement implémentés dans `research-activities/components/ActivityCard.tsx`.
 Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
 
-### 🔲 Expertises
-Page à créer. Entrée dans la sidebar déjà présente.
+### ✅ Expertises (`src/app/[lang]/expertise/`)
+Page avec 3 onglets : **Carte mentale** (implémentée) · Vue des expertises (à venir) · Cartes impact (à venir).
+
+**Architecture retenue (Option A) :** la carte mentale est la source de vérité. Les deux autres vues seront des projections des nœuds du graphe.
+
+**Carte mentale — fonctionnement :**
+- Canvas React Flow (`@xyflow/react`) chargé sans SSR (`next/dynamic`)
+- Panneau gauche : prompt LLM → génère un graphe · actions nœuds · légende
+- Clic sur un lien → panneau bascule en mode "édition de relation"
+- Persistance en `localStorage` (JSON versionné avec `promptHistory`)
+
+**Types de nœuds :** `main` (teal) · `secondary` (bleu) · `terrain` (orange) · `concept` (violet)
+
+**14 types de relations en 4 catégories :**
+- Hiérarchie : `approfondit` · `spécialise` · `intègre`
+- Terrain : `terrain géographique` · `terrain temporel` · `cas d'étude` · `corpus`
+- Conceptuel : `mobilise` · `problématise` · `produit des connaissances sur`
+- Dialogue : `croise` · `s'articule avec` · `a conduit à` · `en tension avec`
+
+**Fichiers clés :** `types.ts` (NODE_TYPE_CONFIG, RELATION_TYPES, INITIAL_GRAPH) · `MindMapView.tsx` · `ExpertiseNode.tsx` · `RelationEdge.tsx` · `mockLlm.ts`
+
+**Descriptif complet :** `prompts/expertises.md`
 
 ---
 

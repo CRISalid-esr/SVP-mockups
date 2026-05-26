@@ -31,7 +31,9 @@ L'interface utilise des **données fictives** : les publications, auteurs et str
 | **Onglet Auteurs** | ✅ Disponible | Identifier et aligner les auteurs et affiliations dans HAL |
 | **Déposer dans HAL** | ✅ Disponible | Formulaire de dépôt HAL pré-rempli depuis les métadonnées |
 | **Activités de recherche** | ✅ Disponible | Gérer projets, encadrements, brevets, enseignements… |
-| Expertises | 🔜 À venir | Caractériser ses domaines d'expertise |
+| **Expertises — Carte mentale** | ✅ Disponible | Représenter ses expertises sous forme de graphe interactif |
+| **Expertises — Vue des expertises** | ✅ Disponible | Liste structurée des expertises avec terrains, concepts et activités associés |
+| **Expertises — Cartes impact** | ✅ Disponible | Décliner ses expertises selon le public (chercheurs, industriels, médias…) |
 
 Les maquettes évoluent régulièrement. Revenez souvent !
 
@@ -83,6 +85,21 @@ Voici quelques parcours pour explorer les maquettes en quelques minutes :
 1. Ouvrir le menu **Activités de recherche** dans la barre latérale
 2. Explorer les 8 types d'activités (projets, brevets, encadrements…)
 3. Essayer d'ajouter une activité via le bouton **Ajouter une activité**
+
+### Parcours 4 — Cartographier ses expertises
+1. Ouvrir le menu **Expertises** dans la barre latérale
+2. L'onglet **Carte mentale** s'ouvre avec un exemple pré-rempli (migrations pour le travail)
+3. Explorer le graphe : déplacer les nœuds, cliquer sur un lien pour changer son type de relation
+4. Saisir une description de vos propres expertises dans le panneau gauche et cliquer **Générer le graphe**
+5. Modifier le graphe généré : ajouter des nœuds, relier des concepts, affiner les types de relations
+6. Enregistrer votre carte (bouton **Enregistrer**) ou exporter le JSON
+
+### Parcours 5 — Décliner ses expertises en cartes impact
+1. Ouvrir le menu **Expertises** et cliquer sur l'onglet **Cartes impact**
+2. Parcourir les cartes existantes organisées par famille (nœud d'expertise) et par profil d'audience
+3. Cliquer sur une carte pour l'éditer (titre, description, audiences, spécificités, statut, visibilité)
+4. Créer une nouvelle carte via le bouton **Nouvelle carte** — wizard en 3 étapes
+5. Dupliquer ou archiver une carte via le menu ⋮
 
 ---
 

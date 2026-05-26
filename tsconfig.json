@@ -44,5 +44,5 @@
     "src/theme/theme.d.ts",
     "additional.d.ts"
   ],
-  "exclude": ["node_modules", "src/scripts"]
+  "exclude": ["node_modules", "src/scripts", "expertises"]
 }
