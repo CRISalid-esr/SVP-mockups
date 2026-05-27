@@ -39,6 +39,7 @@ export default function RelationEdge({
   const stroke = cfg.color
   const strokeDasharray = cfg.strokeDasharray ?? undefined
   const strokeWidth = selected ? 2.5 : 1.8
+  const markerId = `url(#arrow-${stroke.replace('#', '')})`
 
   return (
     <>
@@ -51,7 +52,8 @@ export default function RelationEdge({
           strokeDasharray,
           filter: selected ? `drop-shadow(0 0 4px ${stroke}88)` : undefined,
         }}
-        markerEnd={`url(#arrow-${cfg.category})`}
+        markerEnd={markerId}
+        markerStart={cfg.bidirectional ? markerId : undefined}
       />
       <EdgeLabelRenderer>
         <Box

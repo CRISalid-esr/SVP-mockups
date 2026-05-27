@@ -90,12 +90,12 @@ Relations entre une expertise et les concepts théoriques qu'elle mobilise ou pr
 #### Dialogue (pointillés bleus / rouge pour tensions)
 Relations latérales entre expertises ou concepts de même niveau.
 
-| Clé | Label affiché | Style |
-|---|---|---|
-| `croise` | croise | bleu `#1976D2`, tirets `8 4` |
-| `articule` | s'articule avec | bleu `#1976D2`, tirets `8 4` |
-| `a_conduit_a` | a conduit à | bleu `#1976D2`, plein |
-| `en_tension` | en tension avec | rouge `#C62828`, tirets `4 4` |
+| Clé | Label affiché | Style | Sens |
+|---|---|---|---|
+| `croise` | croise | bleu `#1976D2`, tirets `8 4` | **bidirectionnel** (← →) |
+| `articule` | s'articule avec | bleu `#1976D2`, tirets `8 4` | **bidirectionnel** (← →) |
+| `a_conduit_a` | a conduit à | bleu `#1976D2`, plein | directionnel (→) |
+| `en_tension` | en tension avec | rouge `#C62828`, tirets `4 4` | **bidirectionnel** (← →) |
 
 ### Empty state onboarding
 
@@ -285,7 +285,7 @@ Un bouton "Générer les cartes impact depuis ce graphe" (dans la carte mentale)
 | `src/app/[lang]/expertise/types.ts` | Types TypeScript + constantes (NODE_TYPE_CONFIG, RELATION_TYPES, INITIAL_GRAPH) |
 | `src/app/[lang]/expertise/components/MindMap/MindMapView.tsx` | Canvas React Flow complet |
 | `src/app/[lang]/expertise/components/MindMap/ExpertiseNode.tsx` | Nœud personnalisé MUI |
-| `src/app/[lang]/expertise/components/MindMap/RelationEdge.tsx` | Arête personnalisée avec label coloré |
+| `src/app/[lang]/expertise/components/MindMap/RelationEdge.tsx` | Arête personnalisée avec label coloré et flèche directionnelle (ou bidirectionnelle) |
 | `src/app/[lang]/expertise/components/MindMap/mockLlm.ts` | Simulation LLM (analyse de mots-clés → graphe) |
 | `src/app/[lang]/expertise/components/ImpactCards/impactCardsTypes.ts` | Types + constantes + données mock cartes impact |
 | `src/app/[lang]/expertise/components/ImpactCards/ImpactCard.tsx` | Carte portrait 260×390px |
@@ -303,6 +303,7 @@ Un bouton "Générer les cartes impact depuis ce graphe" (dans la carte mentale)
 - Le CSS de React Flow (`@xyflow/react/dist/style.css`) doit être importé dans le composant client, pas dans un layout server
 - `expertises/` est exclu du `tsconfig.json` (contient des archives de prototypes avec des dépendances non installées)
 - La persistance est en `localStorage` pour la maquette — en production, ce sera un endpoint API
+- **Marqueurs SVG des flèches** : React Flow ne définit pas de marqueurs SVG natifs pour les arêtes personnalisées. Les marqueurs `<marker>` sont déclarés dans un `<svg width="0" height="0">` caché au début de `MindMapView.tsx` — un par couleur (`arrow-006A61`, `arrow-E65100`, `arrow-7B1FA2`, `arrow-1976D2`, `arrow-C62828`), avec `orient="auto-start-reverse"` pour gérer les flèches dans les deux sens. `RelationEdge` référence le marqueur par couleur (pas par catégorie) et ajoute `markerStart` pour les relations `bidirectional: true`.
 
 ---
 

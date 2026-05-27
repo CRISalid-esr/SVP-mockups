@@ -646,8 +646,30 @@ export default function MindMapView() {
 
   const isEmpty = nodes.length === 0
 
+  // Couleurs uniques utilisées par les types de relations
+  const ARROW_COLORS = ['#006A61', '#E65100', '#7B1FA2', '#1976D2', '#C62828']
+
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 112px)', position: 'relative', overflow: 'hidden' }}>
+
+      {/* Marqueurs SVG pour les flèches des arêtes */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          {ARROW_COLORS.map((color) => (
+            <marker
+              key={color}
+              id={`arrow-${color.replace('#', '')}`}
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto-start-reverse"
+            >
+              <polygon points="0 0, 10 3.5, 0 7" fill={color} />
+            </marker>
+          ))}
+        </defs>
+      </svg>
 
       {/* Empty state — affiché à la place du canvas quand aucun nœud */}
       {isEmpty && renderEmptyState()}

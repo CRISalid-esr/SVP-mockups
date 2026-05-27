@@ -12,6 +12,7 @@ export interface RelationTypeConfig {
   color: string
   strokeDasharray?: string
   animated?: boolean
+  bidirectional?: boolean
 }
 
 export const RELATION_TYPES: Record<RelationTypeKey, RelationTypeConfig> = {
@@ -29,10 +30,10 @@ export const RELATION_TYPES: Record<RelationTypeKey, RelationTypeConfig> = {
   problematise: { label: 'problématise',          category: 'Conceptuel', color: '#7B1FA2', strokeDasharray: '3 3' },
   produit:      { label: 'produit des connaissances sur', category: 'Conceptuel', color: '#7B1FA2', strokeDasharray: '3 3' },
   // Dialogue
-  croise:       { label: 'croise',               category: 'Dialogue', color: '#1976D2', strokeDasharray: '8 4' },
-  articule:     { label: "s'articule avec",      category: 'Dialogue', color: '#1976D2', strokeDasharray: '8 4' },
+  croise:       { label: 'croise',               category: 'Dialogue', color: '#1976D2', strokeDasharray: '8 4', bidirectional: true },
+  articule:     { label: "s'articule avec",      category: 'Dialogue', color: '#1976D2', strokeDasharray: '8 4', bidirectional: true },
   a_conduit_a:  { label: 'a conduit à',          category: 'Dialogue', color: '#1976D2' },
-  en_tension:   { label: 'en tension avec',      category: 'Dialogue', color: '#C62828', strokeDasharray: '4 4' },
+  en_tension:   { label: 'en tension avec',      category: 'Dialogue', color: '#C62828', strokeDasharray: '4 4', bidirectional: true },
 }
 
 export const RELATION_CATEGORIES: Array<RelationTypeConfig['category']> = [
