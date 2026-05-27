@@ -36,6 +36,10 @@ Options écartées :
 
 Les onglets "Profil structuré" et "Fiches publics" affichent un chip vert `depuis vos domaines` pour matérialiser leur dépendance à la carte. Les callbacks `onGoToMindMap` redirigent vers `setTab(0)`.
 
+Les `Tabs` utilisent `variant="scrollable" scrollButtons="auto"` pour éviter le débordement sur petits écrans.
+
+**Indicateur de complétude** : barre fine entre les onglets et le contenu (`flexWrap: wrap` pour le responsive), relisant `localStorage` à chaque changement d'onglet — affiche le nombre de domaines définis et de fiches publiées.
+
 ---
 
 ## Vue 1 — Carte mentale (implémentée)
@@ -122,6 +126,31 @@ La légende (types de nœuds + types de liens) est dans un `Accordion` MUI repli
 - **Changer le type d'un lien** : clic sur le lien → panneau bascule état 3
 - **Enregistrer** : bouton "Enregistrer" → localStorage (JSON versionné)
 - **Exporter JSON** : bouton "JSON" → viewer + téléchargement du fichier
+
+### Responsive
+
+Le panneau gauche est un `Drawer` MUI dont le comportement change selon la largeur d'écran (seuil : 900 px, `useMediaQuery('(max-width: 899px)')`).
+
+| Mode | Variante Drawer | Comportement |
+|---|---|---|
+| **Desktop (≥ 900 px)** | `persistent` | S'insère dans le flux (`position: relative`, `height: 100%`), pousse le canvas |
+| **Mobile (< 900 px)** | `temporary` | Superposition (overlay), ne pousse pas le canvas ; fermé par défaut |
+
+**Initialisation SSR-safe :**
+```ts
+const [drawerOpen, setDrawerOpen] = useState(
+  () => typeof window !== 'undefined' ? window.innerWidth >= 900 : true,
+)
+```
+
+**Auto-fermeture au passage en mobile :**
+```ts
+useEffect(() => { if (isMobile) setDrawerOpen(false) }, [isMobile])
+```
+
+**Bouton toggle :** toujours visible sauf quand `isMobile && drawerOpen` (le backdrop du Drawer temporaire gère déjà la fermeture). Sur mobile, le bouton est arrondi (`borderRadius: '50%'`) et positionné en `zIndex: 20`.
+
+**Astuce bas-de-canvas** (`bottom-center` React Flow Panel) : masquée sur mobile pour ne pas encombrer l'espace réduit.
 
 ### Format de persistance JSON
 
