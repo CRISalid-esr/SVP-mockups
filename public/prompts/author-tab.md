@@ -90,9 +90,10 @@ Mes publications → [fiche publication]
 ✅ Le panneau de recherche HAL (pour trouver l'IdHAL) s'affiche dès que l'auteur n'a pas encore d'IdHAL, **même s'il est déjà identifié via ORCID ou IdRef**. Dans ce cas, le panneau est affiché en style neutre (fond gris) plutôt qu'en orange — l'IdHAL reste souhaitable pour le dépôt HAL mais n'est pas bloquant.
 
 ✅ **Autocomplete HAL temps réel** : le champ de recherche dans le panneau d'identification interroge directement l'API HAL [`https://api.archives-ouvertes.fr/ref/author/`](https://api.archives-ouvertes.fr/ref/author/) au fil de la frappe (debounce 350 ms). Les résultats affichent :
-- **Nom en gras teal** si l'auteur possède un idHAL ou un ORCID dans HAL
+- **Nom en gras teal** si l'auteur possède un idHAL, un ORCID ou un IdRef dans HAL
 - Nom en texte normal sinon (auteur sans compte HAL)
-- Informations complémentaires sur la même ligne : `@domaine`, identifiant idHAL, numéro ORCID
+- Informations complémentaires sur la même ligne : `@domaine`, identifiant idHAL, numéro ORCID, `IdRef:xxx`
+- **Tri des suggestions** : les auteurs avec des identifiants (idHAL, ORCID, IdRef — score +2 chacun) remontent en tête de liste ; les auteurs avec seulement un domaine e-mail (score +1) sont intermédiaires ; les formes sans identifiant sont en bas
 - La première option est toujours **« Ajouter un nouvel auteur »** (en italique) pour les cas où la personne n'est pas dans HAL
 - L'API retourne les différentes formes d'un même auteur (ex. « Olivier Grasset » et « O. Grasset »)
 - Un spinner s'affiche pendant le chargement ; « Aucun résultat dans HAL » si la recherche ne donne rien
@@ -159,6 +160,13 @@ Mes publications → [fiche publication]
 ✅ En cliquant sur « + Ajouter une affiliation HAL », un autocomplete HAL apparaît.
 
 ✅ Si l'utilisateur sélectionne une option, une nouvelle carte d'affiliation alignée apparaît.
+
+✅ **Autocomplete structures HAL temps réel** : le champ d'ajout d'affiliation (et le champ de correction d'une affiliation manquante) interroge l'API HAL [`https://api.archives-ouvertes.fr/ref/structure/`](https://api.archives-ouvertes.fr/ref/structure/) au fil de la frappe (debounce 350 ms). Les résultats affichent :
+- **Nom complet en gras teal** si la structure possède un identifiant ROR
+- Nom en texte normal sinon
+- Informations complémentaires sur la même ligne : acronyme, `ROR xxx`
+- **Tri des suggestions** : structures avec ROR en tête (score +2), avec acronyme seulement en intermédiaire (score +1), sans identifiant en bas
+- Un spinner s'affiche pendant le chargement ; « Aucun résultat dans HAL » si la recherche ne donne rien
 
 ❓ **Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ?**
 
