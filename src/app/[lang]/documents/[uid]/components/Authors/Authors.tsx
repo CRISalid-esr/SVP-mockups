@@ -246,7 +246,7 @@ function useHalAuthorSearch(query: string) {
             const idRef = Array.isArray(d.idref_s) ? d.idref_s[0] : d.idref_s
             return { form: d.fullName_s!, emailDomain, idHal: d.idHal_s, orcid, idRef }
           })
-          .sort((a, b) => identifierScore(b) - identifierScore(a))
+          .sort((a: HalAuthorOption, b: HalAuthorOption) => identifierScore(b) - identifierScore(a))
         setOptions(docs)
       } catch { /* aborted or network error */ }
       finally { setLoading(false) }
@@ -322,6 +322,136 @@ function HalAuthorSearchField({ onSelect }: { onSelect: (opt: HalAuthorOption) =
           fullWidth
           placeholder="Rechercher dans HAL"
           sx={{ bgcolor: 'white', borderRadius: 1 }}
+          InputProps={{
+            ...params.InputProps,
+            startAdornment: (
+              <>
+                <Search sx={{ fontSize: 16, color: MUTED, mr: 0.5, flexShrink: 0 }} />
+                {params.InputProps.startAdornment}
+              </>
+            ),
+            endAdornment: (
+              <>
+                {loading && <CircularProgress size={14} sx={{ color: TEAL, mr: 0.5 }} />}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
+    />
+  )
+}
+
+// ─── HAL Structure Search ─────────────────────────────────────────────────────
+
+type HalStructureOption = {
+  id: string
+  name: string
+  shortName?: string
+  ror?: string
+  type?: string
+}
+
+type HalStructureApiDoc = {
+  docid?: number | string
+  name_s?: string
+  acronym_s?: string | string[]
+  ror_s?: string | string[]
+  type_s?: string | string[]
+}
+
+function useHalStructureSearch(query: string) {
+  const [options, setOptions] = useState<HalStructureOption[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) { setOptions([]); return }
+
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const url = `https://api.archives-ouvertes.fr/ref/structure/?q=${encodeURIComponent(q)}&rows=12&fl=docid,name_s,acronym_s,ror_s,type_s&wt=json`
+        const res = await fetch(url, { signal: controller.signal })
+        const json = await res.json()
+        const identifierScore = (o: HalStructureOption) =>
+          (o.ror ? 2 : 0) + (o.shortName ? 1 : 0)
+        const docs: HalStructureOption[] = (json?.response?.docs ?? [])
+          .filter((d: HalStructureApiDoc) => d.name_s)
+          .map((d: HalStructureApiDoc): HalStructureOption => {
+            const shortName = Array.isArray(d.acronym_s) ? d.acronym_s[0] : d.acronym_s
+            const ror = Array.isArray(d.ror_s) ? d.ror_s[0] : d.ror_s
+            const type = Array.isArray(d.type_s) ? d.type_s[0] : d.type_s
+            return { id: String(d.docid ?? ''), name: d.name_s!, shortName, ror, type }
+          })
+          .sort((a: HalStructureOption, b: HalStructureOption) => identifierScore(b) - identifierScore(a))
+        setOptions(docs)
+      } catch { /* aborted or network error */ }
+      finally { setLoading(false) }
+    }, 350)
+
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [query])
+
+  return { options, loading }
+}
+
+function HalStructureOptionRow({ option }: { option: HalStructureOption }) {
+  const isIdentified = !!(option.ror)
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap', lineHeight: 1.5 }}>
+      <Typography component="span" sx={{ fontWeight: isIdentified ? 700 : 400, color: isIdentified ? TEAL : TEXT, fontSize: '0.875rem' }}>
+        {option.name}
+      </Typography>
+      {option.shortName && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>{option.shortName}</Typography>
+      )}
+      {option.ror && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>ROR {option.ror}</Typography>
+      )}
+    </Box>
+  )
+}
+
+function HalStructureSearchField({ placeholder = 'Rechercher dans HAL…', onSelect }: {
+  placeholder?: string
+  onSelect: (opt: HalStructureOption) => void
+}) {
+  const [inputValue, setInputValue] = useState('')
+  const { options, loading } = useHalStructureSearch(inputValue)
+
+  return (
+    <Autocomplete<HalStructureOption>
+      size="small"
+      options={inputValue.trim().length >= 2 ? options : []}
+      loading={loading}
+      inputValue={inputValue}
+      onInputChange={(_, val, reason) => { if (reason !== 'reset') setInputValue(val) }}
+      getOptionLabel={(opt) => opt.name}
+      filterOptions={(x) => x}
+      isOptionEqualToValue={(a, b) => a.id === b.id}
+      noOptionsText={inputValue.trim().length >= 2 ? 'Aucun résultat dans HAL' : 'Tapez pour rechercher…'}
+      onChange={(_, value) => {
+        if (!value) return
+        onSelect(value)
+        setInputValue('')
+      }}
+      renderOption={(props, option) => {
+        const { key, ...rest } = props as { key: React.Key } & React.HTMLAttributes<HTMLLIElement>
+        return (
+          <Box component="li" key={key} {...rest}>
+            <HalStructureOptionRow option={option} />
+          </Box>
+        )
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          size="small"
+          fullWidth
+          placeholder={placeholder}
           InputProps={{
             ...params.InputProps,
             startAdornment: (
@@ -903,14 +1033,9 @@ const Authors = () => {
                           )
                         ) : null}
 
-                        <Autocomplete
-                          size="small"
-                          options={MOCK_HAL_STRUCTURES}
-                          getOptionLabel={(o) => o.name}
-                          onChange={(_, value) => {
-                            if (value) alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName, fullName: value.name, ror: value.ror, matchScore: 100 })
-                          }}
-                          renderInput={(params) => <TextField {...params} placeholder="Rechercher dans HAL…" />}
+                        <HalStructureSearchField
+                          placeholder="Rechercher dans HAL…"
+                          onSelect={(value) => alignAffiliation(author.uid, affIdx, { halStructureId: value.id, shortName: value.shortName ?? '', fullName: value.name, ror: value.ror, matchScore: 100 })}
                         />
                       </Paper>
                     )
@@ -929,12 +1054,9 @@ const Authors = () => {
                       </Box>
                     </AccordionSummary>
                     <AccordionDetails sx={{ px: 1.5, pb: 1.5 }}>
-                      <Autocomplete
-                        size="small"
-                        options={MOCK_HAL_STRUCTURES}
-                        getOptionLabel={(o) => o.name}
-                        onChange={(_, value) => { if (value) addAffiliation(author.uid, value) }}
-                        renderInput={(params) => <TextField {...params} placeholder="Rechercher une structure dans HAL" />}
+                      <HalStructureSearchField
+                        placeholder="Rechercher une structure dans HAL"
+                        onSelect={(value) => addAffiliation(author.uid, { id: value.id, name: value.name, shortName: value.shortName ?? '', ror: value.ror ?? '' })}
                       />
                     </AccordionDetails>
                   </Accordion>
