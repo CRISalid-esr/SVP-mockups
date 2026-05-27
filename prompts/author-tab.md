@@ -165,7 +165,11 @@ Mes publications → [fiche publication]
 - **Nom complet en gras teal** si la structure possède un identifiant ROR
 - Nom en texte normal sinon
 - Informations complémentaires sur la même ligne : acronyme, `ROR xxx`
-- **Tri des suggestions** : structures avec ROR en tête (score +2), avec acronyme seulement en intermédiaire (score +1), sans identifiant en bas
+- **Tri et couleur selon le champ `valid_s` de HAL** (critère principal) :
+  - `VALID` → **nom en vert gras** — structure active, remonte en tête
+  - `INCOMING` → **nom en orange gras** — structure en cours d'intégration
+  - `OLD` → nom en gris — ancienne forme, reléguée en bas
+- Au sein d'un même niveau de validité, les structures avec ROR passent avant celles avec acronyme seulement
 - Un spinner s'affiche pendant le chargement ; « Aucun résultat dans HAL » si la recherche ne donne rien
 
 ❓ **Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ?**
