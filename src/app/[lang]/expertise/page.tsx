@@ -77,6 +77,8 @@ export default function ExpertisePage() {
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             '& .MuiTab-root': { textTransform: 'none', fontWeight: 500, alignItems: 'flex-start' },
             '& .Mui-selected': { color: TEAL },
@@ -90,7 +92,7 @@ export default function ExpertisePage() {
       </Box>
 
       {/* Indicateur de complétude */}
-      <Box sx={{ px: 3, py: 0.6, bgcolor: '#f8fafb', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ px: 3, py: 0.6, bgcolor: '#f8fafb', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <AccountTree sx={{ fontSize: 13, color: stats.domains > 0 ? TEAL : 'text.disabled' }} />
           <Typography variant="caption" sx={{ color: stats.domains > 0 ? TEAL : 'text.disabled', fontWeight: stats.domains > 0 ? 600 : 400 }}>

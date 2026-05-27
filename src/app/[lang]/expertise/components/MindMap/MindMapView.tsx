@@ -31,6 +31,7 @@ import {
   Divider,
   Drawer,
   FormControl,
+  useMediaQuery,
   IconButton,
   InputLabel,
   MenuItem,
@@ -129,10 +130,18 @@ export default function MindMapView() {
   )
   const [meta, setMeta] = useState(initialGraph.meta)
 
-  const [drawerOpen, setDrawerOpen] = useState(true)
+  const isMobile = useMediaQuery('(max-width: 899px)')
+  const [drawerOpen, setDrawerOpen] = useState(
+    () => typeof window !== 'undefined' ? window.innerWidth >= 900 : true,
+  )
   const [drawerTab, setDrawerTab] = useState<'graph' | 'edge'>('graph')
   const [legendOpen, setLegendOpen] = useState(false)
   const [advancedRelationsOpen, setAdvancedRelationsOpen] = useState(false)
+
+  // Ferme le drawer automatiquement quand on passe en mobile
+  useEffect(() => {
+    if (isMobile) setDrawerOpen(false)
+  }, [isMobile])
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -646,38 +655,56 @@ export default function MindMapView() {
       {/* Canvas + panneau gauche — masqués quand vide */}
       {!isEmpty && (
         <>
-          {/* Left drawer */}
+          {/* Left drawer — overlay sur mobile, inline sur desktop */}
           <Drawer
-            variant="persistent"
+            variant={isMobile ? 'temporary' : 'persistent'}
             open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
             sx={{
-              width: drawerOpen ? DRAWER_WIDTH : 0,
-              flexShrink: 0,
+              // Sur desktop : prend de la place dans le flex layout
+              ...(!isMobile && { width: drawerOpen ? DRAWER_WIDTH : 0, flexShrink: 0 }),
               '& .MuiDrawer-paper': {
                 width: DRAWER_WIDTH,
-                position: 'relative',
-                height: '100%',
-                border: 'none',
-                borderRight: '1px solid',
-                borderColor: 'divider',
                 overflowY: 'auto',
                 boxSizing: 'border-box',
+                // Sur desktop : positionné dans le flux (pas de position fixed)
+                ...(!isMobile && {
+                  position: 'relative',
+                  height: '100%',
+                  border: 'none',
+                  borderRight: '1px solid',
+                  borderColor: 'divider',
+                }),
               },
             }}
           >
             {renderDrawerContent()}
           </Drawer>
 
-          {/* Toggle drawer */}
-          <Box sx={{ position: 'absolute', left: drawerOpen ? DRAWER_WIDTH - 1 : 0, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
-            <IconButton
-              onClick={() => setDrawerOpen((v) => !v)}
-              size="small"
-              sx={{ bgcolor: 'white', border: '1px solid', borderColor: 'divider', borderRadius: '0 6px 6px 0', '&:hover': { bgcolor: '#f5f5f5' } }}
-            >
-              {drawerOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
-            </IconButton>
-          </Box>
+          {/* Toggle drawer — caché sur mobile quand le drawer overlay est ouvert */}
+          {!(isMobile && drawerOpen) && (
+            <Box sx={{
+              position: 'absolute',
+              left: !isMobile && drawerOpen ? DRAWER_WIDTH - 1 : 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 20,
+            }}>
+              <IconButton
+                onClick={() => setDrawerOpen((v) => !v)}
+                size="small"
+                sx={{
+                  bgcolor: 'white',
+                  border: '1px solid', borderColor: 'divider',
+                  borderRadius: isMobile ? '50%' : '0 6px 6px 0',
+                  boxShadow: isMobile ? 2 : 0,
+                  '&:hover': { bgcolor: '#f5f5f5' },
+                }}
+              >
+                {drawerOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
+              </IconButton>
+            </Box>
+          )}
 
           {/* React Flow canvas */}
           <Box sx={{ flex: 1, height: '100%' }}>
@@ -735,11 +762,13 @@ export default function MindMapView() {
                 </Box>
               </Panel>
 
-              <Panel position="bottom-center">
-                <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.85)', px: 1.5, py: 0.5, borderRadius: 2, color: 'text.secondary' }}>
-                  Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour changer son type
-                </Typography>
-              </Panel>
+              {!isMobile && (
+                <Panel position="bottom-center">
+                  <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.85)', px: 1.5, py: 0.5, borderRadius: 2, color: 'text.secondary' }}>
+                    Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour changer son type
+                  </Typography>
+                </Panel>
+              )}
             </ReactFlow>
           </Box>
         </>
