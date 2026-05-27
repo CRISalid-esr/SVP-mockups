@@ -48,11 +48,11 @@ function readCompletionStats(): CompletionStats {
     domains = (graph.nodes ?? []).filter(
       (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
     ).length
-  } catch (_) {}
+  } catch (_) { /* ignore localStorage parse errors */ }
   try {
     const cards = JSON.parse(localStorage.getItem('expertise-cards-v1') ?? '[]')
     published = (cards as { visibility?: string }[]).filter((c) => c.visibility === 'PUBLIC').length
-  } catch (_) {}
+  } catch (_) { /* ignore localStorage parse errors */ }
   return { domains, published }
 }
 

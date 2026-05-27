@@ -90,7 +90,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
         (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
       ).length
       setNodeCount(domains)
-    } catch (_) {}
+    } catch (_) { /* ignore localStorage parse errors */ }
   }, [])
 
   const updateCards = (next: ImpactCard[]) => {
