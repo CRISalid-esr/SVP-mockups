@@ -89,7 +89,15 @@ Mes publications → [fiche publication]
 
 ✅ Le panneau de recherche HAL (pour trouver l'IdHAL) s'affiche dès que l'auteur n'a pas encore d'IdHAL, **même s'il est déjà identifié via ORCID ou IdRef**. Dans ce cas, le panneau est affiché en style neutre (fond gris) plutôt qu'en orange — l'IdHAL reste souhaitable pour le dépôt HAL mais n'est pas bloquant.
 
-✅ Quand une personne trouvée dans HAL est sélectionnée (confirmation de l'IdHAL), ses identifiants sont enregistrés.
+✅ **Autocomplete HAL temps réel** : le champ de recherche dans le panneau d'identification interroge directement l'API HAL [`https://api.archives-ouvertes.fr/ref/author/`](https://api.archives-ouvertes.fr/ref/author/) au fil de la frappe (debounce 350 ms). Les résultats affichent :
+- **Nom en gras teal** si l'auteur possède un idHAL ou un ORCID dans HAL
+- Nom en texte normal sinon (auteur sans compte HAL)
+- Informations complémentaires sur la même ligne : `@domaine`, identifiant idHAL, numéro ORCID
+- La première option est toujours **« Ajouter un nouvel auteur »** (en italique) pour les cas où la personne n'est pas dans HAL
+- L'API retourne les différentes formes d'un même auteur (ex. « Olivier Grasset » et « O. Grasset »)
+- Un spinner s'affiche pendant le chargement ; « Aucun résultat dans HAL » si la recherche ne donne rien
+
+✅ Quand une personne trouvée dans HAL est sélectionnée (confirmation de l'IdHAL), ses identifiants (idHAL + ORCID) sont renseignés sur la carte auteur et le panneau d'identification se ferme.
 
 ✅ Un bouton **« Modifier »** (icône crayon, séparé visuellement des pictos identifiants) sur la ligne de statut permet de réinitialiser l'auteur associé et relancer la recherche HAL pour en sélectionner un autre. Il s'agit de remplacer la personne entière, pas seulement ses identifiants.
 
@@ -128,7 +136,7 @@ Mes publications → [fiche publication]
 
 ✅ L'utilisateur peut supprimer la nouvelle contribution via l'icône corbeille.
 
-🟡 Si aucun résultat dans HAL : option « Créer un auteur sans identifiant HAL ».
+✅ Si aucun résultat dans HAL : l'option **« Ajouter un nouvel auteur »** (toujours présente en premier dans la liste) permet de valider le nom saisi sans lier la contribution à un profil HAL.
 
 ---
 
@@ -196,6 +204,7 @@ Mes publications → [fiche publication]
 | 8 | Structures | Nom court/long absent pour les structures tierces — comment afficher ? |
 | 9 | Structures | Plusieurs identifiants sur une organisation — affichage ? |
 | 10 | Ajout auteur | Peut-on ajouter une affiliation à un auteur non encore sélectionné dans HAL ? |
+| 11 | Autocomplete HAL | L'autocomplete `ref/author/` retourne plusieurs formes d'un même auteur (ex. « O. Grasset » et « Olivier Grasset »). Faut-il les dédupliquer par `idHal_s` ou les présenter toutes ? |
 
 ---
 
