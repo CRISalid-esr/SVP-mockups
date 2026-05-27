@@ -25,6 +25,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
   FormControl,
   IconButton,
@@ -199,6 +200,140 @@ function avatarColor(name: string) {
   return colors[hash % colors.length]
 }
 
+// ─── HAL Author Search ────────────────────────────────────────────────────────
+
+type HalAuthorOption = {
+  form: string
+  emailDomain?: string
+  idHal?: string
+  orcid?: string
+  isNew?: true
+}
+
+type HalApiDoc = {
+  fullName_s?: string
+  fullName_sci?: string
+  emailDomain_s?: string | string[]
+  idHal_s?: string
+  orcidId_s?: string | string[]
+}
+
+function useHalAuthorSearch(query: string) {
+  const [options, setOptions] = useState<HalAuthorOption[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) { setOptions([]); return }
+
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const url = `https://api.archives-ouvertes.fr/ref/author/?q=${encodeURIComponent(q)}&rows=12&fl=fullName_s,fullName_sci,emailDomain_s,idHal_s,orcidId_s&wt=json`
+        const res = await fetch(url, { signal: controller.signal })
+        const json = await res.json()
+        const docs: HalAuthorOption[] = (json?.response?.docs ?? [])
+          .filter((d: HalApiDoc) => d.fullName_s)
+          .map((d: HalApiDoc): HalAuthorOption => {
+            const emailDomain = Array.isArray(d.emailDomain_s) ? d.emailDomain_s[0] : d.emailDomain_s
+            const orcidRaw = Array.isArray(d.orcidId_s) ? d.orcidId_s[0] : d.orcidId_s
+            const orcid = orcidRaw ? orcidRaw.replace('https://orcid.org/', '') : undefined
+            return { form: d.fullName_s!, emailDomain, idHal: d.idHal_s, orcid }
+          })
+        setOptions(docs)
+      } catch { /* aborted or network error */ }
+      finally { setLoading(false) }
+    }, 350)
+
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [query])
+
+  return { options, loading }
+}
+
+function HalAuthorOptionRow({ option }: { option: HalAuthorOption }) {
+  const isIdentified = !!(option.idHal || option.orcid)
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap', lineHeight: 1.5 }}>
+      <Typography component="span" sx={{ fontWeight: isIdentified ? 700 : 400, color: isIdentified ? TEAL : TEXT, fontSize: '0.875rem' }}>
+        {option.form}
+      </Typography>
+      {option.emailDomain && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>@{option.emailDomain}</Typography>
+      )}
+      {option.idHal && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>{option.idHal}</Typography>
+      )}
+      {option.orcid && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>{option.orcid}</Typography>
+      )}
+    </Box>
+  )
+}
+
+function HalAuthorSearchField({ onSelect }: { onSelect: (opt: HalAuthorOption) => void }) {
+  const [inputValue, setInputValue] = useState('')
+  const { options, loading } = useHalAuthorSearch(inputValue)
+
+  const allOptions: HalAuthorOption[] = inputValue.trim().length >= 2
+    ? [{ form: inputValue, isNew: true }, ...options]
+    : []
+
+  return (
+    <Autocomplete<HalAuthorOption>
+      options={allOptions}
+      loading={loading}
+      inputValue={inputValue}
+      onInputChange={(_, val, reason) => { if (reason !== 'reset') setInputValue(val) }}
+      getOptionLabel={(opt) => opt.form}
+      filterOptions={(x) => x}
+      isOptionEqualToValue={(a, b) => a.isNew === b.isNew && a.form === b.form && a.idHal === b.idHal}
+      noOptionsText={inputValue.trim().length >= 2 ? 'Aucun résultat dans HAL' : 'Tapez pour rechercher…'}
+      onChange={(_, value) => {
+        if (!value) return
+        onSelect(value)
+        setInputValue('')
+      }}
+      renderOption={(props, option) => {
+        const { key, ...rest } = props as { key: React.Key } & React.HTMLAttributes<HTMLLIElement>
+        return (
+          <Box component="li" key={key} {...rest}>
+            {option.isNew
+              ? <Typography sx={{ color: TEAL, fontSize: '0.875rem', fontStyle: 'italic' }}>Ajouter un nouvel auteur</Typography>
+              : <HalAuthorOptionRow option={option} />
+            }
+          </Box>
+        )
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          size="small"
+          fullWidth
+          placeholder="Rechercher dans HAL"
+          sx={{ bgcolor: 'white', borderRadius: 1 }}
+          InputProps={{
+            ...params.InputProps,
+            startAdornment: (
+              <>
+                <Search sx={{ fontSize: 16, color: MUTED, mr: 0.5, flexShrink: 0 }} />
+                {params.InputProps.startAdornment}
+              </>
+            ),
+            endAdornment: (
+              <>
+                {loading && <CircularProgress size={14} sx={{ color: TEAL, mr: 0.5 }} />}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
+    />
+  )
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function Avatar({ name, size = 28 }: { name: string; size?: number }) {
@@ -235,7 +370,6 @@ const Authors = () => {
     contributions.some((c) => c.rank != null),
   )
   const [expandedCandidates, setExpandedCandidates] = useState<Record<string, boolean>>({})
-  const [candidateSearch, setCandidateSearch] = useState<Record<string, string>>({})
   const [showIdhalCandidates, setShowIdhalCandidates] = useState<Record<string, boolean>>({})
   const [showAffCandidates, setShowAffCandidates] = useState<Record<string, Record<number, boolean>>>({})
 
@@ -289,6 +423,21 @@ const Authors = () => {
 
   const confirmIdhal = (uid: string, candidate: IdHalCandidate) =>
     update(uid, { idhal: candidate.idhal, orcid: candidate.orcid, idhalCandidates: undefined })
+
+  const handleHalSelect = (uid: string, opt: HalAuthorOption) => {
+    if (opt.isNew) {
+      update(uid, { displayName: opt.form, idhalCandidates: undefined })
+    } else {
+      confirmIdhal(uid, {
+        idhal: opt.idHal ?? `_ext_${uid}`,
+        fullName: opt.form,
+        affiliations: opt.emailDomain ? `@${opt.emailDomain}` : '',
+        publications: 0,
+        matchScore: 100,
+        orcid: opt.orcid,
+      })
+    }
+  }
 
   const alignAffiliation = (uid: string, affIdx: number, candidate: StructureCandidate) =>
     setAuthorsDirty((prev) =>
@@ -404,7 +553,6 @@ const Authors = () => {
         const hasCandidates = needsHalId && (author.idhalCandidates?.length ?? 0) > 0
         const candidatesVisible = showIdhalCandidates[author.uid]
         const expanded = expandedCandidates[author.uid]
-        const search = candidateSearch[author.uid] ?? ''
 
         return (
           <Box key={author.uid}>
@@ -486,16 +634,10 @@ const Authors = () => {
                   {/* HAL identity panel */}
                   {needsHalId && (
                     <Paper elevation={0} sx={{ bgcolor: isIdentified ? SURFACE : WARN_BG, border: `1px solid ${isIdentified ? BORDER : WARN_BORDER}`, borderRadius: '8px', p: 1.5, mb: 2 }}>
-                      {/* Candidate search */}
-                      <TextField
-                        size="small"
-                        fullWidth
-                        placeholder="Rechercher dans HAL"
-                        value={search}
-                        onChange={(e) => setCandidateSearch((prev) => ({ ...prev, [author.uid]: e.target.value }))}
-                        InputProps={{ startAdornment: <Search sx={{ fontSize: 16, color: MUTED, mr: 1 }} /> }}
-                        sx={{ mb: 1.5, bgcolor: 'white', borderRadius: 1 }}
-                      />
+                      {/* HAL author search */}
+                      <Box sx={{ mb: 1.5 }}>
+                        <HalAuthorSearchField onSelect={(opt) => handleHalSelect(author.uid, opt)} />
+                      </Box>
 
                       {hasCandidates && !candidatesVisible && (
                         <Button
