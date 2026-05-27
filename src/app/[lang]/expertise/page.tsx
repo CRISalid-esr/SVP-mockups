@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Box, Chip, Tab, Tabs, Typography } from '@mui/material'
 import { AccountTree, Campaign, ViewList } from '@mui/icons-material'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
@@ -38,10 +38,33 @@ function DerivedTabLabel({ label }: { label: string }) {
   )
 }
 
+interface CompletionStats { domains: number; published: number }
+
+function readCompletionStats(): CompletionStats {
+  let domains = 0
+  let published = 0
+  try {
+    const graph = JSON.parse(localStorage.getItem('expertise-graph-v1') ?? '{}')
+    domains = (graph.nodes ?? []).filter(
+      (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
+    ).length
+  } catch (_) {}
+  try {
+    const cards = JSON.parse(localStorage.getItem('expertise-cards-v1') ?? '[]')
+    published = (cards as { visibility?: string }[]).filter((c) => c.visibility === 'PUBLIC').length
+  } catch (_) {}
+  return { domains, published }
+}
+
 export default function ExpertisePage() {
   const { currentPerspective } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
   const [tab, setTab] = useState(0)
+  const [stats, setStats] = useState<CompletionStats>({ domains: 0, published: 0 })
+
+  useEffect(() => {
+    setStats(readCompletionStats())
+  }, [tab])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -64,6 +87,23 @@ export default function ExpertisePage() {
           <Tab icon={<ViewList fontSize="small" />} iconPosition="start" label={<DerivedTabLabel label="Profil structuré" />} value={1} />
           <Tab icon={<Campaign fontSize="small" />} iconPosition="start" label={<DerivedTabLabel label="Fiches publics" />} value={2} />
         </Tabs>
+      </Box>
+
+      {/* Indicateur de complétude */}
+      <Box sx={{ px: 3, py: 0.6, bgcolor: '#f8fafb', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <AccountTree sx={{ fontSize: 13, color: stats.domains > 0 ? TEAL : 'text.disabled' }} />
+          <Typography variant="caption" sx={{ color: stats.domains > 0 ? TEAL : 'text.disabled', fontWeight: stats.domains > 0 ? 600 : 400 }}>
+            {stats.domains > 0 ? `${stats.domains} domaine${stats.domains > 1 ? 's' : ''} défini${stats.domains > 1 ? 's' : ''}` : 'Aucun domaine défini'}
+          </Typography>
+        </Box>
+        <Typography variant="caption" color="text.disabled">·</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Campaign sx={{ fontSize: 13, color: stats.published > 0 ? '#7B1FA2' : 'text.disabled' }} />
+          <Typography variant="caption" sx={{ color: stats.published > 0 ? '#7B1FA2' : 'text.disabled', fontWeight: stats.published > 0 ? 600 : 400 }}>
+            {stats.published > 0 ? `${stats.published} fiche${stats.published > 1 ? 's' : ''} publiée${stats.published > 1 ? 's' : ''}` : '0 fiche publiée'}
+          </Typography>
+        </Box>
       </Box>
 
       <Box sx={{ flex: 1, overflow: 'auto' }}>

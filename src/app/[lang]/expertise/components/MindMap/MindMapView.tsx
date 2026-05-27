@@ -73,6 +73,9 @@ const STORAGE_KEY = 'expertise-graph-v1'
 const TEAL = '#006A61'
 const DRAWER_WIDTH = 320
 
+const ESSENTIAL_RELATIONS: RelationTypeKey[] = ['approfondit', 'specialise', 'terrain_geo', 'mobilise', 'croise']
+const ADVANCED_COUNT = Object.keys(RELATION_TYPES).length - ESSENTIAL_RELATIONS.length
+
 const EXAMPLE_PROMPTS: Record<string, string> = {
   Sociologue: "Je suis sociologue spécialisé·e dans les migrations de travail et les inégalités de genre. Mes recherches portent sur les dynamiques identitaires et les politiques migratoires entre l'Asie du Sud et le Moyen-Orient.",
   Historien: "Je suis historien·ne médiéviste. Mes travaux portent sur les pratiques religieuses monastiques, les échanges culturels entre l'Europe occidentale et Byzance, et l'histoire des manuscrits enluminés.",
@@ -129,6 +132,7 @@ export default function MindMapView() {
   const [drawerOpen, setDrawerOpen] = useState(true)
   const [drawerTab, setDrawerTab] = useState<'graph' | 'edge'>('graph')
   const [legendOpen, setLegendOpen] = useState(false)
+  const [advancedRelationsOpen, setAdvancedRelationsOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -380,25 +384,47 @@ export default function MindMapView() {
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
             Types de liens
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {RELATION_CATEGORIES.map((cat) => {
-              const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
-                .filter(([, v]) => v.category === cat)
-              const color = entries[0]?.[1].color
+          {/* Essentiels — toujours visibles */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+            {ESSENTIAL_RELATIONS.map((key) => {
+              const c = RELATION_TYPES[key]
               return (
-                <Box key={cat}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block', mb: 0.4 }}>{cat}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {entries.map(([key, c]) => (
-                      <Chip key={key} label={c.label} size="small"
-                        sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
+                <Chip key={key} label={c.label} size="small"
+                  sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
+                />
               )
             })}
           </Box>
+          {/* Toggle relations avancées */}
+          <Box
+            onClick={() => setAdvancedRelationsOpen((v) => !v)}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: 'text.secondary', userSelect: 'none' }}
+          >
+            <ExpandMore sx={{ fontSize: 14, transition: 'transform 0.2s', transform: advancedRelationsOpen ? 'rotate(180deg)' : 'none' }} />
+            <Typography variant="caption">Relations avancées ({ADVANCED_COUNT})</Typography>
+          </Box>
+          {advancedRelationsOpen && (
+            <Box sx={{ mt: 0.75, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {RELATION_CATEGORIES.map((cat) => {
+                const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
+                  .filter(([key, v]) => v.category === cat && !ESSENTIAL_RELATIONS.includes(key as RelationTypeKey))
+                if (!entries.length) return null
+                const color = entries[0]?.[1].color
+                return (
+                  <Box key={cat}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block', mb: 0.4 }}>{cat}</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {entries.map(([key, c]) => (
+                        <Chip key={key} label={c.label} size="small"
+                          sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )
+              })}
+            </Box>
+          )}
         </Box>
       </AccordionDetails>
     </Accordion>

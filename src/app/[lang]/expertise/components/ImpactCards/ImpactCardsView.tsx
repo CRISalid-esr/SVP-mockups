@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -13,7 +12,6 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  AccountTree,
   AddOutlined,
   AutoAwesomeOutlined,
   CheckCircleOutlined,
@@ -81,10 +79,18 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
   const [tab, setTab] = useState<TabKey>('all')
   const [selectedCard, setSelectedCard] = useState<ImpactCard | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [nodeCount, setNodeCount] = useState(0)
 
   useEffect(() => {
     setCards(loadCards())
     setMounted(true)
+    try {
+      const graph = JSON.parse(localStorage.getItem('expertise-graph-v1') ?? '{}')
+      const domains = (graph.nodes ?? []).filter(
+        (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
+      ).length
+      setNodeCount(domains)
+    } catch (_) {}
   }, [])
 
   const updateCards = (next: ImpactCard[]) => {
@@ -135,55 +141,65 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Banner */}
-      <Alert
-        severity="info"
-        icon={<AccountTree fontSize="small" />}
-        action={
-          <Button size="small" onClick={onGoToMindMap} sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}>
-            Modifier le graphe →
-          </Button>
-        }
-        sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
-      >
-        Chaque famille correspond à un nœud d&apos;expertise de votre carte mentale.
-        Déclinez-les en cartes adaptées à chaque audience.
-      </Alert>
+      {/* Bandeau CTA — génération depuis le graphe */}
+      <Box sx={{
+        display: 'flex', alignItems: 'center', gap: 2,
+        bgcolor: `${TEAL}08`, border: `1px solid ${TEAL}30`,
+        borderRadius: 2, p: 2, mb: 3,
+      }}>
+        <AutoAwesomeOutlined sx={{ color: TEAL, fontSize: 28, flexShrink: 0 }} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: TEAL, mb: 0.25 }}>
+            Générer des fiches automatiquement
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {nodeCount > 0
+              ? <>
+                  {nodeCount} domaine{nodeCount > 1 ? 's' : ''} détecté{nodeCount > 1 ? 's' : ''} dans votre carte · une fiche par public sera proposée pour chaque domaine.{' '}
+                  <Box component="span" onClick={onGoToMindMap} sx={{ cursor: 'pointer', color: TEAL, textDecoration: 'underline', '&:hover': { opacity: 0.8 } }}>
+                    Modifier la carte
+                  </Box>
+                </>
+              : <>Construisez d&apos;abord votre carte de domaines pour activer cette fonctionnalité.</>
+            }
+          </Typography>
+        </Box>
+        <Tooltip title="Disponible prochainement">
+          <span>
+            <Button
+              variant="contained" disabled
+              startIcon={<AutoAwesomeOutlined />}
+              sx={{
+                textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0,
+                bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' },
+                '&.Mui-disabled': { bgcolor: `${TEAL}50`, color: 'white' },
+              }}
+            >
+              Générer les fiches
+            </Button>
+          </span>
+        </Tooltip>
+      </Box>
 
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 2 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Mes cartes impact</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Mes fiches publics</Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Stat icon={<CheckCircleOutlined sx={{ fontSize: 14, color: '#065F46' }} />} label={`${validatedCount} validée${validatedCount > 1 ? 's' : ''}`} color="#065F46" />
             <Stat icon={<ScheduleOutlined sx={{ fontSize: 14, color: '#92400E' }} />} label={`${toValidateCount} à valider`} color="#92400E" />
             <Stat icon={<VisibilityOutlined sx={{ fontSize: 14, color: '#1E40AF' }} />} label={`${publicCount} publique${publicCount > 1 ? 's' : ''}`} color="#1E40AF" />
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Générer des cartes depuis votre carte mentale (bientôt disponible)">
-            <span>
-              <Button
-                variant="outlined"
-                startIcon={<AutoAwesomeOutlined />}
-                disabled
-                size="small"
-                sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}
-              >
-                Générer depuis le graphe
-              </Button>
-            </span>
-          </Tooltip>
-          <Button
-            variant="contained"
-            startIcon={<AddOutlined />}
-            size="small"
-            onClick={() => setWizardOpen(true)}
-            sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}
-          >
-            Nouvelle carte
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          size="small"
+          onClick={() => setWizardOpen(true)}
+          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}
+        >
+          Nouvelle fiche
+        </Button>
       </Box>
 
       {/* Sub-tabs */}
