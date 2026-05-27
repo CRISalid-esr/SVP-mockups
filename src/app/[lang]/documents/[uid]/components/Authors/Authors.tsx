@@ -345,12 +345,15 @@ function HalAuthorSearchField({ onSelect }: { onSelect: (opt: HalAuthorOption) =
 
 // ─── HAL Structure Search ─────────────────────────────────────────────────────
 
+type HalStructureValidity = 'VALID' | 'INCOMING' | 'OLD'
+
 type HalStructureOption = {
   id: string
   name: string
   shortName?: string
   ror?: string
   type?: string
+  valid?: HalStructureValidity
 }
 
 type HalStructureApiDoc = {
@@ -359,6 +362,7 @@ type HalStructureApiDoc = {
   acronym_s?: string | string[]
   ror_s?: string | string[]
   type_s?: string | string[]
+  valid_s?: string
 }
 
 function useHalStructureSearch(query: string) {
@@ -373,18 +377,20 @@ function useHalStructureSearch(query: string) {
     const timer = setTimeout(async () => {
       setLoading(true)
       try {
-        const url = `https://api.archives-ouvertes.fr/ref/structure/?q=${encodeURIComponent(q)}&rows=12&fl=docid,name_s,acronym_s,ror_s,type_s&wt=json`
+        const url = `https://api.archives-ouvertes.fr/ref/structure/?q=${encodeURIComponent(q)}&rows=12&fl=docid,name_s,acronym_s,ror_s,type_s,valid_s&wt=json`
         const res = await fetch(url, { signal: controller.signal })
         const json = await res.json()
+        const validityScore = (v?: HalStructureValidity) => v === 'VALID' ? 100 : v === 'INCOMING' ? 50 : 0
         const identifierScore = (o: HalStructureOption) =>
-          (o.ror ? 2 : 0) + (o.shortName ? 1 : 0)
+          validityScore(o.valid) + (o.ror ? 2 : 0) + (o.shortName ? 1 : 0)
         const docs: HalStructureOption[] = (json?.response?.docs ?? [])
           .filter((d: HalStructureApiDoc) => d.name_s)
           .map((d: HalStructureApiDoc): HalStructureOption => {
             const shortName = Array.isArray(d.acronym_s) ? d.acronym_s[0] : d.acronym_s
             const ror = Array.isArray(d.ror_s) ? d.ror_s[0] : d.ror_s
             const type = Array.isArray(d.type_s) ? d.type_s[0] : d.type_s
-            return { id: String(d.docid ?? ''), name: d.name_s!, shortName, ror, type }
+            const valid = d.valid_s as HalStructureValidity | undefined
+            return { id: String(d.docid ?? ''), name: d.name_s!, shortName, ror, type, valid }
           })
           .sort((a: HalStructureOption, b: HalStructureOption) => identifierScore(b) - identifierScore(a))
         setOptions(docs)
@@ -399,10 +405,11 @@ function useHalStructureSearch(query: string) {
 }
 
 function HalStructureOptionRow({ option }: { option: HalStructureOption }) {
-  const isIdentified = !!(option.ror)
+  const nameColor = option.valid === 'VALID' ? SUCCESS : option.valid === 'INCOMING' ? WARN : MUTED
+  const isBold = option.valid === 'VALID' || option.valid === 'INCOMING'
   return (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap', lineHeight: 1.5 }}>
-      <Typography component="span" sx={{ fontWeight: isIdentified ? 700 : 400, color: isIdentified ? TEAL : TEXT, fontSize: '0.875rem' }}>
+      <Typography component="span" sx={{ fontWeight: isBold ? 700 : 400, color: nameColor, fontSize: '0.875rem' }}>
         {option.name}
       </Typography>
       {option.shortName && (
