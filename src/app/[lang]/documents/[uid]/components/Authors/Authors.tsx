@@ -207,6 +207,7 @@ type HalAuthorOption = {
   emailDomain?: string
   idHal?: string
   orcid?: string
+  idRef?: string
   isNew?: true
 }
 
@@ -216,6 +217,7 @@ type HalApiDoc = {
   emailDomain_s?: string | string[]
   idHal_s?: string
   orcidId_s?: string | string[]
+  idref_s?: string | string[]
 }
 
 function useHalAuthorSearch(query: string) {
@@ -230,17 +232,21 @@ function useHalAuthorSearch(query: string) {
     const timer = setTimeout(async () => {
       setLoading(true)
       try {
-        const url = `https://api.archives-ouvertes.fr/ref/author/?q=${encodeURIComponent(q)}&rows=12&fl=fullName_s,fullName_sci,emailDomain_s,idHal_s,orcidId_s&wt=json`
+        const url = `https://api.archives-ouvertes.fr/ref/author/?q=${encodeURIComponent(q)}&rows=12&fl=fullName_s,fullName_sci,emailDomain_s,idHal_s,orcidId_s,idref_s&wt=json`
         const res = await fetch(url, { signal: controller.signal })
         const json = await res.json()
+        const identifierScore = (o: HalAuthorOption) =>
+          (o.idHal ? 2 : 0) + (o.orcid ? 2 : 0) + (o.idRef ? 2 : 0) + (o.emailDomain ? 1 : 0)
         const docs: HalAuthorOption[] = (json?.response?.docs ?? [])
           .filter((d: HalApiDoc) => d.fullName_s)
           .map((d: HalApiDoc): HalAuthorOption => {
             const emailDomain = Array.isArray(d.emailDomain_s) ? d.emailDomain_s[0] : d.emailDomain_s
             const orcidRaw = Array.isArray(d.orcidId_s) ? d.orcidId_s[0] : d.orcidId_s
             const orcid = orcidRaw ? orcidRaw.replace('https://orcid.org/', '') : undefined
-            return { form: d.fullName_s!, emailDomain, idHal: d.idHal_s, orcid }
+            const idRef = Array.isArray(d.idref_s) ? d.idref_s[0] : d.idref_s
+            return { form: d.fullName_s!, emailDomain, idHal: d.idHal_s, orcid, idRef }
           })
+          .sort((a, b) => identifierScore(b) - identifierScore(a))
         setOptions(docs)
       } catch { /* aborted or network error */ }
       finally { setLoading(false) }
@@ -253,7 +259,7 @@ function useHalAuthorSearch(query: string) {
 }
 
 function HalAuthorOptionRow({ option }: { option: HalAuthorOption }) {
-  const isIdentified = !!(option.idHal || option.orcid)
+  const isIdentified = !!(option.idHal || option.orcid || option.idRef)
   return (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexWrap: 'wrap', lineHeight: 1.5 }}>
       <Typography component="span" sx={{ fontWeight: isIdentified ? 700 : 400, color: isIdentified ? TEAL : TEXT, fontSize: '0.875rem' }}>
@@ -267,6 +273,9 @@ function HalAuthorOptionRow({ option }: { option: HalAuthorOption }) {
       )}
       {option.orcid && (
         <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>{option.orcid}</Typography>
+      )}
+      {option.idRef && (
+        <Typography component="span" sx={{ color: MUTED, fontSize: '0.75rem' }}>IdRef:{option.idRef}</Typography>
       )}
     </Box>
   )
