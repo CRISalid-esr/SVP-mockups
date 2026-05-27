@@ -26,6 +26,18 @@ Options écartées :
 
 ---
 
+## Navigation — 3 onglets (page.tsx)
+
+| Onglet | Ancien nom | Valeur | Composant |
+|---|---|---|---|
+| **Mes domaines** | Carte mentale | `0` | `MindMapView` (défaut) |
+| **Profil structuré** | Vue des expertises | `1` | `FlatView` |
+| **Fiches publics** | Cartes impact | `2` | `ImpactCardsView` |
+
+Les onglets "Profil structuré" et "Fiches publics" affichent un chip vert `depuis vos domaines` pour matérialiser leur dépendance à la carte. Les callbacks `onGoToMindMap` redirigent vers `setTab(0)`.
+
+---
+
 ## Vue 1 — Carte mentale (implémentée)
 
 ### Principe
@@ -81,15 +93,33 @@ Relations latérales entre expertises ou concepts de même niveau.
 | `a_conduit_a` | a conduit à | bleu `#1976D2`, plein |
 | `en_tension` | en tension avec | rouge `#C62828`, tirets `4 4` |
 
-### Interaction utilisateur
+### Empty state onboarding
 
-- **Générer depuis un prompt** : champ texte + bouton "Générer le graphe" → spinner 1,8 s → graphe pré-rempli
-- **Ajouter un nœud** : bouton dans le panneau gauche → dialog (intitulé, type, description)
-- **Modifier un nœud** : sélection + bouton "Modifier" dans le panneau
-- **Supprimer** : sélection + bouton "Supprimer"
+Quand `nodes.length === 0` (premier accès ou après réinitialisation), le canvas est remplacé par une carte centrée sur fond pointillé :
+- Textarea autofocus (6 lignes) avec placeholder
+- 4 chips de profils pré-remplis : **Sociologue** · **Historien** · **Physicien** · **Juriste** (définis dans `EXAMPLE_PROMPTS`)
+- Bouton "Générer ma carte" (activé dès que le champ est non vide, `Ctrl+Entrée` aussi)
+- Après génération → canvas + panneau gauche s'affichent
+
+### Panneau gauche — 3 états contextuels
+
+| État | Condition | Contenu |
+|---|---|---|
+| **Rien sélectionné** | `selectedNodes.length === 0` et `drawerTab !== 'edge'` | Prompt LLM (action principale) · dernier prompt · "Ajouter un nœud" · légende en accordéon (replié par défaut) · stats |
+| **Nœud(s) sélectionné(s)** | `selectedNodes.length > 0` | Carte info colorée (type + nom + description) · [Modifier] [Supprimer] · "Ajouter un nœud" · légende · stats |
+| **Lien sélectionné** | `drawerTab === 'edge'` | Relation actuelle · sélecteur visuel par catégorie (prévisualisation du trait) · "Supprimer ce lien" |
+
+La légende (types de nœuds + types de liens) est dans un `Accordion` MUI replié par défaut, piloté par `legendOpen`.
+
+### Interactions utilisateur
+
+- **Générer depuis un prompt** : champ texte (panneau gauche ou empty state) + bouton → spinner 1,8 s → graphe pré-rempli
+- **Réinitialiser** : bouton `RestartAlt` dans le panneau top-right → vide nœuds/arêtes/meta → affiche l'empty state
+- **Ajouter un nœud** : bouton "Ajouter un nœud" → dialog (intitulé, type, description)
+- **Modifier un nœud** : sélection + bouton "Modifier" dans le panneau (état 2)
+- **Supprimer** : sélection + bouton "Supprimer" (état 2)
 - **Créer un lien** : tirer depuis un point d'ancrage vers un autre nœud (lien `croise` par défaut)
-- **Changer le type d'un lien** : clic sur le lien → panneau gauche bascule en mode "édition de relation" avec sélecteur visuel par catégorie (prévisualisation du style de trait)
-- **Supprimer un lien** : sélectionner + bouton "Supprimer ce lien" dans le panneau
+- **Changer le type d'un lien** : clic sur le lien → panneau bascule état 3
 - **Enregistrer** : bouton "Enregistrer" → localStorage (JSON versionné)
 - **Exporter JSON** : bouton "JSON" → viewer + téléchargement du fichier
 

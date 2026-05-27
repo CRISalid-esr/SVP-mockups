@@ -115,14 +115,21 @@ Composants partiellement implémentés dans `research-activities/components/Acti
 Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
 
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
-Page avec 3 onglets : **Carte mentale** (implémentée) · Vue des expertises (à venir) · Cartes impact (à venir).
+Page avec 3 onglets (renommés, réordonnés) :
+- **Mes domaines** (carte mentale, source de vérité, onglet par défaut)
+- **Profil structuré** (vue à plat — chip "depuis vos domaines")
+- **Fiches publics** (cartes impact — chip "depuis vos domaines")
 
-**Architecture retenue (Option A) :** la carte mentale est la source de vérité. Les deux autres vues seront des projections des nœuds du graphe.
+**Architecture retenue (Option A) :** la carte mentale est la source de vérité. Les deux autres vues sont des projections des nœuds du graphe.
 
 **Carte mentale — fonctionnement :**
 - Canvas React Flow (`@xyflow/react`) chargé sans SSR (`next/dynamic`)
-- Panneau gauche : prompt LLM → génère un graphe · actions nœuds · légende
-- Clic sur un lien → panneau bascule en mode "édition de relation"
+- **Empty state onboarding** : quand `nodes.length === 0`, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils pré-remplis, Ctrl+Entrée pour générer)
+- **Panneau gauche — 3 états contextuels :**
+  - Rien sélectionné : prompt LLM (action principale) + légende en accordéon replié
+  - Nœud(s) sélectionné(s) : carte info colorée (type + nom + description) + Modifier/Supprimer
+  - Lien sélectionné : sélecteur visuel de type de relation par catégorie
+- Bouton **Réinitialiser** (icône `RestartAlt`) dans le panneau top-right → revient à l'empty state
 - Persistance en `localStorage` (JSON versionné avec `promptHistory`)
 
 **Types de nœuds :** `main` (teal) · `secondary` (bleu) · `terrain` (orange) · `concept` (violet)
