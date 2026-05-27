@@ -16,6 +16,9 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -30,10 +33,6 @@ import {
   FormControl,
   IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   MenuItem,
   Select,
   Snackbar,
@@ -42,6 +41,7 @@ import {
   Typography,
 } from '@mui/material'
 import {
+  AccountTree,
   Add,
   AutoAwesome,
   ChevronLeft,
@@ -50,6 +50,8 @@ import {
   Delete,
   Download,
   Edit,
+  ExpandMore,
+  RestartAlt,
   Save,
   Timeline,
 } from '@mui/icons-material'
@@ -70,6 +72,13 @@ import {
 const STORAGE_KEY = 'expertise-graph-v1'
 const TEAL = '#006A61'
 const DRAWER_WIDTH = 320
+
+const EXAMPLE_PROMPTS: Record<string, string> = {
+  Sociologue: "Je suis sociologue spécialisé·e dans les migrations de travail et les inégalités de genre. Mes recherches portent sur les dynamiques identitaires et les politiques migratoires entre l'Asie du Sud et le Moyen-Orient.",
+  Historien: "Je suis historien·ne médiéviste. Mes travaux portent sur les pratiques religieuses monastiques, les échanges culturels entre l'Europe occidentale et Byzance, et l'histoire des manuscrits enluminés.",
+  Physicien: "Je suis physicien·ne spécialisé·e en physique des matériaux. Mes recherches portent sur les propriétés optiques des matériaux bidimensionnels et leurs applications en optoélectronique.",
+  Juriste: "Je suis juriste spécialisé·e en droit européen et droits numériques. Mes travaux portent sur la régulation des plateformes, la protection des données personnelles et les libertés fondamentales en ligne.",
+}
 
 function loadGraph(): ExpertiseGraph {
   if (typeof window === 'undefined') return INITIAL_GRAPH
@@ -119,6 +128,7 @@ export default function MindMapView() {
 
   const [drawerOpen, setDrawerOpen] = useState(true)
   const [drawerTab, setDrawerTab] = useState<'graph' | 'edge'>('graph')
+  const [legendOpen, setLegendOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -210,6 +220,15 @@ export default function MindMapView() {
     setDrawerTab('graph')
   }
 
+  const handleReset = useCallback(() => {
+    setNodes([])
+    setEdges([])
+    setMeta({ version: 1, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
+    localStorage.removeItem(STORAGE_KEY)
+    setSelectedEdgeId(null)
+    setDrawerTab('graph')
+  }, [setNodes, setEdges])
+
   const handleSaveNodeDialog = () => {
     if (!nodeDialog.label.trim()) return
     if (nodeDialog.mode === 'add') {
@@ -238,8 +257,157 @@ export default function MindMapView() {
   const graphJson = JSON.stringify({ nodes, edges, meta }, null, 2)
   const lastPrompt = meta.promptHistory[meta.promptHistory.length - 1]
 
-  // Panel gauche — contenu selon onglet drawer
+  // ── Empty state onboarding ────────────────────────────────────────────
+
+  const renderEmptyState = () => (
+    <Box sx={{
+      position: 'absolute', inset: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      bgcolor: '#f8fafb',
+      backgroundImage: 'radial-gradient(circle, #c8d8d6 1px, transparent 1px)',
+      backgroundSize: '24px 24px',
+    }}>
+      <Box sx={{
+        bgcolor: 'background.paper', borderRadius: 3,
+        border: '1px solid', borderColor: 'divider',
+        p: { xs: 3, sm: 4 }, maxWidth: 520, width: '90%',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+        display: 'flex', flexDirection: 'column', gap: 2.5,
+      }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <AccountTree sx={{ fontSize: 52, color: TEAL, opacity: 0.8 }} />
+        </Box>
+
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
+            Décrivez vos domaines de recherche
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
+          </Typography>
+        </Box>
+
+        <TextField
+          multiline rows={6} fullWidth autoFocus
+          placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          disabled={generating}
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+        />
+
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Exemples de profils :
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
+              <Chip
+                key={label} label={label} size="small" variant="outlined"
+                onClick={() => setPrompt(text)}
+                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Button
+          variant="contained" size="large"
+          startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+          onClick={handleGenerate}
+          disabled={!prompt.trim() || generating}
+          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
+        >
+          {generating ? 'Construction de la carte…' : 'Générer ma carte'}
+        </Button>
+      </Box>
+    </Box>
+  )
+
+  // ── Helpers partagés ──────────────────────────────────────────────────
+
+  const renderAddNodeButton = () => (
+    <Button
+      variant="outlined" startIcon={<Add />} onClick={handleOpenAddNode} size="small" fullWidth
+      sx={{ textTransform: 'none', justifyContent: 'flex-start', borderColor: TEAL, color: TEAL }}
+    >
+      Ajouter un nœud
+    </Button>
+  )
+
+  const renderStats = () => (
+    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Chip size="small" label={`${nodes.length} nœuds`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`${edges.length} liens`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`v${meta.version}`} variant="outlined" />
+    </Box>
+  )
+
+  const renderLegend = () => (
+    <Accordion
+      disableGutters elevation={0} expanded={legendOpen}
+      onChange={(_, v) => setLegendOpen(v)}
+      sx={{ '&:before': { display: 'none' }, bgcolor: 'transparent' }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMore fontSize="small" />}
+        sx={{ px: 0, minHeight: 32, '& .MuiAccordionSummary-content': { my: 0 } }}
+      >
+        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Légende
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 0, pb: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Types de nœuds */}
+        <Box>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+            Types de nœuds
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            {(Object.entries(NODE_TYPE_CONFIG) as [ExpertiseNodeType, typeof NODE_TYPE_CONFIG[ExpertiseNodeType]][]).map(
+              ([type, cfg]) => (
+                <Box key={type} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '3px', flexShrink: 0, border: `2px solid ${cfg.color}`, bgcolor: cfg.bg }} />
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: cfg.color }}>{cfg.label}</Typography>
+                </Box>
+              ),
+            )}
+          </Box>
+        </Box>
+        {/* Types de liens */}
+        <Box>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+            Types de liens
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {RELATION_CATEGORIES.map((cat) => {
+              const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
+                .filter(([, v]) => v.category === cat)
+              const color = entries[0]?.[1].color
+              return (
+                <Box key={cat}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block', mb: 0.4 }}>{cat}</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {entries.map(([key, c]) => (
+                      <Chip key={key} label={c.label} size="small"
+                        sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )
+            })}
+          </Box>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
+  )
+
+  // ── Panel gauche — 3 états contextuels ────────────────────────────────
+
   const renderDrawerContent = () => {
+    // État 3 : lien sélectionné
     if (drawerTab === 'edge' && selectedEdge) {
       const cfg = RELATION_TYPES[selectedEdgeType]
       return (
@@ -254,14 +422,12 @@ export default function MindMapView() {
             </IconButton>
           </Box>
 
-          {/* Relation actuelle */}
           <Box sx={{ bgcolor: `${cfg.color}15`, border: `1px solid ${cfg.color}55`, borderRadius: 1, p: 1.5 }}>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Relation actuelle</Typography>
             <Typography variant="body2" sx={{ fontWeight: 700, color: cfg.color }}>{cfg.label}</Typography>
             <Typography variant="caption" color="text.secondary">{cfg.category}</Typography>
           </Box>
 
-          {/* Sélecteur par catégorie */}
           {RELATION_CATEGORIES.map((cat) => {
             const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
               .filter(([, v]) => v.category === cat)
@@ -276,38 +442,21 @@ export default function MindMapView() {
                       key={key}
                       onClick={() => handleChangeRelationType(key)}
                       sx={{
-                        px: 1.5, py: 0.8,
-                        borderRadius: 1,
+                        px: 1.5, py: 0.8, borderRadius: 1,
                         border: `1.5px solid ${selectedEdgeType === key ? c.color : 'transparent'}`,
                         bgcolor: selectedEdgeType === key ? `${c.color}15` : 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1,
                         '&:hover': { bgcolor: `${c.color}10` },
                         transition: 'all 0.12s ease',
                       }}
                     >
-                      {/* Prévisualisation du trait */}
-                      <Box sx={{ width: 28, height: 2, flexShrink: 0, position: 'relative' }}>
-                        <Box sx={{
-                          position: 'absolute', top: 0, left: 0, right: 0, height: '100%',
-                          bgcolor: c.color,
-                          opacity: c.strokeDasharray ? 0 : 1,
-                        }} />
-                        {c.strokeDasharray && (
-                          <svg width="28" height="4" style={{ position: 'absolute', top: -1 }}>
-                            <line x1="0" y1="2" x2="28" y2="2"
-                              stroke={c.color} strokeWidth="2"
-                              strokeDasharray={c.strokeDasharray}
-                            />
-                          </svg>
-                        )}
-                        {!c.strokeDasharray && (
-                          <svg width="28" height="4" style={{ position: 'absolute', top: -1 }}>
-                            <line x1="0" y1="2" x2="28" y2="2" stroke={c.color} strokeWidth="2" />
-                          </svg>
-                        )}
+                      <Box sx={{ width: 28, height: 4, flexShrink: 0 }}>
+                        <svg width="28" height="4">
+                          <line x1="0" y1="2" x2="28" y2="2"
+                            stroke={c.color} strokeWidth="2"
+                            strokeDasharray={c.strokeDasharray ?? undefined}
+                          />
+                        </svg>
                       </Box>
                       <Typography variant="caption" sx={{ fontWeight: selectedEdgeType === key ? 700 : 400, color: c.color }}>
                         {c.label}
@@ -320,13 +469,8 @@ export default function MindMapView() {
           })}
 
           <Divider />
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Delete />}
-            size="small"
-            onClick={handleDeleteSelectedEdge}
-            sx={{ textTransform: 'none' }}
+          <Button variant="outlined" color="error" startIcon={<Delete />} size="small"
+            onClick={handleDeleteSelectedEdge} sx={{ textTransform: 'none' }}
           >
             Supprimer ce lien
           </Button>
@@ -334,12 +478,92 @@ export default function MindMapView() {
       )
     }
 
-    // Onglet principal (graphe)
+    // État 2 : nœud(s) sélectionné(s)
+    if (selectedNodes.length > 0) {
+      const singleNode = selectedNodes.length === 1 ? selectedNodes[0] : null
+      const singleData = singleNode ? (singleNode.data as ExpertiseNodeData) : null
+      const singleCfg = singleData ? NODE_TYPE_CONFIG[singleData.nodeType] : null
+
+      return (
+        <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {singleNode && singleData && singleCfg ? (
+            /* Carte info — nœud unique */
+            <Box sx={{ border: `1.5px solid ${singleCfg.color}`, borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ bgcolor: singleCfg.bg, borderBottom: `1px solid ${singleCfg.color}44`, px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: singleCfg.color, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ fontWeight: 700, color: singleCfg.color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {singleCfg.label}
+                </Typography>
+              </Box>
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: singleData.description ? 0.5 : 0 }}>
+                  {singleData.label}
+                </Typography>
+                {singleData.description && (
+                  <Typography variant="caption" color="text.secondary">{singleData.description}</Typography>
+                )}
+              </Box>
+            </Box>
+          ) : (
+            /* Sélection multiple */
+            <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
+                {selectedNodes.length} nœuds sélectionnés
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {(Object.entries(
+                  selectedNodes.reduce((acc, n) => {
+                    const t = (n.data as ExpertiseNodeData).nodeType
+                    acc[t] = (acc[t] ?? 0) + 1
+                    return acc
+                  }, {} as Record<string, number>),
+                ) as [ExpertiseNodeType, number][]).map(([type, count]) => {
+                  const cfg = NODE_TYPE_CONFIG[type]
+                  return (
+                    <Chip key={type} size="small"
+                      label={`${count} ${cfg.label}`}
+                      sx={{ bgcolor: `${cfg.color}15`, color: cfg.color, fontSize: '0.65rem', height: 20 }}
+                    />
+                  )
+                })}
+              </Box>
+            </Box>
+          )}
+
+          {/* Actions */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {singleNode && (
+              <Button variant="outlined" startIcon={<Edit />} size="small"
+                onClick={() => handleOpenEditNode(singleNode.id)}
+                sx={{ flex: 1, textTransform: 'none' }}
+              >
+                Modifier
+              </Button>
+            )}
+            <Button variant="outlined" color="error" startIcon={<Delete />} size="small"
+              onClick={handleDeleteSelectedNodes}
+              sx={{ flex: singleNode ? 1 : undefined, textTransform: 'none', ...(singleNode ? {} : { width: '100%' }) }}
+            >
+              Supprimer{selectedNodes.length > 1 ? ` (${selectedNodes.length})` : ''}
+            </Button>
+          </Box>
+
+          <Divider />
+          {renderAddNodeButton()}
+          <Divider />
+          {renderLegend()}
+          <Divider />
+          {renderStats()}
+        </Box>
+      )
+    }
+
+    // État 1 : rien de sélectionné — prompt LLM en action principale
     return (
-      <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* Prompt LLM */}
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: TEAL }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, color: TEAL }}>
             Décrire mes expertises
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
@@ -354,11 +578,11 @@ export default function MindMapView() {
             sx={{ mb: 1.5 }}
           />
           <Button
-            fullWidth variant="contained"
+            fullWidth variant="contained" size="medium"
             startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <AutoAwesome />}
             onClick={handleGenerate}
             disabled={!prompt.trim() || generating}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1 }}
           >
             {generating ? 'Génération en cours…' : 'Générer le graphe'}
           </Button>
@@ -376,190 +600,125 @@ export default function MindMapView() {
         )}
 
         <Divider />
-
-        {/* Actions nœuds */}
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Nœuds</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Button
-              variant="outlined" startIcon={<Add />} onClick={handleOpenAddNode} size="small"
-              sx={{ textTransform: 'none', justifyContent: 'flex-start', borderColor: TEAL, color: TEAL }}
-            >
-              Ajouter un nœud
-            </Button>
-            {selectedNodes.length > 0 && (
-              <>
-                {selectedNodes.length === 1 && (
-                  <Button
-                    variant="outlined" startIcon={<Edit />}
-                    onClick={() => handleOpenEditNode(selectedNodes[0].id)}
-                    size="small" sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
-                  >
-                    Modifier le nœud sélectionné
-                  </Button>
-                )}
-                <Button
-                  variant="outlined" color="error" startIcon={<Delete />}
-                  onClick={handleDeleteSelectedNodes} size="small"
-                  sx={{ textTransform: 'none', justifyContent: 'flex-start' }}
-                >
-                  Supprimer ({selectedNodes.length})
-                </Button>
-              </>
-            )}
-          </Box>
-        </Box>
-
+        {renderAddNodeButton()}
         <Divider />
-
-        {/* Légende nœuds */}
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Types de nœuds</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {(Object.entries(NODE_TYPE_CONFIG) as [ExpertiseNodeType, typeof NODE_TYPE_CONFIG[ExpertiseNodeType]][]).map(
-              ([type, cfg]) => (
-                <Box key={type} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <Box sx={{ width: 14, height: 14, borderRadius: '3px', flexShrink: 0, mt: 0.3, border: `2px solid ${cfg.color}`, bgcolor: cfg.bg }} />
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: cfg.color, display: 'block' }}>{cfg.label}</Typography>
-                    <Typography variant="caption" color="text.secondary">{cfg.description}</Typography>
-                  </Box>
-                </Box>
-              ),
-            )}
-          </Box>
-        </Box>
-
+        {renderLegend()}
         <Divider />
-
-        {/* Légende liens */}
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Types de liens</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {RELATION_CATEGORIES.map((cat) => {
-              const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
-                .filter(([, v]) => v.category === cat)
-              const color = entries[0]?.[1].color
-              return (
-                <Box key={cat}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block', mb: 0.5 }}>{cat}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {entries.map(([key, c]) => (
-                      <Chip key={key} label={c.label} size="small"
-                        sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )
-            })}
-          </Box>
-        </Box>
-
-        <Divider />
-
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Chip size="small" label={`${nodes.length} nœuds`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
-          <Chip size="small" label={`${edges.length} liens`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
-          <Chip size="small" label={`v${meta.version}`} variant="outlined" />
-        </Box>
+        {renderStats()}
       </Box>
     )
   }
 
+  const isEmpty = nodes.length === 0
+
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 112px)', position: 'relative', overflow: 'hidden' }}>
-      {/* Left drawer */}
-      <Drawer
-        variant="persistent"
-        open={drawerOpen}
-        sx={{
-          width: drawerOpen ? DRAWER_WIDTH : 0,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
-            position: 'relative',
-            height: '100%',
-            border: 'none',
-            borderRight: '1px solid',
-            borderColor: 'divider',
-            overflowY: 'auto',
-            boxSizing: 'border-box',
-          },
-        }}
-      >
-        {renderDrawerContent()}
-      </Drawer>
 
-      {/* Toggle drawer */}
-      <Box sx={{ position: 'absolute', left: drawerOpen ? DRAWER_WIDTH - 1 : 0, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
-        <IconButton
-          onClick={() => setDrawerOpen((v) => !v)}
-          size="small"
-          sx={{ bgcolor: 'white', border: '1px solid', borderColor: 'divider', borderRadius: '0 6px 6px 0', '&:hover': { bgcolor: '#f5f5f5' } }}
-        >
-          {drawerOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
-        </IconButton>
-      </Box>
+      {/* Empty state — affiché à la place du canvas quand aucun nœud */}
+      {isEmpty && renderEmptyState()}
 
-      {/* React Flow canvas */}
-      <Box sx={{ flex: 1, height: '100%' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onEdgeClick={onEdgeClick}
-          onPaneClick={onPaneClick}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          defaultEdgeOptions={{ type: 'relationEdge' }}
-        >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e2e8f0" />
-          <Controls />
-          <MiniMap
-            nodeColor={(node) => {
-              const data = node.data as ExpertiseNodeData
-              return NODE_TYPE_CONFIG[data.nodeType]?.color ?? '#94a3b8'
+      {/* Canvas + panneau gauche — masqués quand vide */}
+      {!isEmpty && (
+        <>
+          {/* Left drawer */}
+          <Drawer
+            variant="persistent"
+            open={drawerOpen}
+            sx={{
+              width: drawerOpen ? DRAWER_WIDTH : 0,
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: DRAWER_WIDTH,
+                position: 'relative',
+                height: '100%',
+                border: 'none',
+                borderRight: '1px solid',
+                borderColor: 'divider',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+              },
             }}
-            style={{ bottom: 60 }}
-          />
+          >
+            {renderDrawerContent()}
+          </Drawer>
 
-          <Panel position="top-right">
-            <Box sx={{ display: 'flex', gap: 1, bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
-              <Tooltip title="Enregistrer">
-                <Button
-                  size="small" variant="contained"
-                  startIcon={<Save />}
-                  onClick={handleSave}
-                  sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
-                >
-                  Enregistrer
-                </Button>
-              </Tooltip>
-              <Tooltip title="Voir / exporter le JSON">
-                <Button
-                  size="small" variant="outlined"
-                  startIcon={<Download />}
-                  onClick={() => setJsonOpen(true)}
-                  sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}
-                >
-                  JSON
-                </Button>
-              </Tooltip>
-            </Box>
-          </Panel>
+          {/* Toggle drawer */}
+          <Box sx={{ position: 'absolute', left: drawerOpen ? DRAWER_WIDTH - 1 : 0, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
+            <IconButton
+              onClick={() => setDrawerOpen((v) => !v)}
+              size="small"
+              sx={{ bgcolor: 'white', border: '1px solid', borderColor: 'divider', borderRadius: '0 6px 6px 0', '&:hover': { bgcolor: '#f5f5f5' } }}
+            >
+              {drawerOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
+            </IconButton>
+          </Box>
 
-          <Panel position="bottom-center">
-            <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.85)', px: 1.5, py: 0.5, borderRadius: 2, color: 'text.secondary' }}>
-              Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour changer son type
-            </Typography>
-          </Panel>
-        </ReactFlow>
-      </Box>
+          {/* React Flow canvas */}
+          <Box sx={{ flex: 1, height: '100%' }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onEdgeClick={onEdgeClick}
+              onPaneClick={onPaneClick}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.2 }}
+              defaultEdgeOptions={{ type: 'relationEdge' }}
+            >
+              <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e2e8f0" />
+              <Controls />
+              <MiniMap
+                nodeColor={(node) => {
+                  const data = node.data as ExpertiseNodeData
+                  return NODE_TYPE_CONFIG[data.nodeType]?.color ?? '#94a3b8'
+                }}
+                style={{ bottom: 60 }}
+              />
+
+              <Panel position="top-right">
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
+                  <Tooltip title="Enregistrer">
+                    <Button
+                      size="small" variant="contained"
+                      startIcon={<Save />}
+                      onClick={handleSave}
+                      sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
+                    >
+                      Enregistrer
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Voir / exporter le JSON">
+                    <Button
+                      size="small" variant="outlined"
+                      startIcon={<Download />}
+                      onClick={() => setJsonOpen(true)}
+                      sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}
+                    >
+                      JSON
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Réinitialiser la carte">
+                    <IconButton size="small" onClick={handleReset} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
+                      <RestartAlt fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Panel>
+
+              <Panel position="bottom-center">
+                <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.85)', px: 1.5, py: 0.5, borderRadius: 2, color: 'text.secondary' }}>
+                  Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour changer son type
+                </Typography>
+              </Panel>
+            </ReactFlow>
+          </Box>
+        </>
+      )}
+
 
       {/* Dialog — add / edit node */}
       <Dialog open={nodeDialog.open} onClose={() => setNodeDialog(DEFAULT_DIALOG)} maxWidth="xs" fullWidth>
