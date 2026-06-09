@@ -3,30 +3,22 @@
 import { useEffect, useState } from 'react'
 import { Node, Edge } from '@xyflow/react'
 import {
-  Alert,
-  Box,
-  Button,
-  Divider,
-  Grid2 as Grid,
-  Typography,
+  Alert, Box, Button, Grid2 as Grid, Typography,
 } from '@mui/material'
 import { AccountTree, Add } from '@mui/icons-material'
 import { Activity } from '@/types/Activity'
 import {
+  EdgeData,
   ExpertiseGraph,
   ExpertiseNodeData,
   INITIAL_GRAPH,
-  NODE_TYPE_CONFIG,
-  RELATION_TYPES,
-  RelationTypeKey,
 } from '../../types'
-import ExpertiseFlatCard, { ConnectedNode, ExpertiseEntry } from './ExpertiseFlatCard'
+import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
 
-const GRAPH_KEY = 'expertise-graph-v1'
+const GRAPH_KEY = 'expertise-graph-v2'
 const ACTIVITIES_KEY = 'expertise-activities-v1'
 const TEAL = '#006A61'
 
-// Activités mock partagées avec la rubrique Activités de recherche
 const MOCK_ACTIVITIES: Activity[] = [
   {
     id: '1', type: 'projet', title: 'ANR DeepLearning4Science',
@@ -79,18 +71,14 @@ const MOCK_ACTIVITIES: Activity[] = [
   },
 ]
 
-// Associations initiales pour la démo
-const INITIAL_ASSOCIATIONS: Record<string, string[]> = {
-  n1: ['1', '2'],
-  n3: ['5', '7'],
-}
+const INITIAL_ASSOCIATIONS: Record<string, string[]> = { n1: ['1', '2'], n3: ['5', '7'] }
 
 function loadGraph(): ExpertiseGraph {
   if (typeof window === 'undefined') return INITIAL_GRAPH
   try {
     const raw = localStorage.getItem(GRAPH_KEY)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
-  } catch (_e) { /* ignore parse errors */ }
+  } catch (_e) { /* ignore */ }
   return INITIAL_GRAPH
 }
 
@@ -99,76 +87,45 @@ function loadAssociations(): Record<string, string[]> {
   try {
     const raw = localStorage.getItem(ACTIVITIES_KEY)
     if (raw) return JSON.parse(raw) as Record<string, string[]>
-  } catch (_e) { /* ignore parse errors */ }
+  } catch (_e) { /* ignore */ }
   return INITIAL_ASSOCIATIONS
 }
 
-function buildEntries(
-  nodes: Node<ExpertiseNodeData>[],
-  edges: Edge[],
-): ExpertiseEntry[] {
+function buildEntries(nodes: Node<ExpertiseNodeData>[], edges: Edge[]): ExpertiseEntry[] {
   const nodeMap = new Map(nodes.map((n) => [n.id, n]))
 
-  const expertiseNodes = nodes.filter(
-    (n) => (n.data as ExpertiseNodeData).nodeType === 'main' ||
-            (n.data as ExpertiseNodeData).nodeType === 'secondary',
-  )
-
-  return expertiseNodes.map((eNode) => {
-    const terrains: ConnectedNode[] = []
-    const concepts: ConnectedNode[] = []
-    const hierarchyOut: ConnectedNode[] = []
-    const hierarchyIn: ConnectedNode[] = []
-    const dialogue: ConnectedNode[] = []
-    const dialogueIds = new Set<string>()
+  return nodes.map((node) => {
+    const relations: RelatedExpertise[] = []
+    const seen = new Set<string>()
 
     for (const edge of edges) {
-      const relationType = (edge.data?.relationType ?? 'croise') as RelationTypeKey
-      const relCfg = RELATION_TYPES[relationType]
-      if (!relCfg) continue
+      const data = (edge.data ?? {}) as EdgeData
+      const direction = data.direction ?? 'forward'
 
-      if (edge.source === eNode.id) {
+      if (edge.source === node.id && !seen.has(edge.target)) {
         const target = nodeMap.get(edge.target)
-        if (!target) continue
-        const targetType = (target.data as ExpertiseNodeData).nodeType
-
-        if (targetType === 'terrain') {
-          terrains.push({ node: target as Node<ExpertiseNodeData>, relationType })
-        } else if (targetType === 'concept') {
-          concepts.push({ node: target as Node<ExpertiseNodeData>, relationType })
-        } else if (targetType === 'main' || targetType === 'secondary') {
-          if (relCfg.category === 'Hiérarchie') {
-            hierarchyOut.push({ node: target as Node<ExpertiseNodeData>, relationType })
-          } else if (relCfg.category === 'Dialogue') {
-            dialogueIds.add(target.id)
-            dialogue.push({ node: target as Node<ExpertiseNodeData>, relationType })
-          }
+        if (target) {
+          seen.add(edge.target)
+          relations.push({
+            node: target as Node<ExpertiseNodeData>,
+            edgeLabel: data.label,
+            directionArrow: direction === 'forward' ? 'to' : direction === 'backward' ? 'from' : 'both',
+          })
         }
-      }
-
-      if (edge.target === eNode.id) {
+      } else if (edge.target === node.id && !seen.has(edge.source)) {
         const source = nodeMap.get(edge.source)
-        if (!source) continue
-        const sourceType = (source.data as ExpertiseNodeData).nodeType
-
-        if (sourceType === 'main' || sourceType === 'secondary') {
-          if (relCfg.category === 'Hiérarchie') {
-            hierarchyIn.push({ node: source as Node<ExpertiseNodeData>, relationType })
-          } else if (relCfg.category === 'Dialogue' && !dialogueIds.has(source.id)) {
-            dialogueIds.add(source.id)
-            dialogue.push({ node: source as Node<ExpertiseNodeData>, relationType })
-          }
+        if (source) {
+          seen.add(edge.source)
+          relations.push({
+            node: source as Node<ExpertiseNodeData>,
+            edgeLabel: data.label,
+            directionArrow: direction === 'forward' ? 'from' : direction === 'backward' ? 'to' : 'both',
+          })
         }
       }
     }
 
-    return { node: eNode, terrains, concepts, hierarchyOut, hierarchyIn, dialogue }
-  }).sort((a, b) => {
-    // main avant secondary
-    const order = { main: 0, secondary: 1, terrain: 2, concept: 3 }
-    const aType = (a.node.data as ExpertiseNodeData).nodeType
-    const bType = (b.node.data as ExpertiseNodeData).nodeType
-    return (order[aType] ?? 99) - (order[bType] ?? 99)
+    return { node, relations }
   })
 }
 
@@ -198,23 +155,16 @@ export default function FlatView({ onGoToMindMap }: Props) {
     localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(next))
   }
 
-  const mainCount = entries.filter((e) => (e.node.data as ExpertiseNodeData).nodeType === 'main').length
-  const secondaryCount = entries.filter((e) => (e.node.data as ExpertiseNodeData).nodeType === 'secondary').length
-
   if (!mounted) return null
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Bannière de lien avec la carte mentale */}
       <Alert
         severity="info"
         icon={<AccountTree fontSize="small" />}
         action={
-          <Button
-            size="small"
-            onClick={onGoToMindMap}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}
-          >
+          <Button size="small" onClick={onGoToMindMap}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}>
             Modifier le graphe →
           </Button>
         }
@@ -224,39 +174,19 @@ export default function FlatView({ onGoToMindMap }: Props) {
         Modifiez le graphe pour enrichir cette liste.
       </Alert>
 
-      {/* En-tête avec compteurs */}
       <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
             Mes expertises
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            {mainCount > 0 && (
-              <Typography variant="body2" color="text.secondary">
-                <Box component="span" sx={{ fontWeight: 600, color: NODE_TYPE_CONFIG.main.color }}>
-                  {mainCount}
-                </Box>{' '}
-                expertise{mainCount > 1 ? 's' : ''} principale{mainCount > 1 ? 's' : ''}
-              </Typography>
-            )}
-            {secondaryCount > 0 && (
-              <Typography variant="body2" color="text.secondary">
-                <Box component="span" sx={{ fontWeight: 600, color: NODE_TYPE_CONFIG.secondary.color }}>
-                  {secondaryCount}
-                </Box>{' '}
-                secondaire{secondaryCount > 1 ? 's' : ''}
-              </Typography>
-            )}
-          </Box>
+          <Typography variant="body2" color="text.secondary">
+            <Box component="span" sx={{ fontWeight: 600, color: TEAL }}>{entries.length}</Box>
+            {' '}expertise{entries.length > 1 ? 's' : ''} définie{entries.length > 1 ? 's' : ''}
+          </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<Add />}
-          onClick={onGoToMindMap}
-          size="small"
-          sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}
-        >
-          Ajouter dans la carte mentale
+        <Button variant="outlined" startIcon={<Add />} onClick={onGoToMindMap} size="small"
+          sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
+          Ajouter dans la carte
         </Button>
       </Box>
 
@@ -269,73 +199,25 @@ export default function FlatView({ onGoToMindMap }: Props) {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Commencez par créer votre carte mentale pour alimenter cette vue.
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AccountTree />}
-            onClick={onGoToMindMap}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
-          >
-            Créer ma carte mentale
+          <Button variant="contained" startIcon={<AccountTree />} onClick={onGoToMindMap}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
+            Créer ma carte
           </Button>
         </Box>
       ) : (
-        <>
-          {/* Section expertises principales */}
-          {mainCount > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: NODE_TYPE_CONFIG.main.color }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: NODE_TYPE_CONFIG.main.color }}>
-                  Expertises principales
-                </Typography>
-                <Divider sx={{ flex: 1 }} />
-              </Box>
-              <Grid container spacing={3}>
-                {entries
-                  .filter((e) => (e.node.data as ExpertiseNodeData).nodeType === 'main')
-                  .map((entry) => (
-                    <Grid key={entry.node.id} size={{ xs: 12, lg: 6 }}>
-                      <ExpertiseFlatCard
-                        entry={entry}
-                        activities={MOCK_ACTIVITIES}
-                        associatedIds={associations[entry.node.id] ?? []}
-                        onUpdateAssociations={handleUpdateAssociations}
-                        onGoToMindMap={onGoToMindMap}
-                      />
-                    </Grid>
-                  ))}
-              </Grid>
-            </Box>
-          )}
-
-          {/* Section expertises secondaires */}
-          {secondaryCount > 0 && (
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '2px', bgcolor: NODE_TYPE_CONFIG.secondary.color }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: NODE_TYPE_CONFIG.secondary.color }}>
-                  Expertises secondaires
-                </Typography>
-                <Divider sx={{ flex: 1 }} />
-              </Box>
-              <Grid container spacing={3}>
-                {entries
-                  .filter((e) => (e.node.data as ExpertiseNodeData).nodeType === 'secondary')
-                  .map((entry) => (
-                    <Grid key={entry.node.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                      <ExpertiseFlatCard
-                        entry={entry}
-                        activities={MOCK_ACTIVITIES}
-                        associatedIds={associations[entry.node.id] ?? []}
-                        onUpdateAssociations={handleUpdateAssociations}
-                        onGoToMindMap={onGoToMindMap}
-                      />
-                    </Grid>
-                  ))}
-              </Grid>
-            </Box>
-          )}
-        </>
+        <Grid container spacing={3}>
+          {entries.map((entry) => (
+            <Grid key={entry.node.id} size={{ xs: 12, md: 6, lg: 4 }}>
+              <ExpertiseFlatCard
+                entry={entry}
+                activities={MOCK_ACTIVITIES}
+                associatedIds={associations[entry.node.id] ?? []}
+                onUpdateAssociations={handleUpdateAssociations}
+                onGoToMindMap={onGoToMindMap}
+              />
+            </Grid>
+          ))}
+        </Grid>
       )}
     </Box>
   )

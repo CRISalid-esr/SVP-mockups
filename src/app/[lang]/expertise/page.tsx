@@ -44,9 +44,9 @@ function readCompletionStats(): CompletionStats {
   let domains = 0
   let published = 0
   try {
-    const graph = JSON.parse(localStorage.getItem('expertise-graph-v1') ?? '{}')
+    const graph = JSON.parse(localStorage.getItem('expertise-graph-v2') ?? '{}')
     domains = (graph.nodes ?? []).filter(
-      (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
+      (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'expertise',
     ).length
   } catch (_) { /* ignore localStorage parse errors */ }
   try {

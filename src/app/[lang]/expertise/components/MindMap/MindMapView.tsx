@@ -2,80 +2,50 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  Connection,
-  BackgroundVariant,
-  Panel,
-  Edge,
+  ReactFlow, Background, Controls, MiniMap, addEdge,
+  useNodesState, useEdgesState, Connection, BackgroundVariant, Panel, Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Drawer,
-  FormControl,
-  useMediaQuery,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Snackbar,
-  TextField,
-  Tooltip,
-  Typography,
+  Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button,
+  Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+  Divider, Drawer, FormControl, IconButton, InputLabel, MenuItem,
+  Select, Snackbar, TextField, Tooltip, Typography, useMediaQuery,
 } from '@mui/material'
 import {
-  AccountTree,
-  Add,
-  AutoAwesome,
-  ChevronLeft,
-  ChevronRight,
-  Close,
-  Delete,
-  Download,
-  Edit,
-  ExpandMore,
-  RestartAlt,
-  Save,
-  Timeline,
+  AccountTree, Add, AutoAwesome, Business, ChevronLeft, ChevronRight,
+  Close, Delete, Download, Edit, ExpandMore, LocalOffer, Person, Place,
+  RestartAlt, Save, Schedule,
 } from '@mui/icons-material'
 import ExpertiseNode from './ExpertiseNode'
 import RelationEdge from './RelationEdge'
 import { generateGraphFromPrompt } from './mockLlm'
 import {
-  ExpertiseGraph,
-  ExpertiseNodeData,
-  ExpertiseNodeType,
-  INITIAL_GRAPH,
-  NODE_TYPE_CONFIG,
-  RELATION_CATEGORIES,
-  RELATION_TYPES,
-  RelationTypeKey,
+  AttributeCategory,
+  CONTROLLED_VOCABULARIES,
+  EdgeData, EdgeDirection,
+  ExpertiseGraph, ExpertiseNodeData, ExpertiseNodeType,
+  INITIAL_GRAPH, NODE_TYPE_CONFIG,
 } from '../../types'
 
-const STORAGE_KEY = 'expertise-graph-v1'
+const STORAGE_KEY = 'expertise-graph-v2'
 const TEAL = '#006A61'
 const DRAWER_WIDTH = 320
 
-const ESSENTIAL_RELATIONS: RelationTypeKey[] = ['approfondit', 'specialise', 'terrain_geo', 'mobilise', 'croise']
-const ADVANCED_COUNT = Object.keys(RELATION_TYPES).length - ESSENTIAL_RELATIONS.length
+const ATTR_CONFIG: Array<{
+  key: AttributeCategory
+  label: string
+  Icon: React.ElementType
+  color: string
+  placeholder: string
+  showVocab?: boolean
+}> = [
+  { key: 'temporal', label: 'Couverture temporelle', Icon: Schedule, color: '#0288D1', placeholder: "Ex : 2005 — aujourd'hui, XIXe siècle…" },
+  { key: 'geographic', label: 'Lieux', Icon: Place, color: '#388E3C', placeholder: 'Ex : France, Afrique subsaharienne…' },
+  { key: 'persons', label: 'Personnes', Icon: Person, color: '#7B1FA2', placeholder: 'Ex : Arjun Appadurai, Michel Foucault…' },
+  { key: 'organizations', label: 'Organisations', Icon: Business, color: '#E65100', placeholder: 'Ex : OIT, UNESCO, CNRS…' },
+  { key: 'concepts', label: 'Concepts et mots-clés', Icon: LocalOffer, color: TEAL, placeholder: 'Ex : migration du travail, genre…', showVocab: true },
+]
 
 const EXAMPLE_PROMPTS: Record<string, string> = {
   Sociologue: "Je suis sociologue spécialisé·e dans les migrations de travail et les inégalités de genre. Mes recherches portent sur les dynamiques identitaires et les politiques migratoires entre l'Asie du Sud et le Moyen-Orient.",
@@ -84,12 +54,16 @@ const EXAMPLE_PROMPTS: Record<string, string> = {
   Juriste: "Je suis juriste spécialisé·e en droit européen et droits numériques. Mes travaux portent sur la régulation des plateformes, la protection des données personnelles et les libertés fondamentales en ligne.",
 }
 
+function applyEdgeStyle(edge: Edge): Edge {
+  return { ...edge, type: 'relationEdge', animated: false }
+}
+
 function loadGraph(): ExpertiseGraph {
   if (typeof window === 'undefined') return INITIAL_GRAPH
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
-  } catch (_e) { /* ignore parse errors */ }
+  } catch (_e) { /* ignore */ }
   return INITIAL_GRAPH
 }
 
@@ -107,18 +81,7 @@ interface NodeDialogState {
 }
 
 const DEFAULT_DIALOG: NodeDialogState = {
-  open: false, mode: 'add', label: '', nodeType: 'concept', description: '',
-}
-
-function applyRelationStyle(edge: Edge): Edge {
-  const relationType = (edge.data?.relationType ?? 'croise') as RelationTypeKey
-  const cfg = RELATION_TYPES[relationType] ?? RELATION_TYPES.croise
-  return {
-    ...edge,
-    type: 'relationEdge',
-    animated: cfg.animated ?? false,
-    label: undefined, // label handled by custom component
-  }
+  open: false, mode: 'add', label: '', nodeType: 'expertise', description: '',
 }
 
 export default function MindMapView() {
@@ -126,7 +89,7 @@ export default function MindMapView() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialGraph.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(
-    initialGraph.edges.map(applyRelationStyle),
+    initialGraph.edges.map(applyEdgeStyle),
   )
   const [meta, setMeta] = useState(initialGraph.meta)
 
@@ -136,12 +99,11 @@ export default function MindMapView() {
   )
   const [drawerTab, setDrawerTab] = useState<'graph' | 'edge'>('graph')
   const [legendOpen, setLegendOpen] = useState(false)
-  const [advancedRelationsOpen, setAdvancedRelationsOpen] = useState(false)
 
-  // Ferme le drawer automatiquement quand on passe en mobile
   useEffect(() => {
     if (isMobile) setDrawerOpen(false)
   }, [isMobile])
+
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
@@ -151,17 +113,27 @@ export default function MindMapView() {
   })
   const [jsonOpen, setJsonOpen] = useState(false)
 
+  // Attribute inline-add state
+  const [addingCat, setAddingCat] = useState<AttributeCategory | null>(null)
+  const [addingForNodeId, setAddingForNodeId] = useState<string | null>(null)
+  const [addingLabel, setAddingLabel] = useState('')
+  const [addingVocab, setAddingVocab] = useState('')
+
   const nodeTypes = useMemo(() => ({ expertiseNode: ExpertiseNode }), [])
   const edgeTypes = useMemo(() => ({ relationEdge: RelationEdge }), [])
 
   const selectedEdge = edges.find((e) => e.id === selectedEdgeId) ?? null
-  const selectedEdgeType = (selectedEdge?.data?.relationType ?? 'croise') as RelationTypeKey
+  const selectedEdgeData = (selectedEdge?.data ?? {}) as EdgeData
 
   const onConnect = useCallback(
     (connection: Connection) =>
       setEdges((eds) =>
         addEdge(
-          applyRelationStyle({ ...connection, id: `e${Date.now()}`, data: { relationType: 'croise' } }),
+          applyEdgeStyle({
+            ...connection,
+            id: `e${Date.now()}`,
+            data: { direction: 'forward' as EdgeDirection, label: '' },
+          }),
           eds,
         ),
       ),
@@ -179,20 +151,19 @@ export default function MindMapView() {
     if (drawerTab === 'edge') setDrawerTab('graph')
   }, [drawerTab])
 
-  const handleChangeRelationType = (relationType: RelationTypeKey) => {
+  const handleChangeEdgeData = useCallback((updates: Partial<EdgeData>) => {
     if (!selectedEdgeId) return
     setEdges((eds) =>
       eds.map((e) =>
         e.id === selectedEdgeId
-          ? applyRelationStyle({ ...e, data: { ...e.data, relationType } })
+          ? applyEdgeStyle({ ...e, data: { ...e.data, ...updates } })
           : e,
       ),
     )
-  }
+  }, [selectedEdgeId, setEdges])
 
   const handleSave = useCallback(() => {
-    const graph: ExpertiseGraph = { nodes, edges, meta }
-    saveGraph(graph)
+    saveGraph({ nodes, edges, meta })
     setSnackbar({ open: true, msg: 'Carte enregistrée', severity: 'success' })
   }, [nodes, edges, meta])
 
@@ -202,7 +173,7 @@ export default function MindMapView() {
     try {
       const result = await generateGraphFromPrompt(prompt, meta)
       setNodes(result.nodes)
-      setEdges(result.edges.map(applyRelationStyle))
+      setEdges(result.edges.map(applyEdgeStyle))
       setMeta(result.meta)
       setPrompt('')
       setSnackbar({ open: true, msg: 'Graphe généré — vous pouvez le modifier', severity: 'info' })
@@ -211,19 +182,24 @@ export default function MindMapView() {
     }
   }
 
-  const handleOpenAddNode = () => setNodeDialog({ ...DEFAULT_DIALOG, open: true, mode: 'add' })
+  const handleOpenAddNode = () => {
+    setAddingCat(null)
+    setNodeDialog({ ...DEFAULT_DIALOG, open: true, mode: 'add' })
+  }
 
   const handleOpenEditNode = (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId)
     if (!node) return
-    const data = node.data as ExpertiseNodeData
-    setNodeDialog({ open: true, mode: 'edit', nodeId, label: data.label, nodeType: data.nodeType, description: data.description || '' })
+    const d = node.data as ExpertiseNodeData
+    setAddingCat(null)
+    setNodeDialog({ open: true, mode: 'edit', nodeId, label: d.label, nodeType: d.nodeType, description: d.description || '' })
   }
 
   const handleDeleteSelectedNodes = () => {
     setNodes((nds) => nds.filter((n) => !n.selected))
     setEdges((eds) => eds.filter((e) => !e.selected))
     setSelectedEdgeId(null)
+    setAddingCat(null)
   }
 
   const handleDeleteSelectedEdge = () => {
@@ -236,10 +212,11 @@ export default function MindMapView() {
   const handleReset = useCallback(() => {
     setNodes([])
     setEdges([])
-    setMeta({ version: 1, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
+    setMeta({ version: 2, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
     localStorage.removeItem(STORAGE_KEY)
     setSelectedEdgeId(null)
     setDrawerTab('graph')
+    setAddingCat(null)
   }, [setNodes, setEdges])
 
   const handleSaveNodeDialog = () => {
@@ -251,14 +228,14 @@ export default function MindMapView() {
           id: `n${Date.now()}`,
           type: 'expertiseNode' as const,
           position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
-          data: { label: nodeDialog.label, nodeType: nodeDialog.nodeType, description: nodeDialog.description },
+          data: { label: nodeDialog.label, nodeType: 'expertise' as ExpertiseNodeType, description: nodeDialog.description },
         },
       ])
     } else if (nodeDialog.nodeId) {
       setNodes((nds) =>
         nds.map((n) =>
           n.id === nodeDialog.nodeId
-            ? { ...n, data: { ...n.data, label: nodeDialog.label, nodeType: nodeDialog.nodeType, description: nodeDialog.description } }
+            ? { ...n, data: { ...n.data, label: nodeDialog.label, description: nodeDialog.description } }
             : n,
         ),
       )
@@ -266,93 +243,65 @@ export default function MindMapView() {
     setNodeDialog(DEFAULT_DIALOG)
   }
 
+  // ── Attribute handlers ────────────────────────────────────────────────
+
+  const openAddAttr = (nodeId: string, cat: AttributeCategory) => {
+    setAddingCat(cat)
+    setAddingForNodeId(nodeId)
+    setAddingLabel('')
+    setAddingVocab('')
+  }
+
+  const cancelAddAttr = () => {
+    setAddingCat(null)
+    setAddingForNodeId(null)
+    setAddingLabel('')
+    setAddingVocab('')
+  }
+
+  const confirmAddAttr = (nodeId: string, cat: AttributeCategory) => {
+    if (!addingLabel.trim()) return
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== nodeId) return n
+      const d = n.data as ExpertiseNodeData
+      const current = (d[cat] ?? []) as unknown[]
+      const item = cat === 'concepts'
+        ? { label: addingLabel.trim(), ...(addingVocab ? { vocabulary: addingVocab } : {}) }
+        : { label: addingLabel.trim() }
+      return { ...n, data: { ...d, [cat]: [...current, item] } }
+    }))
+    cancelAddAttr()
+  }
+
+  const removeAttr = (nodeId: string, cat: AttributeCategory, idx: number) => {
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== nodeId) return n
+      const d = n.data as ExpertiseNodeData
+      const current = [...((d[cat] ?? []) as unknown[])]
+      current.splice(idx, 1)
+      return { ...n, data: { ...d, [cat]: current } }
+    }))
+  }
+
+  // ── Render helpers ────────────────────────────────────────────────────
+
   const selectedNodes = nodes.filter((n) => n.selected)
   const graphJson = JSON.stringify({ nodes, edges, meta }, null, 2)
   const lastPrompt = meta.promptHistory[meta.promptHistory.length - 1]
-
-  // ── Empty state onboarding ────────────────────────────────────────────
-
-  const renderEmptyState = () => (
-    <Box sx={{
-      position: 'absolute', inset: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      bgcolor: '#f8fafb',
-      backgroundImage: 'radial-gradient(circle, #c8d8d6 1px, transparent 1px)',
-      backgroundSize: '24px 24px',
-    }}>
-      <Box sx={{
-        bgcolor: 'background.paper', borderRadius: 3,
-        border: '1px solid', borderColor: 'divider',
-        p: { xs: 3, sm: 4 }, maxWidth: 520, width: '90%',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-        display: 'flex', flexDirection: 'column', gap: 2.5,
-      }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <AccountTree sx={{ fontSize: 52, color: TEAL, opacity: 0.8 }} />
-        </Box>
-
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-            Décrivez vos domaines de recherche
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
-          </Typography>
-        </Box>
-
-        <TextField
-          multiline rows={6} fullWidth autoFocus
-          placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          disabled={generating}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-        />
-
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            Exemples de profils :
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
-              <Chip
-                key={label} label={label} size="small" variant="outlined"
-                onClick={() => setPrompt(text)}
-                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        <Button
-          variant="contained" size="large"
-          startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
-          onClick={handleGenerate}
-          disabled={!prompt.trim() || generating}
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
-        >
-          {generating ? 'Construction de la carte…' : 'Générer ma carte'}
-        </Button>
-      </Box>
-    </Box>
-  )
-
-  // ── Helpers partagés ──────────────────────────────────────────────────
 
   const renderAddNodeButton = () => (
     <Button
       variant="outlined" startIcon={<Add />} onClick={handleOpenAddNode} size="small" fullWidth
       sx={{ textTransform: 'none', justifyContent: 'flex-start', borderColor: TEAL, color: TEAL }}
     >
-      Ajouter un nœud
+      Ajouter une expertise
     </Button>
   )
 
   const renderStats = () => (
     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-      <Chip size="small" label={`${nodes.length} nœuds`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
-      <Chip size="small" label={`${edges.length} liens`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`${nodes.length} expertise${nodes.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`${edges.length} lien${edges.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
       <Chip size="small" label={`v${meta.version}`} variant="outlined" />
     </Box>
   )
@@ -372,141 +321,204 @@ export default function MindMapView() {
         </Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ px: 0, pb: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Types de nœuds */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
-            Types de nœuds
+            Nœuds
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            {(Object.entries(NODE_TYPE_CONFIG) as [ExpertiseNodeType, typeof NODE_TYPE_CONFIG[ExpertiseNodeType]][]).map(
-              ([type, cfg]) => (
-                <Box key={type} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: '3px', flexShrink: 0, border: `2px solid ${cfg.color}`, bgcolor: cfg.bg }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: cfg.color }}>{cfg.label}</Typography>
-                </Box>
-              ),
-            )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 12, height: 12, borderRadius: '3px', flexShrink: 0, border: `2px solid ${TEAL}`, bgcolor: NODE_TYPE_CONFIG.expertise.bg }} />
+            <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL }}>Expertise</Typography>
           </Box>
         </Box>
-        {/* Types de liens */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
-            Types de liens
+            Liens
           </Typography>
-          {/* Essentiels — toujours visibles */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-            {ESSENTIAL_RELATIONS.map((key) => {
-              const c = RELATION_TYPES[key]
-              return (
-                <Chip key={key} label={c.label} size="small"
-                  sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
-                />
-              )
-            })}
-          </Box>
-          {/* Toggle relations avancées */}
-          <Box
-            onClick={() => setAdvancedRelationsOpen((v) => !v)}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: 'text.secondary', userSelect: 'none' }}
-          >
-            <ExpandMore sx={{ fontSize: 14, transition: 'transform 0.2s', transform: advancedRelationsOpen ? 'rotate(180deg)' : 'none' }} />
-            <Typography variant="caption">Relations avancées ({ADVANCED_COUNT})</Typography>
-          </Box>
-          {advancedRelationsOpen && (
-            <Box sx={{ mt: 0.75, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {RELATION_CATEGORIES.map((cat) => {
-                const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
-                  .filter(([key, v]) => v.category === cat && !ESSENTIAL_RELATIONS.includes(key as RelationTypeKey))
-                if (!entries.length) return null
-                const color = entries[0]?.[1].color
-                return (
-                  <Box key={cat}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block', mb: 0.4 }}>{cat}</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {entries.map(([key, c]) => (
-                        <Chip key={key} label={c.label} size="small"
-                          sx={{ fontSize: '0.6rem', height: 20, bgcolor: `${c.color}12`, color: c.color, border: `1px solid ${c.color}44` }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )
-              })}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <svg width="28" height="4"><line x1="0" y1="2" x2="28" y2="2" stroke={TEAL} strokeWidth="2" /></svg>
+              <Typography variant="caption" color="text.secondary">Relation qualifiée</Typography>
             </Box>
-          )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <svg width="28" height="4"><line x1="0" y1="2" x2="28" y2="2" stroke="#94a3b8" strokeWidth="2" strokeDasharray="5 3" /></svg>
+              <Typography variant="caption" color="text.secondary">Relation non qualifiée</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>A → B · A ← B · A ↔ B</Typography>
+            </Box>
+          </Box>
+        </Box>
+        <Box>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+            Caractéristiques
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {ATTR_CONFIG.map(({ key, label, Icon, color }) => (
+              <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Icon sx={{ fontSize: 12, color, flexShrink: 0 }} />
+                <Typography variant="caption" color="text.secondary">{label}</Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
       </AccordionDetails>
     </Accordion>
   )
 
-  // ── Panel gauche — 3 états contextuels ────────────────────────────────
+  const renderAttributesPanel = (nodeId: string, nodeData: ExpertiseNodeData) => (
+    <Box>
+      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
+        Caractéristiques
+      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        {ATTR_CONFIG.map(({ key, label, Icon, color, placeholder, showVocab }) => {
+          const items = (nodeData[key] ?? []) as Array<{ label: string; vocabulary?: string }>
+          const isAdding = addingCat === key && addingForNodeId === nodeId
+          return (
+            <Box key={key}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: items.length > 0 || isAdding ? 0.75 : 0 }}>
+                <Icon sx={{ fontSize: 13, color, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ fontWeight: 600, color, flex: 1 }}>{label}</Typography>
+                {!isAdding && (
+                  <IconButton size="small" onClick={() => openAddAttr(nodeId, key)}
+                    sx={{ p: 0.25, color: 'text.disabled', '&:hover': { color } }}>
+                    <Add sx={{ fontSize: 14 }} />
+                  </IconButton>
+                )}
+              </Box>
+              {items.length > 0 && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: isAdding ? 0.75 : 0 }}>
+                  {items.map((item, idx) => (
+                    <Chip
+                      key={idx}
+                      label={item.vocabulary ? `${item.label} (${item.vocabulary})` : item.label}
+                      size="small"
+                      onDelete={() => removeAttr(nodeId, key, idx)}
+                      sx={{
+                        fontSize: '0.65rem', height: 20,
+                        bgcolor: `${color}10`, color,
+                        border: `1px solid ${color}33`,
+                        '& .MuiChip-deleteIcon': { fontSize: 12, color: `${color}99`, '&:hover': { color } },
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
+              {isAdding && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, pl: 0, pt: 0.5 }}>
+                  <TextField
+                    size="small" fullWidth autoFocus
+                    placeholder={placeholder}
+                    value={addingLabel}
+                    onChange={(e) => setAddingLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmAddAttr(nodeId, key)
+                      if (e.key === 'Escape') cancelAddAttr()
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
+                  />
+                  {showVocab && (
+                    <FormControl size="small" fullWidth>
+                      <InputLabel sx={{ fontSize: '0.8rem' }}>Vocabulaire (optionnel)</InputLabel>
+                      <Select
+                        label="Vocabulaire (optionnel)"
+                        value={addingVocab}
+                        onChange={(e) => setAddingVocab(e.target.value)}
+                        sx={{ fontSize: '0.8rem' }}
+                      >
+                        <MenuItem value=""><em>Aucun</em></MenuItem>
+                        {CONTROLLED_VOCABULARIES.map((v) => (
+                          <MenuItem key={v.key} value={v.key} sx={{ fontSize: '0.8rem' }}>{v.label}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                  <Box sx={{ display: 'flex', gap: 0.75 }}>
+                    <Button size="small" variant="contained"
+                      disabled={!addingLabel.trim()}
+                      onClick={() => confirmAddAttr(nodeId, key)}
+                      sx={{ flex: 1, textTransform: 'none', fontSize: '0.75rem', bgcolor: color, '&:hover': { bgcolor: color }, filter: 'brightness(0.9)', py: 0.5 }}>
+                      Ajouter
+                    </Button>
+                    <Button size="small" onClick={cancelAddAttr}
+                      sx={{ textTransform: 'none', fontSize: '0.75rem', color: 'text.secondary' }}>
+                      Annuler
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          )
+        })}
+      </Box>
+    </Box>
+  )
+
+  // ── Panneau gauche — 3 états contextuels ─────────────────────────────
 
   const renderDrawerContent = () => {
     // État 3 : lien sélectionné
     if (drawerTab === 'edge' && selectedEdge) {
-      const cfg = RELATION_TYPES[selectedEdgeType]
+      const direction = selectedEdgeData.direction ?? 'forward'
+      const label = selectedEdgeData.label ?? ''
+      const hasLabel = Boolean(label.trim())
+
       return (
         <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Timeline sx={{ color: cfg.color, fontSize: 20 }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: cfg.color }}>
-              Type de relation
-            </Typography>
-            <IconButton size="small" sx={{ ml: 'auto' }} onClick={() => { setSelectedEdgeId(null); setDrawerTab('graph') }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }}>Relation</Typography>
+            <IconButton size="small" onClick={() => { setSelectedEdgeId(null); setDrawerTab('graph') }}>
               <Close fontSize="small" />
             </IconButton>
           </Box>
 
-          <Box sx={{ bgcolor: `${cfg.color}15`, border: `1px solid ${cfg.color}55`, borderRadius: 1, p: 1.5 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Relation actuelle</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: cfg.color }}>{cfg.label}</Typography>
-            <Typography variant="caption" color="text.secondary">{cfg.category}</Typography>
+          {/* Direction */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Direction
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {(['forward', 'bidirectional', 'backward'] as EdgeDirection[]).map((d) => (
+                <Box
+                  key={d}
+                  onClick={() => handleChangeEdgeData({ direction: d })}
+                  sx={{
+                    flex: 1, textAlign: 'center', py: 1, borderRadius: 1, cursor: 'pointer',
+                    border: `1.5px solid ${direction === d ? TEAL : '#e0e0e0'}`,
+                    bgcolor: direction === d ? `${TEAL}12` : 'transparent',
+                    '&:hover': { bgcolor: `${TEAL}08` },
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ fontWeight: direction === d ? 700 : 400, color: direction === d ? TEAL : 'text.secondary', fontFamily: 'monospace' }}>
+                    {d === 'forward' ? 'A → B' : d === 'backward' ? 'A ← B' : 'A ↔ B'}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
 
-          {RELATION_CATEGORIES.map((cat) => {
-            const entries = (Object.entries(RELATION_TYPES) as [RelationTypeKey, typeof RELATION_TYPES[RelationTypeKey]][])
-              .filter(([, v]) => v.category === cat)
-            return (
-              <Box key={cat}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.5 }}>
-                  {cat}
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {entries.map(([key, c]) => (
-                    <Box
-                      key={key}
-                      onClick={() => handleChangeRelationType(key)}
-                      sx={{
-                        px: 1.5, py: 0.8, borderRadius: 1,
-                        border: `1.5px solid ${selectedEdgeType === key ? c.color : 'transparent'}`,
-                        bgcolor: selectedEdgeType === key ? `${c.color}15` : 'transparent',
-                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1,
-                        '&:hover': { bgcolor: `${c.color}10` },
-                        transition: 'all 0.12s ease',
-                      }}
-                    >
-                      <Box sx={{ width: 28, height: 4, flexShrink: 0 }}>
-                        <svg width="28" height="4">
-                          <line x1="0" y1="2" x2="28" y2="2"
-                            stroke={c.color} strokeWidth="2"
-                            strokeDasharray={c.strokeDasharray ?? undefined}
-                          />
-                        </svg>
-                      </Box>
-                      <Typography variant="caption" sx={{ fontWeight: selectedEdgeType === key ? 700 : 400, color: c.color }}>
-                        {c.label}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            )
-          })}
+          {/* Label */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Qualifier la relation
+            </Typography>
+            <TextField
+              fullWidth size="small"
+              placeholder="Ex : influence, prolonge, critique, s'appuie sur…"
+              value={label}
+              onChange={(e) => handleChangeEdgeData({ label: e.target.value })}
+            />
+            {!hasLabel && (
+              <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic', display: 'block', mt: 0.75 }}>
+                Non qualifiée — la relation apparaît en pointillés gris
+              </Typography>
+            )}
+          </Box>
 
           <Divider />
           <Button variant="outlined" color="error" startIcon={<Delete />} size="small"
-            onClick={handleDeleteSelectedEdge} sx={{ textTransform: 'none' }}
-          >
+            onClick={handleDeleteSelectedEdge} sx={{ textTransform: 'none' }}>
             Supprimer ce lien
           </Button>
         </Box>
@@ -517,17 +529,14 @@ export default function MindMapView() {
     if (selectedNodes.length > 0) {
       const singleNode = selectedNodes.length === 1 ? selectedNodes[0] : null
       const singleData = singleNode ? (singleNode.data as ExpertiseNodeData) : null
-      const singleCfg = singleData ? NODE_TYPE_CONFIG[singleData.nodeType] : null
 
       return (
         <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {singleNode && singleData && singleCfg ? (
-            /* Carte info — nœud unique */
-            <Box sx={{ border: `1.5px solid ${singleCfg.color}`, borderRadius: 2, overflow: 'hidden' }}>
-              <Box sx={{ bgcolor: singleCfg.bg, borderBottom: `1px solid ${singleCfg.color}44`, px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: singleCfg.color, flexShrink: 0 }} />
-                <Typography variant="caption" sx={{ fontWeight: 700, color: singleCfg.color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {singleCfg.label}
+          {singleNode && singleData ? (
+            <Box sx={{ border: `1.5px solid ${TEAL}`, borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ bgcolor: NODE_TYPE_CONFIG.expertise.bg, borderBottom: `1px solid ${TEAL}44`, px: 2, py: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Expertise
                 </Typography>
               </Box>
               <Box sx={{ px: 2, py: 1.5 }}>
@@ -540,48 +549,34 @@ export default function MindMapView() {
               </Box>
             </Box>
           ) : (
-            /* Sélection multiple */
             <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1.5 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
-                {selectedNodes.length} nœuds sélectionnés
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                {selectedNodes.length} expertises sélectionnées
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {(Object.entries(
-                  selectedNodes.reduce((acc, n) => {
-                    const t = (n.data as ExpertiseNodeData).nodeType
-                    acc[t] = (acc[t] ?? 0) + 1
-                    return acc
-                  }, {} as Record<string, number>),
-                ) as [ExpertiseNodeType, number][]).map(([type, count]) => {
-                  const cfg = NODE_TYPE_CONFIG[type]
-                  return (
-                    <Chip key={type} size="small"
-                      label={`${count} ${cfg.label}`}
-                      sx={{ bgcolor: `${cfg.color}15`, color: cfg.color, fontSize: '0.65rem', height: 20 }}
-                    />
-                  )
-                })}
-              </Box>
             </Box>
           )}
 
-          {/* Actions */}
           <Box sx={{ display: 'flex', gap: 1 }}>
             {singleNode && (
               <Button variant="outlined" startIcon={<Edit />} size="small"
                 onClick={() => handleOpenEditNode(singleNode.id)}
-                sx={{ flex: 1, textTransform: 'none' }}
-              >
+                sx={{ flex: 1, textTransform: 'none' }}>
                 Modifier
               </Button>
             )}
             <Button variant="outlined" color="error" startIcon={<Delete />} size="small"
               onClick={handleDeleteSelectedNodes}
-              sx={{ flex: singleNode ? 1 : undefined, textTransform: 'none', ...(singleNode ? {} : { width: '100%' }) }}
-            >
+              sx={{ flex: singleNode ? 1 : undefined, textTransform: 'none', ...(singleNode ? {} : { width: '100%' }) }}>
               Supprimer{selectedNodes.length > 1 ? ` (${selectedNodes.length})` : ''}
             </Button>
           </Box>
+
+          {singleNode && singleData && (
+            <>
+              <Divider />
+              {renderAttributesPanel(singleNode.id, singleData)}
+            </>
+          )}
 
           <Divider />
           {renderAddNodeButton()}
@@ -596,7 +591,6 @@ export default function MindMapView() {
     // État 1 : rien de sélectionné — prompt LLM en action principale
     return (
       <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Prompt LLM */}
         <Box>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, color: TEAL }}>
             Décrire mes expertises
@@ -644,135 +638,143 @@ export default function MindMapView() {
     )
   }
 
-  const isEmpty = nodes.length === 0
+  // ── Empty state onboarding ────────────────────────────────────────────
 
-  // Couleurs uniques utilisées par les types de relations
-  const ARROW_COLORS = ['#006A61', '#E65100', '#7B1FA2', '#1976D2', '#C62828']
+  const renderEmptyState = () => (
+    <Box sx={{
+      position: 'absolute', inset: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      bgcolor: '#f8fafb',
+      backgroundImage: 'radial-gradient(circle, #c8d8d6 1px, transparent 1px)',
+      backgroundSize: '24px 24px',
+    }}>
+      <Box sx={{
+        bgcolor: 'background.paper', borderRadius: 3,
+        border: '1px solid', borderColor: 'divider',
+        p: { xs: 3, sm: 4 }, maxWidth: 520, width: '90%',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+        display: 'flex', flexDirection: 'column', gap: 2.5,
+      }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <AccountTree sx={{ fontSize: 52, color: TEAL, opacity: 0.8 }} />
+        </Box>
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
+            Décrivez vos domaines de recherche
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
+          </Typography>
+        </Box>
+        <TextField
+          multiline rows={6} fullWidth autoFocus
+          placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          disabled={generating}
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+        />
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Exemples de profils :
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
+              <Chip
+                key={label} label={label} size="small" variant="outlined"
+                onClick={() => setPrompt(text)}
+                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
+              />
+            ))}
+          </Box>
+        </Box>
+        <Button
+          variant="contained" size="large"
+          startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+          onClick={handleGenerate}
+          disabled={!prompt.trim() || generating}
+          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
+        >
+          {generating ? 'Construction de la carte…' : 'Générer ma carte'}
+        </Button>
+      </Box>
+    </Box>
+  )
+
+  const isEmpty = nodes.length === 0
+  const ARROW_COLORS = [TEAL, '#94a3b8']
 
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 112px)', position: 'relative', overflow: 'hidden' }}>
 
-      {/* Marqueurs SVG pour les flèches des arêtes */}
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           {ARROW_COLORS.map((color) => (
-            <marker
-              key={color}
-              id={`arrow-${color.replace('#', '')}`}
-              markerWidth="10"
-              markerHeight="7"
-              refX="9"
-              refY="3.5"
-              orient="auto-start-reverse"
-            >
+            <marker key={color} id={`arrow-${color.replace('#', '')}`}
+              markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto-start-reverse">
               <polygon points="0 0, 10 3.5, 0 7" fill={color} />
             </marker>
           ))}
         </defs>
       </svg>
 
-      {/* Empty state — affiché à la place du canvas quand aucun nœud */}
       {isEmpty && renderEmptyState()}
 
-      {/* Canvas + panneau gauche — masqués quand vide */}
       {!isEmpty && (
         <>
-          {/* Left drawer — overlay sur mobile, inline sur desktop */}
           <Drawer
             variant={isMobile ? 'temporary' : 'persistent'}
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
             sx={{
-              // Sur desktop : prend de la place dans le flex layout
               ...(!isMobile && { width: drawerOpen ? DRAWER_WIDTH : 0, flexShrink: 0 }),
               '& .MuiDrawer-paper': {
-                width: DRAWER_WIDTH,
-                overflowY: 'auto',
-                boxSizing: 'border-box',
-                // Sur desktop : positionné dans le flux (pas de position fixed)
-                ...(!isMobile && {
-                  position: 'relative',
-                  height: '100%',
-                  border: 'none',
-                  borderRight: '1px solid',
-                  borderColor: 'divider',
-                }),
+                width: DRAWER_WIDTH, overflowY: 'auto', boxSizing: 'border-box',
+                ...(!isMobile && { position: 'relative', height: '100%', border: 'none', borderRight: '1px solid', borderColor: 'divider' }),
               },
             }}
           >
             {renderDrawerContent()}
           </Drawer>
 
-          {/* Toggle drawer — caché sur mobile quand le drawer overlay est ouvert */}
           {!(isMobile && drawerOpen) && (
-            <Box sx={{
-              position: 'absolute',
-              left: !isMobile && drawerOpen ? DRAWER_WIDTH - 1 : 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 20,
-            }}>
+            <Box sx={{ position: 'absolute', left: !isMobile && drawerOpen ? DRAWER_WIDTH - 1 : 0, top: '50%', transform: 'translateY(-50%)', zIndex: 20 }}>
               <IconButton
-                onClick={() => setDrawerOpen((v) => !v)}
-                size="small"
-                sx={{
-                  bgcolor: 'white',
-                  border: '1px solid', borderColor: 'divider',
-                  borderRadius: isMobile ? '50%' : '0 6px 6px 0',
-                  boxShadow: isMobile ? 2 : 0,
-                  '&:hover': { bgcolor: '#f5f5f5' },
-                }}
+                onClick={() => setDrawerOpen((v) => !v)} size="small"
+                sx={{ bgcolor: 'white', border: '1px solid', borderColor: 'divider', borderRadius: isMobile ? '50%' : '0 6px 6px 0', boxShadow: isMobile ? 2 : 0, '&:hover': { bgcolor: '#f5f5f5' } }}
               >
                 {drawerOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
               </IconButton>
             </Box>
           )}
 
-          {/* React Flow canvas */}
           <Box sx={{ flex: 1, height: '100%' }}>
             <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onEdgeClick={onEdgeClick}
-              onPaneClick={onPaneClick}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              fitView
-              fitViewOptions={{ padding: 0.2 }}
+              nodes={nodes} edges={edges}
+              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+              onConnect={onConnect} onEdgeClick={onEdgeClick} onPaneClick={onPaneClick}
+              nodeTypes={nodeTypes} edgeTypes={edgeTypes}
+              fitView fitViewOptions={{ padding: 0.2 }}
               defaultEdgeOptions={{ type: 'relationEdge' }}
             >
               <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e2e8f0" />
               <Controls />
               <MiniMap
-                nodeColor={(node) => {
-                  const data = node.data as ExpertiseNodeData
-                  return NODE_TYPE_CONFIG[data.nodeType]?.color ?? '#94a3b8'
-                }}
+                nodeColor={() => TEAL}
                 style={{ bottom: 60 }}
               />
-
               <Panel position="top-right">
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
                   <Tooltip title="Enregistrer">
-                    <Button
-                      size="small" variant="contained"
-                      startIcon={<Save />}
-                      onClick={handleSave}
-                      sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
-                    >
+                    <Button size="small" variant="contained" startIcon={<Save />} onClick={handleSave}
+                      sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
                       Enregistrer
                     </Button>
                   </Tooltip>
                   <Tooltip title="Voir / exporter le JSON">
-                    <Button
-                      size="small" variant="outlined"
-                      startIcon={<Download />}
-                      onClick={() => setJsonOpen(true)}
-                      sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}
-                    >
+                    <Button size="small" variant="outlined" startIcon={<Download />} onClick={() => setJsonOpen(true)}
+                      sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
                       JSON
                     </Button>
                   </Tooltip>
@@ -783,11 +785,10 @@ export default function MindMapView() {
                   </Tooltip>
                 </Box>
               </Panel>
-
               {!isMobile && (
                 <Panel position="bottom-center">
                   <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.85)', px: 1.5, py: 0.5, borderRadius: 2, color: 'text.secondary' }}>
-                    Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour changer son type
+                    Glissez les nœuds · Tirez depuis un point d&apos;ancrage pour créer un lien · Cliquez sur un lien pour le qualifier
                   </Typography>
                 </Panel>
               )}
@@ -796,43 +797,23 @@ export default function MindMapView() {
         </>
       )}
 
-
-      {/* Dialog — add / edit node */}
+      {/* Dialog — add / edit expertise */}
       <Dialog open={nodeDialog.open} onClose={() => setNodeDialog(DEFAULT_DIALOG)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {nodeDialog.mode === 'add' ? 'Ajouter un nœud' : 'Modifier le nœud'}
+          {nodeDialog.mode === 'add' ? 'Ajouter une expertise' : "Modifier l'expertise"}
           <IconButton size="small" onClick={() => setNodeDialog(DEFAULT_DIALOG)}><Close fontSize="small" /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>
-          <TextField label="Intitulé" fullWidth size="small" value={nodeDialog.label}
-            onChange={(e) => setNodeDialog((s) => ({ ...s, label: e.target.value }))} autoFocus />
-          <FormControl fullWidth size="small">
-            <InputLabel>Type</InputLabel>
-            <Select label="Type" value={nodeDialog.nodeType}
-              onChange={(e) => setNodeDialog((s) => ({ ...s, nodeType: e.target.value as ExpertiseNodeType }))}
-            >
-              {(Object.entries(NODE_TYPE_CONFIG) as [ExpertiseNodeType, typeof NODE_TYPE_CONFIG[ExpertiseNodeType]][]).map(
-                ([type, cfg]) => (
-                  <MenuItem key={type} value={type}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 12, height: 12, borderRadius: '2px', border: `2px solid ${cfg.color}`, bgcolor: cfg.bg }} />
-                      {cfg.label}
-                    </Box>
-                  </MenuItem>
-                ),
-              )}
-            </Select>
-          </FormControl>
+          <TextField label="Intitulé" fullWidth size="small" value={nodeDialog.label} autoFocus
+            onChange={(e) => setNodeDialog((s) => ({ ...s, label: e.target.value }))} />
           <TextField label="Description (optionnelle)" fullWidth size="small" multiline rows={2}
             value={nodeDialog.description}
-            onChange={(e) => setNodeDialog((s) => ({ ...s, description: e.target.value }))}
-          />
+            onChange={(e) => setNodeDialog((s) => ({ ...s, description: e.target.value }))} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setNodeDialog(DEFAULT_DIALOG)} sx={{ textTransform: 'none' }}>Annuler</Button>
           <Button variant="contained" onClick={handleSaveNodeDialog} disabled={!nodeDialog.label.trim()}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}
-          >
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
             {nodeDialog.mode === 'add' ? 'Ajouter' : 'Enregistrer'}
           </Button>
         </DialogActions>
@@ -849,22 +830,19 @@ export default function MindMapView() {
             Ce fichier JSON s&apos;enrichit à chaque itération.
           </Typography>
           <Box component="pre"
-            sx={{ bgcolor: '#1e1e1e', color: '#d4d4d4', p: 2, borderRadius: 1, fontSize: '0.75rem', overflow: 'auto', maxHeight: 400, fontFamily: 'monospace' }}
-          >
+            sx={{ bgcolor: '#1e1e1e', color: '#d4d4d4', p: 2, borderRadius: 1, fontSize: '0.75rem', overflow: 'auto', maxHeight: 400, fontFamily: 'monospace' }}>
             {graphJson}
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button
-            startIcon={<Download />} sx={{ textTransform: 'none' }}
+          <Button startIcon={<Download />} sx={{ textTransform: 'none' }}
             onClick={() => {
               const blob = new Blob([graphJson], { type: 'application/json' })
               const url = URL.createObjectURL(blob)
               const a = document.createElement('a')
               a.href = url; a.download = `expertise-graph-v${meta.version}.json`; a.click()
               URL.revokeObjectURL(url)
-            }}
-          >
+            }}>
             Télécharger
           </Button>
           <Button onClick={() => setJsonOpen(false)} sx={{ textTransform: 'none' }}>Fermer</Button>
@@ -873,8 +851,7 @@ export default function MindMapView() {
 
       <Snackbar open={snackbar.open} autoHideDuration={3000}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))} sx={{ width: '100%' }}>
           {snackbar.msg}
         </Alert>

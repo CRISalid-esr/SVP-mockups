@@ -85,9 +85,9 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
     setCards(loadCards())
     setMounted(true)
     try {
-      const graph = JSON.parse(localStorage.getItem('expertise-graph-v1') ?? '{}')
+      const graph = JSON.parse(localStorage.getItem('expertise-graph-v2') ?? '{}')
       const domains = (graph.nodes ?? []).filter(
-        (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'main' || n.data?.nodeType === 'secondary',
+        (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'expertise',
       ).length
       setNodeCount(domains)
     } catch (_) { /* ignore localStorage parse errors */ }

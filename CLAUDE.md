@@ -127,20 +127,28 @@ Page avec 3 onglets (renommés, réordonnés) :
 - **Empty state onboarding** : quand `nodes.length === 0`, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils pré-remplis, Ctrl+Entrée pour générer)
 - **Panneau gauche — 3 états contextuels :**
   - Rien sélectionné : prompt LLM (action principale) + légende en accordéon replié
-  - Nœud(s) sélectionné(s) : carte info colorée (type + nom + description) + Modifier/Supprimer
-  - Lien sélectionné : sélecteur visuel de type de relation par catégorie
+  - Nœud(s) sélectionné(s) : carte info + section **Caractéristiques** modifiable inline + Modifier/Supprimer
+  - Lien sélectionné : sélecteur de direction (A→B / A←B / A↔B) + champ texte libre pour qualifier la relation
 - Bouton **Réinitialiser** (icône `RestartAlt`) dans le panneau top-right → revient à l'empty state
-- Persistance en `localStorage` (JSON versionné avec `promptHistory`)
+- Persistance en `localStorage` (clé `expertise-graph-v2`, JSON versionné avec `promptHistory`)
 
-**Types de nœuds :** `main` (teal) · `secondary` (bleu) · `terrain` (orange) · `concept` (violet)
+**Un seul type de nœud : `expertise` (teal)**
 
-**14 types de relations en 4 catégories :**
-- Hiérarchie : `approfondit` · `spécialise` · `intègre`
-- Terrain : `terrain géographique` · `terrain temporel` · `cas d'étude` · `corpus`
-- Conceptuel : `mobilise` · `problématise` · `produit des connaissances sur`
-- Dialogue : `croise` · `s'articule avec` · `a conduit à` · `en tension avec`
+**Relations — modèle simplifié (atelier-first) :**
+- Direction : `forward` (A→B) · `backward` (A←B) · `bidirectional` (A↔B)
+- Label : texte libre saisi par le chercheur (optionnel — relation affichée en pointillés gris si vide)
+- Pas de liste fixe de types — la typologie émergera des ateliers
 
-**Fichiers clés :** `types.ts` (NODE_TYPE_CONFIG, RELATION_TYPES, INITIAL_GRAPH) · `MindMapView.tsx` · `ExpertiseNode.tsx` · `RelationEdge.tsx` · `mockLlm.ts`
+**Caractéristiques portées par chaque nœud :**
+- `temporal` : couvertures temporelles (texte libre)
+- `geographic` : lieux
+- `persons` : personnes de référence
+- `organizations` : organisations
+- `concepts` : mots-clés avec vocabulaire contrôlé optionnel (RAMEAU, MeSH, Wikidata, JEL, AMS, MSC, LCSH, libre)
+
+Ajout inline depuis le panneau latéral quand un nœud est sélectionné. Les chips sont supprimables.
+
+**Fichiers clés :** `types.ts` (ExpertiseNodeData, EdgeData, CONTROLLED_VOCABULARIES, INITIAL_GRAPH) · `MindMapView.tsx` · `ExpertiseNode.tsx` · `RelationEdge.tsx` · `mockLlm.ts`
 
 **Descriptif complet :** `prompts/expertises.md`
 

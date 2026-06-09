@@ -1,20 +1,11 @@
 'use client'
 
-import {
-  BaseEdge,
-  EdgeLabelRenderer,
-  EdgeProps,
-  getBezierPath,
-  useReactFlow,
-} from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, getBezierPath } from '@xyflow/react'
 import { Box, Typography } from '@mui/material'
-import { RELATION_TYPES, RelationTypeKey } from '../../types'
+import { EdgeData } from '../../types'
 
-interface RelationEdgeData {
-  relationType?: RelationTypeKey
-  onEdgeClick?: (id: string) => void
-  [key: string]: unknown
-}
+const COLOR_LABELED = '#006A61'
+const COLOR_UNLABELED = '#94a3b8'
 
 export default function RelationEdge({
   id,
@@ -27,19 +18,23 @@ export default function RelationEdge({
   selected,
   data,
 }: EdgeProps) {
-  const edgeData = (data ?? {}) as RelationEdgeData
-  const relationType = (edgeData.relationType ?? 'croise') as RelationTypeKey
-  const cfg = RELATION_TYPES[relationType] ?? RELATION_TYPES.croise
+  const edgeData = (data ?? {}) as EdgeData
+  const direction = edgeData.direction ?? 'forward'
+  const label = edgeData.label?.trim() ?? ''
+  const hasLabel = label.length > 0
+
+  const color = hasLabel ? COLOR_LABELED : COLOR_UNLABELED
+  const strokeDasharray = hasLabel ? undefined : '5 3'
+  const strokeWidth = selected ? 2.5 : 1.8
+
+  const markerId = `url(#arrow-${color.replace('#', '')})`
+  const markerEnd = direction !== 'backward' ? markerId : undefined
+  const markerStart = direction !== 'forward' ? markerId : undefined
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, sourcePosition,
     targetX, targetY, targetPosition,
   })
-
-  const stroke = cfg.color
-  const strokeDasharray = cfg.strokeDasharray ?? undefined
-  const strokeWidth = selected ? 2.5 : 1.8
-  const markerId = `url(#arrow-${stroke.replace('#', '')})`
 
   return (
     <>
@@ -47,13 +42,13 @@ export default function RelationEdge({
         id={id}
         path={edgePath}
         style={{
-          stroke,
+          stroke: color,
           strokeWidth,
           strokeDasharray,
-          filter: selected ? `drop-shadow(0 0 4px ${stroke}88)` : undefined,
+          filter: selected ? `drop-shadow(0 0 4px ${color}88)` : undefined,
         }}
-        markerEnd={markerId}
-        markerStart={cfg.bidirectional ? markerId : undefined}
+        markerEnd={markerEnd}
+        markerStart={markerStart}
       />
       <EdgeLabelRenderer>
         <Box
@@ -65,11 +60,11 @@ export default function RelationEdge({
             px: 0.8,
             py: 0.2,
             borderRadius: '4px',
-            bgcolor: selected ? stroke : 'rgba(255,255,255,0.92)',
-            border: `1px solid ${stroke}`,
-            boxShadow: selected ? `0 0 0 2px ${stroke}44` : 'none',
+            bgcolor: selected ? color : 'rgba(255,255,255,0.92)',
+            border: `1px solid ${color}`,
+            boxShadow: selected ? `0 0 0 2px ${color}44` : 'none',
             transition: 'all 0.15s ease',
-            '&:hover': { bgcolor: `${stroke}22` },
+            '&:hover': { bgcolor: `${color}22` },
           }}
           className="nodrag nopan"
         >
@@ -77,12 +72,13 @@ export default function RelationEdge({
             variant="caption"
             sx={{
               fontSize: '0.65rem',
-              fontWeight: 600,
-              color: selected ? 'white' : stroke,
+              fontWeight: hasLabel ? 600 : 400,
+              color: selected ? 'white' : color,
+              fontStyle: hasLabel ? 'normal' : 'italic',
               whiteSpace: 'nowrap',
             }}
           >
-            {cfg.label}
+            {hasLabel ? label : 'qualifier →'}
           </Typography>
         </Box>
       </EdgeLabelRenderer>
