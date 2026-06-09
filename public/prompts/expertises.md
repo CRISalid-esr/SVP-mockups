@@ -16,13 +16,11 @@ La rubrique **Expertises** permet au chercheur de représenter, structurer et co
 ```
 Carte mentale (graphe React Flow — source de vérité)
     │
-    ├── Vue des expertises : chaque nœud principal → fiche structurée
-    └── Cartes impact : chaque nœud principal → "Famille" déclinée en N cartes
+    ├── Profil structuré : chaque nœud expertise → fiche avec caractéristiques
+    └── Fiches publics   : chaque nœud expertise → carte déclinée par audience
 ```
 
 ✅ La carte mentale est la source de vérité. Les deux autres vues sont des projections de ses nœuds.
-
-❓ **Un chercheur peut-il enrichir la vue à plat ou les cartes impact sans passer par la carte mentale ?** (ex. ajouter un terrain directement dans la fiche)
 
 ---
 
@@ -31,118 +29,150 @@ Carte mentale (graphe React Flow — source de vérité)
 ```
 Sidebar
   └── Expertises
-        ├── Vue des expertises   ◄── Vue 1
-        ├── Carte mentale        ◄── Vue 2 (actif par défaut)
-        └── Cartes impact        ◄── Vue 3
+        ├── Mes domaines      ◄── Carte mentale (actif par défaut)
+        ├── Profil structuré  ◄── Vue à plat (chip "depuis vos domaines")
+        └── Fiches publics    ◄── Cartes impact (chip "depuis vos domaines")
 ```
 
 ---
 
-## 3. Vue 1 — Carte mentale
+## 3. Mes domaines — Carte mentale
 
 ### 3.1 Principe
 
 ✅ Le chercheur décrit ses expertises en langage naturel. Un LLM (simulé dans la maquette) traduit ce texte en graphe que le chercheur peut ensuite modifier manuellement.
 
-✅ Le graphe est persisté en JSON versionné (`localStorage` dans la maquette, API en production).
+✅ Le graphe est persisté en JSON versionné (`localStorage` dans la maquette, clé `expertise-graph-v2`, API en production).
 
-### 3.2 Types de nœuds
+### 3.2 Modèle de données — Nœuds
 
-| Type | Couleur | Rôle |
+**Un seul type de nœud : Expertise** (teal `#006A61`)
+
+Chaque nœud porte, en plus de son intitulé et de sa description, des **caractéristiques** organisées en 5 catégories :
+
+| Catégorie | Icône | Couleur | Contenu |
+|---|---|---|---|
+| Couverture temporelle | Calendrier | Bleu `#0288D1` | Périodes, dates (texte libre) |
+| Lieux | Localisation | Vert `#388E3C` | Zones géographiques, pays, régions |
+| Personnes | Personne | Violet `#7B1FA2` | Auteurs de référence, collaborateurs |
+| Organisations | Bâtiment | Orange `#E65100` | Institutions, laboratoires, organismes |
+| Concepts et mots-clés | Étiquette | Teal `#006A61` | Mots-clés avec vocabulaire contrôlé optionnel |
+
+**Vocabulaires contrôlés disponibles pour les concepts :** RAMEAU · MeSH · Wikidata · JEL (Économie) · AMS (Mathématiques) · MSC (Sciences) · LCSH (Library of Congress) · Vocabulaire libre
+
+### 3.3 Modèle de données — Relations
+
+**Relations libres** — pas de liste fixe de types, la typologie émergera des ateliers.
+
+| Propriété | Valeurs | Rendu |
 |---|---|---|
-| Expertise principale | Teal `#006A61` | Domaine central de recherche |
-| Expertise secondaire | Bleu `#1976D2` | Domaine connexe ou spécialisation |
-| Terrain de recherche | Orange `#E65100` | Zone géographique, période, corpus… |
-| Concept transversal | Violet `#7B1FA2` | Notion théorique ou thématique |
+| `direction` | `forward` (A→B) · `backward` (A←B) · `bidirectional` (A↔B) | Flèche(s) sur l'arête |
+| `label` | Texte libre saisi par le chercheur | Étiquette sur l'arête |
 
-### 3.3 Types de relations (14, en 4 catégories)
+✅ **Relation qualifiée** (label renseigné) : trait teal continu.
 
-**Hiérarchie** (trait plein teal) : `approfondit` · `spécialise` · `intègre`
+✅ **Relation non qualifiée** (label vide) : trait gris pointillé avec l'invite *"qualifier →"* — invitation visible à nommer la relation.
 
-**Terrain** (tirets oranges animés) : `terrain géographique` · `terrain temporel` · `cas d'étude` · `corpus`
+### 3.4 Interactions — nœuds
 
-**Conceptuel** (pointillés violets) : `mobilise` · `problématise` · `produit des connaissances sur`
+✅ **Générer depuis un prompt** : champ texte libre → "Générer le graphe" → simulation LLM (1,8 s) → graphe pré-rempli avec attributs. Chaque génération incrémente la version et conserve l'historique des prompts.
 
-**Dialogue** (pointillés bleus / rouge pour tensions) : `croise` · `s'articule avec` · `a conduit à` · `en tension avec`
+✅ **Empty state onboarding** : quand le graphe est vide, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils exemples, Ctrl+Entrée pour générer).
 
-### 3.4 Interactions
+✅ **Ajouter une expertise** : bouton dans le panneau gauche → dialog (intitulé, description).
 
-✅ **Générer depuis un prompt** : champ texte libre → bouton "Générer le graphe" → simulation LLM (1,8 s) → graphe pré-rempli. Chaque génération incrémente la version et conserve l'historique des prompts.
+✅ **Modifier une expertise** : sélection + "Modifier" → dialog pré-rempli.
 
-✅ **Ajouter un nœud** : bouton dans le panneau gauche → dialog (intitulé, type, description).
+✅ **Supprimer** : sélection + "Supprimer" (sélection multiple supportée).
 
-✅ **Modifier un nœud** : sélection + bouton "Modifier" dans le panneau.
+✅ **Déployer les caractéristiques dans le graphe** : chaque nœud ayant des attributs affiche un bouton chevron (▼/▲). Clic → le nœud s'agrandit et affiche les chips par catégorie, directement dans le canvas. L'état replié/déployé est persisté.
 
-✅ **Supprimer un nœud** : sélection + bouton "Supprimer".
+✅ **Éditer les caractéristiques depuis le panneau** : clic sur un nœud → panneau gauche affiche la section "Caractéristiques" avec un bouton "+" par catégorie → formulaire inline (label + sélecteur de vocabulaire pour les concepts) → chips supprimables.
 
-✅ **Créer un lien** : tirer depuis un point d'ancrage d'un nœud vers un autre nœud (type `croise` par défaut).
+### 3.5 Interactions — relations
 
-✅ **Modifier le type d'un lien** : clic sur le lien → panneau gauche bascule en mode "édition de relation" avec sélecteur visuel par catégorie (prévisualisation du style de trait).
+✅ **Créer un lien** : tirer depuis un point d'ancrage d'un nœud vers un autre (direction `forward` par défaut, label vide).
 
-✅ **Supprimer un lien** : sélectionner + bouton "Supprimer ce lien" dans le panneau.
+✅ **Qualifier un lien** : clic sur le lien → panneau gauche bascule en mode édition de relation :
+  - Sélecteur de direction : `A → B` · `A ← B` · `A ↔ B`
+  - Champ texte libre "Qualifier la relation" (placeholder : *influence, prolonge, critique, s'appuie sur…*)
+  - Si vide : avertissement discret "relation non qualifiée"
 
-✅ **Enregistrer** : bouton → `localStorage` (JSON versionné).
+✅ **Supprimer un lien** : sélectionner + "Supprimer ce lien".
+
+### 3.6 Interactions — canvas
+
+✅ **Enregistrer** : bouton → `localStorage`.
 
 ✅ **Exporter JSON** : bouton "JSON" → viewer + téléchargement.
 
-### 3.5 Questions ouvertes
+✅ **Réinitialiser** : icône `RestartAlt` → revient à l'empty state.
 
-❓ Le graphe est-il visible publiquement sur le profil chercheur, ou uniquement en mode édition ?
+✅ **Panneau gauche rétractable** (persistent sur desktop, overlay sur mobile).
 
-❓ Peut-on co-construire un graphe à plusieurs (chercheurs d'un même labo) ?
+### 3.7 Questions ouvertes
 
-❓ Export vers un format standard (SKOS, RDF) pour interopérabilité avec des référentiels de compétences ?
+❓ **Qualification des relations** : faut-il proposer des suggestions de labels selon le contexte (discipline, type de nœuds connectés) pour aider les chercheurs à trouver les bons termes ?
 
-❓ Génération LLM : quel modèle ? Prompt seul, ou prompt + publications HAL pour plus de pertinence ?
+❓ **Vocabulaires contrôlés** : les concepts avec `vocabulary = 'rameau'` devraient-ils bénéficier d'une autocomplete sur le référentiel RAMEAU (via IdRef/BnF) ?
+
+❓ **Visibilité du graphe** : est-il visible publiquement sur le profil chercheur, ou uniquement en mode édition ?
+
+❓ **Co-construction** : peut-on co-construire un graphe à plusieurs (chercheurs d'un même labo) ?
+
+❓ **Export sémantique** : export vers SKOS/RDF pour interopérabilité avec des référentiels de compétences ?
+
+❓ **Génération LLM** : prompt seul, ou prompt + publications HAL pour plus de pertinence ?
 
 ---
 
-## 4. Vue 2 — Vue des expertises (vue à plat)
+## 4. Profil structuré (vue à plat)
 
 ### 4.1 Principe
 
-✅ Chaque nœud de type "expertise principale" ou "expertise secondaire" devient une fiche structurée. Les nœuds terrain, concept et les relations du graphe sont projetés dans des sections dédiées.
+✅ Chaque nœud du graphe devient une fiche structurée. Les caractéristiques portées par le nœud (temporal, geographic, persons, organizations, concepts) sont projetées en chips colorés.
 
-✅ Les expertises principales s'affichent avant les secondaires.
+✅ Bannière en haut : version du graphe, date de mise à jour, lien "Modifier le graphe →".
 
 ### 4.2 Anatomie d'une fiche expertise
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ [Bordure colorée gauche selon type]                  │
-│ Intitulé de l'expertise          [chip type]         │
-│ Description (si présente dans le graphe)             │
+│ [Bordure teal gauche]                                │
+│ Intitulé de l'expertise                              │
+│ Description (si présente)                            │
 │                                                      │
-│ Terrains : [chip] [chip] …                          │
-│ Concepts : [chip] [chip] …                          │
-│ Relie à : [chip expertise liée + type de relation]  │
+│ Caractéristiques                                     │
+│   📅 2005 — aujourd'hui                              │
+│   📍 Sri Lanka · Union européenne                    │
+│   🏷 migration du travail · RAMEAU                   │
+│      mobilité internationale                         │
 │                                                      │
-│ Activités associées : [puce] ANR … [puce] Thèse …  │
-│                             [Modifier les activités] │
+│ Relations avec d'autres expertises                   │
+│   → approfondit   Politiques migratoires             │
+│   ↔ croise        Genre et migration                 │
+│                                                      │
+│ Activités associées : [ANR …] [Thèse …]  [Associer] │
 └─────────────────────────────────────────────────────┘
 ```
 
-✅ **Association d'activités** : bouton "Modifier les activités" → dialog avec liste à cocher des activités de recherche (projets, encadrements, brevets…).
+✅ **Association d'activités** : bouton "Associer" → dialog avec liste à cocher des activités de recherche.
 
-✅ Bannière en haut : lien "Modifier le graphe →" vers l'onglet Carte mentale ; version et date de dernière mise à jour.
-
-✅ Bouton "Ajouter dans la carte mentale" → bascule vers l'onglet Carte mentale.
+✅ Si aucun élément rattaché : lien "Enrichir dans la carte →".
 
 ### 4.3 Questions ouvertes
 
-❓ **Filtres / tri / recherche** sur la vue à plat (par type, par terrain, par période) ?
+❓ **Filtres / tri** sur la liste (par lieu, par période, par mot-clé) ?
 
-❓ **Dates** : déduites du terrain temporel, ou saisies manuellement sur la fiche ?
-
-❓ **Couplage activités ↔ expertises** : association automatique d'une publication à un nœud d'expertise (par mots-clés ou par discipline) ?
+❓ **Couplage activités ↔ expertises** : association automatique depuis les mots-clés des publications HAL ?
 
 ---
 
-## 5. Vue 3 — Cartes impact
+## 5. Fiches publics (cartes impact)
 
 ### 5.1 Principe
 
-✅ Le chercheur décline chaque expertise en **cartes contextualisées selon le public** auquel il s'adresse. Un nœud d'expertise principale devient une "Famille" dont découlent N cartes pour différentes audiences.
+✅ Le chercheur décline chaque expertise en **cartes contextualisées selon le public** auquel il s'adresse. Un nœud d'expertise devient une "Famille" dont découlent N cartes pour différentes audiences.
 
 ✅ Les cartes sont persistées en `localStorage` (clé `expertise-cards-v1`).
 
@@ -157,7 +187,7 @@ Sidebar
 
 ### 5.3 Structure d'une carte impact
 
-✅ **Famille** : nœud d'expertise source (ex. "Migration pour le travail")
+✅ **Famille** : nœud d'expertise source
 
 ✅ **Titre** : formulé pour l'audience cible
 
@@ -175,33 +205,27 @@ Sidebar
 
 ### 5.4 Interface
 
-✅ **KPI** en haut : nombre de cartes validées / à valider / publiques.
+✅ **KPI** en haut : cartes validées / à valider / publiques.
 
 ✅ **Sous-onglets** : Toutes · À valider · Personnalisées · Privées.
 
-✅ **Organisation** : sections par Famille (nœud source), puis par Profil d'audience.
+✅ **Organisation** : sections par Famille, puis par Profil.
 
-✅ **Cliquer sur une carte** → dialog d'édition en 3 onglets : Contenu · Spécificités · Métadonnées. Actions : Dupliquer, Archiver.
+✅ **Cliquer sur une carte** → dialog en 3 onglets : Contenu · Spécificités · Métadonnées. Actions : Dupliquer, Archiver.
 
 ✅ **Créer une carte** : wizard 3 étapes — (1) Profil + Famille, (2) Titre + Description + Spécialisation, (3) Audiences + Spécifiques.
 
-✅ **Dupliquer** : crée une copie en statut "À valider" + visibilité "Privée".
-
-✅ **Archiver** : retire la carte de la vue (suppression dans la maquette).
-
-🟡 **Générer depuis le graphe** : bouton présent (désactivé). À terme, un LLM proposera automatiquement une carte par profil pour chaque nœud d'expertise principale.
+🟡 **Générer depuis le graphe** : bouton présent (désactivé). À terme, un LLM proposera automatiquement une carte par profil pour chaque nœud d'expertise.
 
 ### 5.5 Questions ouvertes
 
-❓ **Génération LLM** : le chercheur valide/rejette/modifie chaque carte proposée — quel workflow exact (modale de revue, diffing, acceptation en lot) ?
+❓ **Génération LLM** : quel workflow de validation (modale de revue, diffing, acceptation en lot) ?
 
 ❓ **Partage** : une carte peut-elle être partagée avec un collègue ou exportée (PDF, carte de visite numérique) ?
 
-❓ **Visibilité publique** : les cartes "Publiques" apparaissent-elles sur le profil chercheur SoVisu+ tel qu'il est consulté par des tiers ?
+❓ **Visibilité publique** : les cartes "Publiques" apparaissent-elles sur le profil chercheur consulté par des tiers ?
 
 ❓ **Archivage vs suppression** : une carte archivée est-elle récupérable ? Y a-t-il un onglet "Archives" ?
-
-❓ **Limite de cartes** par famille/profil : une seule carte par profil, ou plusieurs déclinaisons possibles ?
 
 ---
 
@@ -210,8 +234,9 @@ Sidebar
 | # | Thème | Question |
 |---|-------|----------|
 | 1 | Source de vérité | Si le chercheur supprime un nœud du graphe, les cartes impact liées à cette famille sont-elles archivées ou orphelines ? |
-| 2 | Synchronisation | La vue à plat et les cartes impact se mettent-elles à jour en temps réel quand le graphe change, ou seulement à la prochaine visite ? |
-| 3 | Collaboration | Plusieurs chercheurs peuvent-ils co-éditer un graphe ou des cartes impact ? |
-| 4 | Import | Peut-on importer un graphe existant (depuis un fichier JSON ou un référentiel externe) ? |
+| 2 | Synchronisation | Le profil structuré et les cartes se mettent-ils à jour en temps réel quand le graphe change, ou seulement à la prochaine visite ? |
+| 3 | Collaboration | Plusieurs chercheurs peuvent-ils co-éditer un graphe ou des cartes ? |
+| 4 | Import | Peut-on importer un graphe existant (JSON ou référentiel externe) ? |
 | 5 | Export | Export du graphe en SKOS/RDF ? Export des cartes en PDF ou format structuré ? |
 | 6 | Visibilité | Chaque vue (graphe, liste, cartes) a-t-elle sa propre politique de visibilité, ou est-ce une visibilité globale par expertise ? |
+| 7 | Qualification des relations | Comment aider les chercheurs à trouver les bons labels sans imposer une liste fixe ? Suggestions contextuelles ? Historique personnel ? |
