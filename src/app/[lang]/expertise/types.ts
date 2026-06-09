@@ -28,6 +28,7 @@ export interface ExpertiseNodeData extends ExpertiseAttributes {
   label: string
   nodeType: ExpertiseNodeType
   description?: string
+  expanded?: boolean
   [key: string]: unknown
 }
 
