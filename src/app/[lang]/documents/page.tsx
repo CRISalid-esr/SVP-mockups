@@ -153,9 +153,10 @@ const DocumentsPage = () => {
   const [expertiseMode, setExpertiseMode] = useState(false)
   const [mrtRowSelection, setMrtRowSelection] = useState<Record<string, boolean>>({})
 
-  const enterExpertiseMode = useCallback(() => {
+  const enterExpertiseMode = useCallback((currentTableSelection: Record<string, boolean> = {}) => {
     const selection: Record<string, boolean> = {}
     expertiseSelectedPubs.forEach((uid) => { selection[uid] = true })
+    Object.assign(selection, currentTableSelection)
     setMrtRowSelection(selection)
     setExpertiseMode(true)
   }, [expertiseSelectedPubs])
@@ -879,7 +880,7 @@ const DocumentsPage = () => {
                 <Button
                   variant="outlined"
                   startIcon={<Psychology fontSize="small" />}
-                  onClick={enterExpertiseMode}
+                  onClick={() => enterExpertiseMode(table.getState().rowSelection)}
                   sx={{
                     color: '#006A61', borderColor: '#006A61', textTransform: 'none',
                     '&:hover': { borderColor: '#004d47', bgcolor: '#006A611a' },
