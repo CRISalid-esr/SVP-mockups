@@ -118,3 +118,55 @@ export async function generateGraphFromPrompt(
     },
   }
 }
+
+export async function generateGraphFromPublications(
+  publicationCount: number,
+  existingMeta: ExpertiseGraph['meta'],
+): Promise<ExpertiseGraph> {
+  await new Promise((r) => setTimeout(r, 2200))
+
+  const nodes: Node<ExpertiseNodeData>[] = [
+    {
+      id: 'n1', type: 'expertiseNode', position: { x: 380, y: 200 },
+      data: {
+        label: 'Domaine principal',
+        nodeType: 'expertise',
+        description: `Identifié à partir de ${publicationCount} publication${publicationCount > 1 ? 's' : ''}`,
+        temporal: [{ label: "2010 — aujourd'hui" }],
+        concepts: [{ label: 'Thème transversal', vocabulary: 'libre' }],
+      },
+    },
+    {
+      id: 'n2', type: 'expertiseNode', position: { x: 80, y: 60 },
+      data: { label: 'Approche méthodologique', nodeType: 'expertise' },
+    },
+    {
+      id: 'n3', type: 'expertiseNode', position: { x: 680, y: 60 },
+      data: { label: 'Dimension applicative', nodeType: 'expertise' },
+    },
+  ]
+  const edges: Edge[] = [
+    { id: 'e1', source: 'n1', target: 'n2', data: { label: 'mobilise', direction: 'forward' } },
+    { id: 'e2', source: 'n1', target: 'n3', data: { label: '', direction: 'forward' } },
+  ]
+  if (publicationCount >= 5) {
+    nodes.push({
+      id: 'n4', type: 'expertiseNode', position: { x: 380, y: 380 },
+      data: { label: 'Perspective émergente', nodeType: 'expertise' },
+    })
+    edges.push({ id: 'e3', source: 'n1', target: 'n4', data: { label: 'ouvre sur', direction: 'forward' } })
+  }
+
+  return {
+    nodes,
+    edges,
+    meta: {
+      version: existingMeta.version + 1,
+      lastUpdated: new Date().toISOString().split('T')[0],
+      promptHistory: [
+        ...existingMeta.promptHistory,
+        `Généré depuis ${publicationCount} publication${publicationCount > 1 ? 's' : ''}`,
+      ],
+    },
+  }
+}

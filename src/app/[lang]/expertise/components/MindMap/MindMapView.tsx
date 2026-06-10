@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ReactFlow, Background, Controls, MiniMap, addEdge,
   useNodesState, useEdgesState, Connection, BackgroundVariant, Panel, Edge,
@@ -13,13 +14,13 @@ import {
   Select, Snackbar, TextField, Tooltip, Typography, useMediaQuery,
 } from '@mui/material'
 import {
-  AccountTree, Add, AutoAwesome, Business, ChevronLeft, ChevronRight,
+  AccountTree, Add, ArrowBack, AutoAwesome, AutoGraph, Business, ChevronLeft, ChevronRight,
   Close, Delete, Download, Edit, ExpandMore, LocalOffer, Person, Place,
   RestartAlt, Save, Schedule,
 } from '@mui/icons-material'
 import ExpertiseNode from './ExpertiseNode'
 import RelationEdge from './RelationEdge'
-import { generateGraphFromPrompt } from './mockLlm'
+import { generateGraphFromPrompt, generateGraphFromPublications } from './mockLlm'
 import {
   AttributeCategory,
   CONTROLLED_VOCABULARIES,
@@ -29,6 +30,7 @@ import {
 } from '../../types'
 
 const STORAGE_KEY = 'expertise-graph-v2'
+const PUBS_STORAGE_KEY = 'expertise-selected-publications'
 const TEAL = '#006A61'
 const DRAWER_WIDTH = 320
 
@@ -113,6 +115,19 @@ export default function MindMapView() {
   })
   const [jsonOpen, setJsonOpen] = useState(false)
 
+  const params = useParams()
+  const router = useRouter()
+  const lang = (params?.lang as string) || 'fr'
+
+  const [selectedPubs, setSelectedPubs] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = localStorage.getItem(PUBS_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : []
+    } catch { return [] }
+  })
+  const [showManualInput, setShowManualInput] = useState(false)
+
   // Attribute inline-add state
   const [addingCat, setAddingCat] = useState<AttributeCategory | null>(null)
   const [addingForNodeId, setAddingForNodeId] = useState<string | null>(null)
@@ -177,6 +192,20 @@ export default function MindMapView() {
       setMeta(result.meta)
       setPrompt('')
       setSnackbar({ open: true, msg: 'Graphe généré — vous pouvez le modifier', severity: 'info' })
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleGenerateFromPublications = async () => {
+    setGenerating(true)
+    try {
+      const result = await generateGraphFromPublications(selectedPubs.length, meta)
+      setNodes(result.nodes)
+      setEdges(result.edges.map(applyEdgeStyle))
+      setMeta(result.meta)
+      saveGraph(result)
+      setSnackbar({ open: true, msg: 'Carte générée depuis vos publications — affinez-la via le chatbot', severity: 'info' })
     } finally {
       setGenerating(false)
     }
@@ -655,49 +684,126 @@ export default function MindMapView() {
         boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
         display: 'flex', flexDirection: 'column', gap: 2.5,
       }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <AccountTree sx={{ fontSize: 52, color: TEAL, opacity: 0.8 }} />
-        </Box>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-            Décrivez vos domaines de recherche
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
-          </Typography>
-        </Box>
-        <TextField
-          multiline rows={6} fullWidth autoFocus
-          placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          disabled={generating}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-        />
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            Exemples de profils :
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
-              <Chip
-                key={label} label={label} size="small" variant="outlined"
-                onClick={() => setPrompt(text)}
-                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
-              />
-            ))}
-          </Box>
-        </Box>
-        <Button
-          variant="contained" size="large"
-          startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
-          onClick={handleGenerate}
-          disabled={!prompt.trim() || generating}
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
-        >
-          {generating ? 'Construction de la carte…' : 'Générer ma carte'}
-        </Button>
+        {!showManualInput ? (
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <AutoGraph sx={{ fontSize: 52, color: TEAL, opacity: 0.85 }} />
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
+                Calculez vos expertises à partir de vos publications
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Sélectionnez les publications à analyser, puis laissez l&apos;IA construire votre carte d&apos;expertise. Vous pourrez ensuite l&apos;affiner via le chatbot.
+              </Typography>
+            </Box>
+
+            <Box sx={{
+              display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5,
+              bgcolor: selectedPubs.length > 0 ? `${TEAL}12` : '#f5f5f5',
+              borderRadius: 2, minHeight: 44,
+            }}>
+              {selectedPubs.length > 0 ? (
+                <>
+                  <Chip
+                    label={`${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''} sélectionnée${selectedPubs.length > 1 ? 's' : ''}`}
+                    size="small"
+                    sx={{ bgcolor: TEAL, color: 'white', fontWeight: 600 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    prête{selectedPubs.length > 1 ? 's' : ''} pour l&apos;analyse
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                  Aucune publication sélectionnée pour l&apos;instant
+                </Typography>
+              )}
+            </Box>
+
+            <Button
+              variant="outlined" fullWidth size="medium"
+              onClick={() => router.push(`/${lang}/documents`)}
+              sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL, borderRadius: 2 }}
+            >
+              Sélectionner des publications →
+            </Button>
+
+            <Button
+              variant="contained" size="large" fullWidth
+              startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+              onClick={handleGenerateFromPublications}
+              disabled={selectedPubs.length === 0 || generating}
+              sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
+            >
+              {generating ? 'Construction de la carte…' : 'Générer mes expertises'}
+            </Button>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+              <Typography variant="caption" color="text.disabled">ou</Typography>
+              <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+            </Box>
+
+            <Button
+              size="small" variant="text"
+              onClick={() => setShowManualInput(true)}
+              sx={{ textTransform: 'none', color: 'text.secondary', alignSelf: 'center' }}
+            >
+              Décrire mes domaines manuellement
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              size="small" startIcon={<ArrowBack fontSize="small" />}
+              onClick={() => setShowManualInput(false)}
+              sx={{ textTransform: 'none', color: 'text.secondary', alignSelf: 'flex-start', mb: -1 }}
+            >
+              Retour
+            </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
+                Décrivez vos domaines de recherche
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
+              </Typography>
+            </Box>
+            <TextField
+              multiline rows={5} fullWidth autoFocus
+              placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              disabled={generating}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Exemples de profils :
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
+                  <Chip
+                    key={label} label={label} size="small" variant="outlined"
+                    onClick={() => setPrompt(text)}
+                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Button
+              variant="contained" size="large"
+              startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+              onClick={handleGenerate}
+              disabled={!prompt.trim() || generating}
+              sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
+            >
+              {generating ? 'Construction de la carte…' : 'Générer ma carte'}
+            </Button>
+          </>
+        )}
       </Box>
     </Box>
   )

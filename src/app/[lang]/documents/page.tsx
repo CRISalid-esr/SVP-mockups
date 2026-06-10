@@ -62,6 +62,7 @@ import HalStatusCellBadge, {
 import { DocumentTypeIcons } from './components/DocumentTypeIcons'
 import { DocumentTypeLabels } from './components/DocumentTypeLabels'
 import SyncIcon from '@mui/icons-material/Sync'
+import Psychology from '@mui/icons-material/Psychology'
 import HighlighterWithEllipsis from '@/app/[lang]/documents/components/HighlighterWithEllipsis'
 import DocumentSyncDialog from '@/app/[lang]/documents/components/documentsSyncModal/DocumentSyncDialog'
 import { Trans, useLingui } from '@lingui/react'
@@ -121,6 +122,22 @@ const DocumentsPage = () => {
   const [selectedTitleLangs, setSelectedTitleLangs] = useState<
     Record<string, string>
   >({})
+
+  const EXPERTISE_PUBS_KEY = 'expertise-selected-publications'
+  const [expertiseSelectedPubs, setExpertiseSelectedPubs] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = localStorage.getItem(EXPERTISE_PUBS_KEY)
+      return raw ? JSON.parse(raw) : []
+    } catch { return [] }
+  })
+  const toggleExpertisePub = useCallback((uid: string) => {
+    setExpertiseSelectedPubs((prev) => {
+      const next = prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+      localStorage.setItem(EXPERTISE_PUBS_KEY, JSON.stringify(next))
+      return next
+    })
+  }, [])
 
   const harvestings = useStore((state) => state.harvesting.harvestings)
   const currentPerspectiveHarvesting =
@@ -501,6 +518,28 @@ const DocumentsPage = () => {
           },
         ),
       },
+      {
+        id: 'expertise',
+        header: 'Expertises',
+        size: 52,
+        enableSorting: false,
+        enableColumnFilter: false,
+        Header: () => (
+          <Tooltip title="Inclure dans le calcul des expertises">
+            <Psychology fontSize="small" sx={{ color: 'text.secondary', display: 'block' }} />
+          </Tooltip>
+        ),
+        Cell({ row }: { row: { original: { uid: string } } }) {
+          const isSelected = expertiseSelectedPubs.includes(row.original.uid)
+          return (
+            <Tooltip title={isSelected ? 'Retirer du calcul des expertises' : 'Inclure dans le calcul des expertises'}>
+              <IconButton size="small" onClick={() => toggleExpertisePub(row.original.uid)}>
+                <Psychology fontSize="small" sx={{ color: isSelected ? '#006A61' : 'text.disabled', transition: 'color 0.2s' }} />
+              </IconButton>
+            </Tooltip>
+          )
+        },
+      },
     ]
   }, [
     lang,
@@ -510,6 +549,8 @@ const DocumentsPage = () => {
     navigateToDetailsPage,
     currentPerspective?.membershipAcronyms,
     _,
+    expertiseSelectedPubs,
+    toggleExpertisePub,
   ])
 
   const {
