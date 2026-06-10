@@ -72,6 +72,10 @@ const EXAMPLE_PROMPTS: Record<string, string> = {
   Juriste: "Je suis juriste spécialisé·e en droit européen et droits numériques. Mes travaux portent sur la régulation des plateformes, la protection des données personnelles et les libertés fondamentales en ligne.",
 }
 
+function formatYear(y: number): string {
+  return y < 0 ? `${Math.abs(y)} av. J.-C.` : `${y}`
+}
+
 function applyEdgeStyle(edge: Edge): Edge {
   return { ...edge, type: 'relationEdge', animated: false }
 }
@@ -366,7 +370,7 @@ export default function MindMapView() {
 
   const confirmAddAttr = (nodeId: string, cat: AttributeCategory) => {
     const label = cat === 'temporal' && temporalMode === 'range'
-      ? `${yearRange[0]} — ${yearRange[1]}`
+      ? `${formatYear(yearRange[0])} — ${formatYear(yearRange[1])}`
       : addingLabel.trim()
     if (!label) return
     setNodes((nds) => nds.map((n) => {
@@ -509,8 +513,8 @@ export default function MindMapView() {
                   {items.map((item, idx) => {
                     const isGeo = key === 'geographic'
                     const hasIdRef = (key === 'persons' || key === 'organizations') && Boolean(item.identifier)
-                    const chipLabel = key === 'temporal' && item.yearFrom && item.yearTo
-                      ? `${item.yearFrom} — ${item.yearTo}`
+                    const chipLabel = key === 'temporal' && item.yearFrom != null && item.yearTo != null
+                      ? `${formatYear(item.yearFrom)} — ${formatYear(item.yearTo)}`
                       : item.vocabulary ? `${item.label} (${item.vocabulary})` : item.label
                     return (
                       <Chip
@@ -559,17 +563,17 @@ export default function MindMapView() {
                         <Box sx={{ px: 1, pt: 0.5 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                             <Typography variant="caption" sx={{ fontWeight: 700, color }}>
-                              {yearRange[0]}
+                              {formatYear(yearRange[0])}
                             </Typography>
                             <Typography variant="caption" color="text.disabled">—</Typography>
                             <Typography variant="caption" sx={{ fontWeight: 700, color }}>
-                              {yearRange[1]}
+                              {formatYear(yearRange[1])}
                             </Typography>
                           </Box>
                           <Slider
                             value={yearRange}
                             onChange={(_, v) => setYearRange(v as [number, number])}
-                            min={0} max={2030} step={1}
+                            min={-100000} max={2030} step={50}
                             valueLabelDisplay="off"
                             disableSwap
                             sx={{ color, '& .MuiSlider-thumb': { width: 14, height: 14 } }}
