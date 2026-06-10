@@ -8,29 +8,34 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
-  Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button,
+  Accordion, AccordionDetails, AccordionSummary, Alert, Autocomplete, Box, Button,
   Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
   Divider, Drawer, FormControl, IconButton, InputLabel, MenuItem,
-  Select, Snackbar, TextField, Tooltip, Typography, useMediaQuery,
+  Select, Slider, Snackbar, TextField, ToggleButton, ToggleButtonGroup,
+  Tooltip, Typography, useMediaQuery,
 } from '@mui/material'
 import {
   AccountTree, Add, ArrowBack, AutoAwesome, AutoGraph, Business, ChevronLeft, ChevronRight,
-  Close, Delete, Download, Edit, ExpandMore, LocalOffer, Person, Place,
-  RestartAlt, Save, Schedule,
+  Close, Delete, Download, Edit, ExpandMore, History, LocalOffer, Map as MapIcon,
+  OpenInNew, Person, Place, RestartAlt, Restore, Save, Schedule,
 } from '@mui/icons-material'
 import ExpertiseNode from './ExpertiseNode'
 import RelationEdge from './RelationEdge'
 import { generateGraphFromPrompt, generateGraphFromPublications } from './mockLlm'
+import { searchIdRefPersons, searchIdRefOrganizations, GEONAMES_MOCK, NAMED_PERIODS } from './mockIdRef'
+import type { IdRefResult } from './mockIdRef'
+import HistoryDialog from './HistoryDialog'
 import {
   AttributeCategory,
   CONTROLLED_VOCABULARIES,
   EdgeData, EdgeDirection,
-  ExpertiseGraph, ExpertiseNodeData, ExpertiseNodeType,
+  ExpertiseGraph, ExpertiseNodeData, ExpertiseNodeType, HistoryEntry,
   INITIAL_GRAPH, NODE_TYPE_CONFIG,
 } from '../../types'
 
 const STORAGE_KEY_PREFIX = 'expertise-graph-v2'
 const PUBS_KEY_PREFIX = 'expertise-selected-publications'
+const HISTORY_KEY_PREFIX = 'expertise-history'
 const TEAL = '#006A61'
 
 function getPerspective(): string {
@@ -84,6 +89,18 @@ function saveGraph(key: string, graph: ExpertiseGraph) {
   localStorage.setItem(key, JSON.stringify(graph))
 }
 
+function loadHistory(key: string): HistoryEntry[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+function saveHistory(key: string, history: HistoryEntry[]) {
+  localStorage.setItem(key, JSON.stringify(history))
+}
+
 interface NodeDialogState {
   open: boolean
   mode: 'add' | 'edit'
@@ -101,6 +118,7 @@ export default function MindMapView() {
   const [perspective] = useState(() => getPerspective())
   const storageKey = `${STORAGE_KEY_PREFIX}-${perspective}`
   const pubsKey = `${PUBS_KEY_PREFIX}-${perspective}`
+  const historyKey = `${HISTORY_KEY_PREFIX}-${perspective}`
 
   const [initialGraph] = useState(() => loadGraph(storageKey))
 
@@ -129,6 +147,14 @@ export default function MindMapView() {
     open: false, msg: '', severity: 'success',
   })
   const [jsonOpen, setJsonOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory(historyKey))
+  const [temporalMode, setTemporalMode] = useState<'range' | 'named'>('range')
+  const [yearRange, setYearRange] = useState<[number, number]>([1990, new Date().getFullYear()])
+  const [addingIdRefPpn, setAddingIdRefPpn] = useState<string | undefined>(undefined)
+  const [addingGeonamesLabel, setAddingGeonamesLabel] = useState<string | undefined>(undefined)
+  const [idrefOptions, setIdrefOptions] = useState<IdRefResult[]>([])
+  const [geoDialog, setGeoDialog] = useState<{ open: boolean; label: string }>({ open: false, label: '' })
 
   const params = useParams()
   const router = useRouter()
@@ -192,10 +218,37 @@ export default function MindMapView() {
     )
   }, [selectedEdgeId, setEdges])
 
+  const addToHistory = useCallback((entryLabel: string, graph: ExpertiseGraph) => {
+    const entry: HistoryEntry = {
+      id: `h${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      label: entryLabel,
+      nodeCount: graph.nodes.length,
+      edgeCount: graph.edges.length,
+      graph,
+    }
+    setHistory((prev) => {
+      const next = [entry, ...prev].slice(0, 10)
+      saveHistory(historyKey, next)
+      return next
+    })
+  }, [historyKey])
+
+  const handleRestoreHistory = useCallback((entry: HistoryEntry) => {
+    setNodes(entry.graph.nodes)
+    setEdges(entry.graph.edges.map(applyEdgeStyle))
+    setMeta(entry.graph.meta)
+    saveGraph(storageKey, entry.graph)
+    setHistoryOpen(false)
+    setSnackbar({ open: true, msg: `Version restaurée — ${entry.label}`, severity: 'info' })
+  }, [storageKey, setNodes, setEdges])
+
   const handleSave = useCallback(() => {
-    saveGraph(storageKey, { nodes, edges, meta })
+    const graph = { nodes, edges, meta }
+    saveGraph(storageKey, graph)
+    addToHistory('Modification manuelle', graph)
     setSnackbar({ open: true, msg: 'Carte enregistrée', severity: 'success' })
-  }, [storageKey, nodes, edges, meta])
+  }, [storageKey, nodes, edges, meta, addToHistory])
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
@@ -205,6 +258,8 @@ export default function MindMapView() {
       setNodes(result.nodes)
       setEdges(result.edges.map(applyEdgeStyle))
       setMeta(result.meta)
+      saveGraph(storageKey, result)
+      addToHistory(`Généré par IA — "${prompt.slice(0, 50)}${prompt.length > 50 ? '…' : ''}"`, result)
       setPrompt('')
       setSnackbar({ open: true, msg: 'Graphe généré — vous pouvez le modifier', severity: 'info' })
     } finally {
@@ -220,6 +275,7 @@ export default function MindMapView() {
       setEdges(result.edges.map(applyEdgeStyle))
       setMeta(result.meta)
       saveGraph(storageKey, result)
+      addToHistory(`Généré depuis ${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''}`, result)
       setSnackbar({ open: true, msg: 'Carte générée depuis vos publications — affinez-la via le chatbot', severity: 'info' })
     } finally {
       setGenerating(false)
@@ -301,17 +357,34 @@ export default function MindMapView() {
     setAddingForNodeId(null)
     setAddingLabel('')
     setAddingVocab('')
+    setTemporalMode('range')
+    setYearRange([1990, new Date().getFullYear()])
+    setAddingIdRefPpn(undefined)
+    setAddingGeonamesLabel(undefined)
+    setIdrefOptions([])
   }
 
   const confirmAddAttr = (nodeId: string, cat: AttributeCategory) => {
-    if (!addingLabel.trim()) return
+    const label = cat === 'temporal' && temporalMode === 'range'
+      ? `${yearRange[0]} — ${yearRange[1]}`
+      : addingLabel.trim()
+    if (!label) return
     setNodes((nds) => nds.map((n) => {
       if (n.id !== nodeId) return n
       const d = n.data as ExpertiseNodeData
       const current = (d[cat] ?? []) as unknown[]
-      const item = cat === 'concepts'
-        ? { label: addingLabel.trim(), ...(addingVocab ? { vocabulary: addingVocab } : {}) }
-        : { label: addingLabel.trim() }
+      let item: Record<string, unknown>
+      if (cat === 'concepts') {
+        item = { label, ...(addingVocab ? { vocabulary: addingVocab } : {}) }
+      } else if (cat === 'temporal' && temporalMode === 'range') {
+        item = { label, yearFrom: yearRange[0], yearTo: yearRange[1] }
+      } else if (cat === 'geographic' && addingGeonamesLabel) {
+        item = { label }
+      } else if ((cat === 'persons' || cat === 'organizations') && addingIdRefPpn) {
+        item = { label, identifier: addingIdRefPpn }
+      } else {
+        item = { label }
+      }
       return { ...n, data: { ...d, [cat]: [...current, item] } }
     }))
     cancelAddAttr()
@@ -416,7 +489,7 @@ export default function MindMapView() {
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {ATTR_CONFIG.map(({ key, label, Icon, color, placeholder, showVocab }) => {
-          const items = (nodeData[key] ?? []) as Array<{ label: string; vocabulary?: string }>
+          const items = (nodeData[key] ?? []) as Array<{ label: string; vocabulary?: string; identifier?: string; geonamesId?: number; yearFrom?: number; yearTo?: number }>
           const isAdding = addingCat === key && addingForNodeId === nodeId
           return (
             <Box key={key}>
@@ -430,56 +503,191 @@ export default function MindMapView() {
                   </IconButton>
                 )}
               </Box>
+
               {items.length > 0 && (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: isAdding ? 0.75 : 0 }}>
-                  {items.map((item, idx) => (
-                    <Chip
-                      key={idx}
-                      label={item.vocabulary ? `${item.label} (${item.vocabulary})` : item.label}
-                      size="small"
-                      onDelete={() => removeAttr(nodeId, key, idx)}
-                      sx={{
-                        fontSize: '0.65rem', height: 20,
-                        bgcolor: `${color}10`, color,
-                        border: `1px solid ${color}33`,
-                        '& .MuiChip-deleteIcon': { fontSize: 12, color: `${color}99`, '&:hover': { color } },
-                      }}
-                    />
-                  ))}
+                  {items.map((item, idx) => {
+                    const isGeo = key === 'geographic'
+                    const hasIdRef = (key === 'persons' || key === 'organizations') && Boolean(item.identifier)
+                    const chipLabel = key === 'temporal' && item.yearFrom && item.yearTo
+                      ? `${item.yearFrom} — ${item.yearTo}`
+                      : item.vocabulary ? `${item.label} (${item.vocabulary})` : item.label
+                    return (
+                      <Chip
+                        key={idx}
+                        label={chipLabel}
+                        size="small"
+                        onDelete={() => removeAttr(nodeId, key, idx)}
+                        onClick={
+                          isGeo ? () => setGeoDialog({ open: true, label: item.label })
+                          : hasIdRef ? () => window.open(`https://www.idref.fr/${item.identifier}`, '_blank')
+                          : undefined
+                        }
+                        icon={
+                          isGeo ? <MapIcon sx={{ fontSize: '11px !important' }} />
+                          : hasIdRef ? <OpenInNew sx={{ fontSize: '10px !important' }} />
+                          : undefined
+                        }
+                        sx={{
+                          fontSize: '0.65rem', height: 20,
+                          bgcolor: `${color}10`, color,
+                          border: `1px solid ${color}33`,
+                          cursor: isGeo || hasIdRef ? 'pointer' : 'default',
+                          '& .MuiChip-deleteIcon': { fontSize: 12, color: `${color}99`, '&:hover': { color } },
+                          '& .MuiChip-icon': { color: `${color}88` },
+                        }}
+                      />
+                    )
+                  })}
                 </Box>
               )}
+
               {isAdding && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, pl: 0, pt: 0.5 }}>
-                  <TextField
-                    size="small" fullWidth autoFocus
-                    placeholder={placeholder}
-                    value={addingLabel}
-                    onChange={(e) => setAddingLabel(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') confirmAddAttr(nodeId, key)
-                      if (e.key === 'Escape') cancelAddAttr()
-                    }}
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
-                  />
-                  {showVocab && (
-                    <FormControl size="small" fullWidth>
-                      <InputLabel sx={{ fontSize: '0.8rem' }}>Vocabulaire (optionnel)</InputLabel>
-                      <Select
-                        label="Vocabulaire (optionnel)"
-                        value={addingVocab}
-                        onChange={(e) => setAddingVocab(e.target.value)}
-                        sx={{ fontSize: '0.8rem' }}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, pt: 0.5 }}>
+                  {key === 'temporal' ? (
+                    <>
+                      <ToggleButtonGroup
+                        size="small" value={temporalMode} exclusive
+                        onChange={(_, v) => { if (v) { setTemporalMode(v); setAddingLabel('') } }}
+                        sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.7rem', py: 0.4, flex: 1 } }}
+                        fullWidth
                       >
-                        <MenuItem value=""><em>Aucun</em></MenuItem>
-                        {CONTROLLED_VOCABULARIES.map((v) => (
-                          <MenuItem key={v.key} value={v.key} sx={{ fontSize: '0.8rem' }}>{v.label}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        <ToggleButton value="range">Plage d&apos;années</ToggleButton>
+                        <ToggleButton value="named">Période nommée</ToggleButton>
+                      </ToggleButtonGroup>
+                      {temporalMode === 'range' ? (
+                        <Box sx={{ px: 1, pt: 0.5 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color }}>
+                              {yearRange[0]}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled">—</Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color }}>
+                              {yearRange[1]}
+                            </Typography>
+                          </Box>
+                          <Slider
+                            value={yearRange}
+                            onChange={(_, v) => setYearRange(v as [number, number])}
+                            min={0} max={2030} step={1}
+                            valueLabelDisplay="off"
+                            disableSwap
+                            sx={{ color, '& .MuiSlider-thumb': { width: 14, height: 14 } }}
+                          />
+                        </Box>
+                      ) : (
+                        <Autocomplete
+                          size="small" freeSolo
+                          options={NAMED_PERIODS}
+                          inputValue={addingLabel}
+                          onInputChange={(_, v) => setAddingLabel(v)}
+                          renderInput={(params) => (
+                            <TextField {...params} size="small" autoFocus
+                              placeholder="Ex : Révolution française, Moyen Âge…"
+                              sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
+                            />
+                          )}
+                        />
+                      )}
+                    </>
+                  ) : key === 'geographic' ? (
+                    <>
+                      <Autocomplete
+                        size="small" freeSolo
+                        options={addingLabel.length >= 1 ? GEONAMES_MOCK.filter(g => g.toLowerCase().includes(addingLabel.toLowerCase())).slice(0, 8) : GEONAMES_MOCK.slice(0, 6)}
+                        inputValue={addingLabel}
+                        onInputChange={(_, v) => { setAddingLabel(v); setAddingGeonamesLabel(v || undefined) }}
+                        renderInput={(params) => (
+                          <TextField {...params} size="small" autoFocus
+                            placeholder="Ex : France, Afrique subsaharienne…"
+                            sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
+                          />
+                        )}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Place sx={{ fontSize: 11, color }} /> Source : GeoNames — cliquez sur le lieu pour l&apos;afficher sur la carte
+                      </Typography>
+                    </>
+                  ) : key === 'persons' || key === 'organizations' ? (
+                    <>
+                      <Autocomplete
+                        size="small" freeSolo
+                        options={idrefOptions}
+                        getOptionLabel={(o) => typeof o === 'string' ? o : o.label}
+                        inputValue={addingLabel}
+                        onInputChange={(_, v) => {
+                          setAddingLabel(v)
+                          setAddingIdRefPpn(undefined)
+                          setIdrefOptions(key === 'persons' ? searchIdRefPersons(v) : searchIdRefOrganizations(v))
+                        }}
+                        onChange={(_, v) => {
+                          if (v && typeof v === 'object') {
+                            setAddingLabel(v.label)
+                            setAddingIdRefPpn(v.ppn)
+                          }
+                        }}
+                        renderOption={(props, option) => (
+                          <Box component="li" {...props} key={option.ppn} sx={{ flexDirection: 'column', alignItems: 'flex-start !important' }}>
+                            <Typography variant="body2" sx={{ fontSize: '0.8rem', fontWeight: 600 }}>{option.label}</Typography>
+                            {(option.dates || option.description) && (
+                              <Typography variant="caption" color="text.secondary">
+                                {[option.dates, option.description].filter(Boolean).join(' · ')}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                        renderInput={(params) => (
+                          <TextField {...params} size="small" autoFocus
+                            placeholder={key === 'persons' ? 'Rechercher dans IdRef (personnes)…' : 'Rechercher dans IdRef (organismes)…'}
+                            sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
+                          />
+                        )}
+                      />
+                      {addingIdRefPpn && (
+                        <Typography variant="caption" sx={{ color, fontStyle: 'italic' }}>
+                          PPN IdRef : {addingIdRefPpn} ✓
+                        </Typography>
+                      )}
+                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <OpenInNew sx={{ fontSize: 11, color }} /> Source : IdRef — les identifiants seront liés à la notice
+                      </Typography>
+                    </>
+                  ) : (
+                    // Concepts : texte libre + vocabulaire contrôlé
+                    <>
+                      <TextField
+                        size="small" fullWidth autoFocus
+                        placeholder={placeholder}
+                        value={addingLabel}
+                        onChange={(e) => setAddingLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmAddAttr(nodeId, key)
+                          if (e.key === 'Escape') cancelAddAttr()
+                        }}
+                        sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.8rem' } }}
+                      />
+                      {showVocab && (
+                        <FormControl size="small" fullWidth>
+                          <InputLabel sx={{ fontSize: '0.8rem' }}>Vocabulaire (optionnel)</InputLabel>
+                          <Select
+                            label="Vocabulaire (optionnel)"
+                            value={addingVocab}
+                            onChange={(e) => setAddingVocab(e.target.value)}
+                            sx={{ fontSize: '0.8rem' }}
+                          >
+                            <MenuItem value=""><em>Aucun</em></MenuItem>
+                            {CONTROLLED_VOCABULARIES.map((v) => (
+                              <MenuItem key={v.key} value={v.key} sx={{ fontSize: '0.8rem' }}>{v.label}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </>
                   )}
+
                   <Box sx={{ display: 'flex', gap: 0.75 }}>
                     <Button size="small" variant="contained"
-                      disabled={!addingLabel.trim()}
+                      disabled={key === 'temporal' && temporalMode === 'range' ? false : !addingLabel.trim()}
                       onClick={() => confirmAddAttr(nodeId, key)}
                       sx={{ flex: 1, textTransform: 'none', fontSize: '0.75rem', bgcolor: color, '&:hover': { bgcolor: color }, filter: 'brightness(0.9)', py: 0.5 }}>
                       Ajouter
@@ -672,6 +880,38 @@ export default function MindMapView() {
           </Box>
         )}
 
+        <Divider />
+        <Box>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
+            Publications analysées
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            {selectedPubs.length > 0 ? (
+              <Chip size="small"
+                label={`${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''}`}
+                sx={{ bgcolor: `${TEAL}15`, color: TEAL, fontWeight: 600 }}
+              />
+            ) : (
+              <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                Aucune publication sélectionnée
+              </Typography>
+            )}
+          </Box>
+          <Button size="small" variant="outlined" fullWidth
+            onClick={() => router.push(`/${lang}/documents${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)}
+            sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL, fontSize: '0.75rem', mb: selectedPubs.length > 0 ? 0.75 : 0 }}>
+            Modifier les publications →
+          </Button>
+          {selectedPubs.length > 0 && (
+            <Button size="small" variant="text" fullWidth
+              startIcon={generating ? <CircularProgress size={12} color="inherit" /> : <AutoAwesome sx={{ fontSize: '14px !important' }} />}
+              onClick={handleGenerateFromPublications}
+              disabled={generating}
+              sx={{ textTransform: 'none', color: TEAL, fontSize: '0.75rem' }}>
+              {generating ? 'Recalcul en cours…' : 'Recalculer à partir des publications'}
+            </Button>
+          )}
+        </Box>
         <Divider />
         {renderAddNodeButton()}
         <Divider />
@@ -899,6 +1139,12 @@ export default function MindMapView() {
                       JSON
                     </Button>
                   </Tooltip>
+                  <Tooltip title={`Historique (${history.length} version${history.length !== 1 ? 's' : ''})`}>
+                    <IconButton size="small" onClick={() => setHistoryOpen(true)}
+                      sx={{ color: history.length > 0 ? TEAL : 'text.disabled' }}>
+                      <History fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="Réinitialiser la carte">
                     <IconButton size="small" onClick={handleReset} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
                       <RestartAlt fontSize="small" />
@@ -917,6 +1163,50 @@ export default function MindMapView() {
           </Box>
         </>
       )}
+
+      {/* Dialog — historique des versions */}
+      <HistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        history={history}
+        onRestore={handleRestoreHistory}
+      />
+
+      {/* Dialog — carte géographique */}
+      <Dialog open={geoDialog.open} onClose={() => setGeoDialog({ open: false, label: '' })} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MapIcon sx={{ color: '#388E3C', fontSize: 20 }} />
+            <Typography variant="h6">{geoDialog.label}</Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setGeoDialog({ open: false, label: '' })}><Close fontSize="small" /></IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ height: 320, bgcolor: '#f5f5f5', overflow: 'hidden' }}>
+            <iframe
+              title={geoDialog.label}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(geoDialog.label)}&output=embed&hl=fr`}
+              width="100%" height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'flex-start', gap: 1, px: 2 }}>
+          <Button size="small" startIcon={<OpenInNew sx={{ fontSize: '14px !important' }} />}
+            onClick={() => window.open(`https://www.openstreetmap.org/search?query=${encodeURIComponent(geoDialog.label)}`, '_blank')}
+            sx={{ textTransform: 'none', color: 'text.secondary' }}>
+            OpenStreetMap
+          </Button>
+          <Button size="small" startIcon={<OpenInNew sx={{ fontSize: '14px !important' }} />}
+            onClick={() => window.open(`https://www.geonames.org/search.html?q=${encodeURIComponent(geoDialog.label)}`, '_blank')}
+            sx={{ textTransform: 'none', color: 'text.secondary' }}>
+            GeoNames
+          </Button>
+          <Box sx={{ flex: 1 }} />
+          <Button onClick={() => setGeoDialog({ open: false, label: '' })} sx={{ textTransform: 'none' }}>Fermer</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Dialog — add / edit expertise */}
       <Dialog open={nodeDialog.open} onClose={() => setNodeDialog(DEFAULT_DIALOG)} maxWidth="xs" fullWidth>

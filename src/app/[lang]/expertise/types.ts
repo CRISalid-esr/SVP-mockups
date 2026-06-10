@@ -16,12 +16,42 @@ export interface ConceptRef {
   uri?: string
 }
 
+export interface TemporalRef {
+  label: string
+  yearFrom?: number
+  yearTo?: number
+}
+
+export interface GeoRef {
+  label: string
+  geonamesId?: number
+}
+
+export interface PersonRef {
+  label: string
+  identifier?: string  // IdRef PPN
+}
+
+export interface OrgRef {
+  label: string
+  identifier?: string  // IdRef PPN
+}
+
 export interface ExpertiseAttributes {
-  temporal?: { label: string }[]
-  geographic?: { label: string }[]
-  persons?: { label: string; identifier?: string }[]
-  organizations?: { label: string; identifier?: string }[]
+  temporal?: TemporalRef[]
+  geographic?: GeoRef[]
+  persons?: PersonRef[]
+  organizations?: OrgRef[]
   concepts?: ConceptRef[]
+}
+
+export interface HistoryEntry {
+  id: string
+  timestamp: string
+  label: string
+  nodeCount: number
+  edgeCount: number
+  graph: ExpertiseGraph
 }
 
 export interface ExpertiseNodeData extends ExpertiseAttributes {
