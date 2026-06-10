@@ -123,22 +123,6 @@ const DocumentsPage = () => {
     Record<string, string>
   >({})
 
-  const EXPERTISE_PUBS_KEY = 'expertise-selected-publications'
-  const [expertiseSelectedPubs, setExpertiseSelectedPubs] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const raw = localStorage.getItem(EXPERTISE_PUBS_KEY)
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
-  const toggleExpertisePub = useCallback((uid: string) => {
-    setExpertiseSelectedPubs((prev) => {
-      const next = prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
-      localStorage.setItem(EXPERTISE_PUBS_KEY, JSON.stringify(next))
-      return next
-    })
-  }, [])
-
   const harvestings = useStore((state) => state.harvesting.harvestings)
   const currentPerspectiveHarvesting =
     harvestings[currentPerspective?.uid || '']
@@ -149,6 +133,22 @@ const DocumentsPage = () => {
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const expertisePubsKey = `expertise-selected-publications-${searchParams?.get('perspective') || 'default'}`
+  const [expertiseSelectedPubs, setExpertiseSelectedPubs] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = localStorage.getItem(expertisePubsKey)
+      return raw ? JSON.parse(raw) : []
+    } catch { return [] }
+  })
+  const toggleExpertisePub = useCallback((uid: string) => {
+    setExpertiseSelectedPubs((prev) => {
+      const next = prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+      localStorage.setItem(expertisePubsKey, JSON.stringify(next))
+      return next
+    })
+  }, [expertisePubsKey])
 
   const navigateToDetailsPage = useCallback(
     (documentUid: string) => {

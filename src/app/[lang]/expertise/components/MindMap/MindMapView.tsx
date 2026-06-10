@@ -29,9 +29,20 @@ import {
   INITIAL_GRAPH, NODE_TYPE_CONFIG,
 } from '../../types'
 
-const STORAGE_KEY = 'expertise-graph-v2'
-const PUBS_STORAGE_KEY = 'expertise-selected-publications'
+const STORAGE_KEY_PREFIX = 'expertise-graph-v2'
+const PUBS_KEY_PREFIX = 'expertise-selected-publications'
 const TEAL = '#006A61'
+
+function getPerspective(): string {
+  if (typeof window === 'undefined') return 'default'
+  return new URLSearchParams(window.location.search).get('perspective') || 'default'
+}
+
+const EMPTY_GRAPH: ExpertiseGraph = {
+  nodes: [],
+  edges: [],
+  meta: { version: 1, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] },
+}
 const DRAWER_WIDTH = 320
 
 const ATTR_CONFIG: Array<{
@@ -60,17 +71,17 @@ function applyEdgeStyle(edge: Edge): Edge {
   return { ...edge, type: 'relationEdge', animated: false }
 }
 
-function loadGraph(): ExpertiseGraph {
-  if (typeof window === 'undefined') return INITIAL_GRAPH
+function loadGraph(key: string): ExpertiseGraph {
+  if (typeof window === 'undefined') return EMPTY_GRAPH
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
   } catch (_e) { /* ignore */ }
-  return INITIAL_GRAPH
+  return EMPTY_GRAPH
 }
 
-function saveGraph(graph: ExpertiseGraph) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(graph))
+function saveGraph(key: string, graph: ExpertiseGraph) {
+  localStorage.setItem(key, JSON.stringify(graph))
 }
 
 interface NodeDialogState {
@@ -87,7 +98,11 @@ const DEFAULT_DIALOG: NodeDialogState = {
 }
 
 export default function MindMapView() {
-  const initialGraph = loadGraph()
+  const [perspective] = useState(() => getPerspective())
+  const storageKey = `${STORAGE_KEY_PREFIX}-${perspective}`
+  const pubsKey = `${PUBS_KEY_PREFIX}-${perspective}`
+
+  const [initialGraph] = useState(() => loadGraph(storageKey))
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialGraph.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(
@@ -122,7 +137,7 @@ export default function MindMapView() {
   const [selectedPubs, setSelectedPubs] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     try {
-      const raw = localStorage.getItem(PUBS_STORAGE_KEY)
+      const raw = localStorage.getItem(pubsKey)
       return raw ? JSON.parse(raw) : []
     } catch { return [] }
   })
@@ -178,9 +193,9 @@ export default function MindMapView() {
   }, [selectedEdgeId, setEdges])
 
   const handleSave = useCallback(() => {
-    saveGraph({ nodes, edges, meta })
+    saveGraph(storageKey, { nodes, edges, meta })
     setSnackbar({ open: true, msg: 'Carte enregistrée', severity: 'success' })
-  }, [nodes, edges, meta])
+  }, [storageKey, nodes, edges, meta])
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
@@ -204,7 +219,7 @@ export default function MindMapView() {
       setNodes(result.nodes)
       setEdges(result.edges.map(applyEdgeStyle))
       setMeta(result.meta)
-      saveGraph(result)
+      saveGraph(storageKey, result)
       setSnackbar({ open: true, msg: 'Carte générée depuis vos publications — affinez-la via le chatbot', severity: 'info' })
     } finally {
       setGenerating(false)
@@ -242,7 +257,7 @@ export default function MindMapView() {
     setNodes([])
     setEdges([])
     setMeta({ version: 2, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(storageKey)
     setSelectedEdgeId(null)
     setDrawerTab('graph')
     setAddingCat(null)
@@ -723,7 +738,7 @@ export default function MindMapView() {
 
             <Button
               variant="outlined" fullWidth size="medium"
-              onClick={() => router.push(`/${lang}/documents`)}
+              onClick={() => router.push(`/${lang}/documents${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)}
               sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL, borderRadius: 2 }}
             >
               Sélectionner des publications →
