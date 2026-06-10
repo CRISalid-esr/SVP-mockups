@@ -561,23 +561,41 @@ export default function MindMapView() {
                       </ToggleButtonGroup>
                       {temporalMode === 'range' ? (
                         <Box sx={{ px: 1, pt: 0.5 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color }}>
-                              {formatYear(yearRange[0])}
-                            </Typography>
-                            <Typography variant="caption" color="text.disabled">—</Typography>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color }}>
-                              {formatYear(yearRange[1])}
-                            </Typography>
-                          </Box>
                           <Slider
                             value={yearRange}
                             onChange={(_, v) => setYearRange(v as [number, number])}
                             min={-100000} max={2030} step={50}
                             valueLabelDisplay="off"
                             disableSwap
-                            sx={{ color, '& .MuiSlider-thumb': { width: 14, height: 14 } }}
+                            sx={{ color, '& .MuiSlider-thumb': { width: 14, height: 14 }, mb: 0.5 }}
                           />
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                              size="small"
+                              label="De"
+                              type="number"
+                              value={yearRange[0]}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value, 10)
+                                if (!isNaN(v) && v >= -100000 && v <= yearRange[1]) setYearRange([v, yearRange[1]])
+                              }}
+                              inputProps={{ min: -100000, max: yearRange[1], step: 1, style: { fontSize: '0.75rem' } }}
+                              sx={{ flex: 1, '& .MuiInputLabel-root': { fontSize: '0.75rem' } }}
+                            />
+                            <Typography variant="caption" color="text.disabled">—</Typography>
+                            <TextField
+                              size="small"
+                              label="À"
+                              type="number"
+                              value={yearRange[1]}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value, 10)
+                                if (!isNaN(v) && v >= yearRange[0] && v <= 2030) setYearRange([yearRange[0], v])
+                              }}
+                              inputProps={{ min: yearRange[0], max: 2030, step: 1, style: { fontSize: '0.75rem' } }}
+                              sx={{ flex: 1, '& .MuiInputLabel-root': { fontSize: '0.75rem' } }}
+                            />
+                          </Box>
                         </Box>
                       ) : (
                         <Autocomplete
