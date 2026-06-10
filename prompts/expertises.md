@@ -1,278 +1,209 @@
-# Expertises — Descriptif fonctionnel et choix d'architecture
+# Expertises — Descriptif fonctionnel (état courant)
 
-## Contexte
+> Dernière mise à jour : juin 2026
 
-La rubrique **Expertises** est une fonctionnalité innovante de SoVisu+ qui n'a pas d'équivalent direct dans les SI Recherche existants. Elle vise à permettre au chercheur de représenter, structurer et communiquer ses domaines d'expertise selon plusieurs angles complémentaires.
+## Architecture
 
-Elle repose sur une architecture en **trois vues alimentées par une source de vérité commune** (Option A retenue).
-
----
-
-## Architecture retenue : Option A — trois vues, une base unique
-
-La **carte mentale** (vue 1) est la source de vérité. Elle définit les concepts d'expertise sous forme de graphe orienté. Les deux autres vues sont des projections de ces mêmes concepts vers des usages différents :
+La rubrique **Expertises** repose sur une source de vérité unique : la **carte mentale** (graphe React Flow). Les deux autres vues ("Profil structuré", "Fiches publics") sont des projections de ce graphe.
 
 ```
-Carte mentale (source de vérité — React Flow)
-    │
-    ├── Vue à plat : chaque nœud principal → expertise avec activités associées
-    └── Cartes impact : chaque nœud → "Famille", déclinée en N cartes selon l'audience
+Carte mentale  ──→  Profil structuré (vue à plat)
+     │         ──→  Fiches publics (cartes impact)
 ```
 
-Options écartées :
-- **Option B** (trois outils indépendants liés par un vocabulaire) : risque de désynchronisation
-- **Option C** (entonnoir séquentiel obligatoire) : trop contraignant pour les utilisateurs qui veulent accéder directement aux cartes impact
-- **Option D** (vue à plat par défaut + deux vues optionnelles sans couplage) : moins innovant, reporte le problème de cohérence
+**3 onglets** dans `page.tsx` :
+
+| Onglet | Valeur | Composant |
+|---|---|---|
+| Mes domaines | `0` (défaut) | `MindMapView` |
+| Profil structuré | `1` | `FlatView` |
+| Fiches publics | `2` | `ImpactCardsView` |
 
 ---
 
-## Navigation — 3 onglets (page.tsx)
+## Isolation par perspective
 
-| Onglet | Ancien nom | Valeur | Composant |
-|---|---|---|---|
-| **Mes domaines** | Carte mentale | `0` | `MindMapView` (défaut) |
-| **Profil structuré** | Vue des expertises | `1` | `FlatView` |
-| **Fiches publics** | Cartes impact | `2` | `ImpactCardsView` |
+Toutes les clés localStorage sont suffixées par `?perspective=` (lu via `window.location.search`) :
 
-Les onglets "Profil structuré" et "Fiches publics" affichent un chip vert `depuis vos domaines` pour matérialiser leur dépendance à la carte. Les callbacks `onGoToMindMap` redirigent vers `setTab(0)`.
+| Clé | Contenu |
+|---|---|
+| `expertise-graph-v2-{perspective}` | Graphe courant (nœuds + arêtes + meta) |
+| `expertise-history-{perspective}` | Historique des versions (max 10) |
+| `expertise-selected-publications-{perspective}` | UIDs des publications sélectionnées |
 
-Les `Tabs` utilisent `variant="scrollable" scrollButtons="auto"` pour éviter le débordement sur petits écrans.
-
-**Indicateur de complétude** : barre fine entre les onglets et le contenu (`flexWrap: wrap` pour le responsive), relisant `localStorage` à chaque changement d'onglet — affiche le nombre de domaines définis et de fiches publiées.
+Un profil sans entrée enregistrée voit l'**empty state** (fallback `EMPTY_GRAPH` — nœuds vides, pas `INITIAL_GRAPH`).
 
 ---
 
-## Vue 1 — Carte mentale (implémentée)
+## Flux de premier accès — publications-first
 
-### Principe
+Quand `nodes.length === 0`, le canvas est masqué et remplacé par une carte centrée :
 
-Le chercheur décrit ses expertises en **langage naturel** via un champ de texte libre. Un LLM traduit ce texte en un graphe React Flow que le chercheur peut ensuite modifier manuellement. Le graphe est persisté en JSON et s'enrichit au fil des itérations.
+1. **Étape principale** :
+   - Badge du nombre de publications sélectionnées (lues depuis localStorage)
+   - Bouton "Sélectionner des publications →" → navigue vers `/[lang]/documents?perspective=…`
+   - Bouton "Générer mes expertises" (activé si ≥ 1 publication sélectionnée)
+   - Génération : appelle `generateGraphFromPublications(count, meta)` dans `mockLlm.ts` (~2,2 s)
 
-### Types de nœuds
+2. **Séparateur "ou"** puis lien "Décrire mes domaines manuellement" → bascule vers :
+   - Textarea autofocus + 4 chips de profils pré-remplis (Sociologue, Historien, Physicien, Juriste)
+   - Bouton "Générer ma carte" → appelle `generateGraphFromPrompt(prompt, meta)` (~1,8 s)
+   - Ctrl+Entrée fonctionne aussi
+   - Bouton "Retour" pour revenir à l'étape publications
 
-| Type | Couleur | Description |
-|---|---|---|
-| Expertise principale | Teal `#006A61` | Domaine central de recherche |
-| Expertise secondaire | Bleu `#1976D2` | Domaine connexe ou spécialisation |
-| Terrain de recherche | Orange `#E65100` | Zone géographique, période, matériau, langage… |
-| Concept transversal | Violet `#7B1FA2` | Notion théorique ou thématique |
+### Colonne "Expertises" dans la liste des publications
 
-### Typologie des relations (14 types en 4 catégories)
+Colonne compacte (52 px) avec en-tête icône `Psychology` dans un tooltip.  
+Chaque ligne : bouton icône `Psychology` toggleable — gris = non sélectionnée, teal `#006A61` = incluse dans le calcul.  
+État persisté dans `expertise-selected-publications-{perspective}` (localStorage).  
+La sélection est lue par perspective (`?perspective=` dans l'URL de la page documents).
 
-#### Hiérarchie (trait plein teal)
-Relations de profondeur ou d'emboîtement entre expertises.
+---
 
-| Clé | Label affiché |
-|---|---|
-| `approfondit` | approfondit |
-| `specialise` | spécialise |
-| `integre` | intègre |
+## Mise à jour du graphe existant
 
-#### Terrain (tirets oranges animés)
-Relations entre une expertise et son ancrage empirique.
+Quand le graphe est chargé et rien n'est sélectionné dans le canvas (état 1 du panneau) :
 
-| Clé | Label affiché |
-|---|---|
-| `terrain_geo` | terrain géographique |
-| `terrain_temp` | terrain temporel |
-| `cas_etude` | cas d'étude |
-| `corpus` | corpus |
+- Section **Publications analysées** : badge du nombre de publications + bouton "Modifier les publications →" (navigue vers documents avec perspective) + bouton "Recalculer à partir des publications" (visible si ≥ 1 pub sélectionnée)
+- Section **Chatbot** : prompt LLM (textarea + bouton Générer) pour affiner le graphe en langage naturel
 
-#### Conceptuel (pointillés violets)
-Relations entre une expertise et les concepts théoriques qu'elle mobilise ou produit.
+---
 
-| Clé | Label affiché |
-|---|---|
-| `mobilise` | mobilise |
-| `problematise` | problématise |
-| `produit` | produit des connaissances sur |
+## Versionnement
 
-#### Dialogue (pointillés bleus / rouge pour tensions)
-Relations latérales entre expertises ou concepts de même niveau.
+### Stockage
 
-| Clé | Label affiché | Style | Sens |
-|---|---|---|---|
-| `croise` | croise | bleu `#1976D2`, tirets `8 4` | **bidirectionnel** (← →) |
-| `articule` | s'articule avec | bleu `#1976D2`, tirets `8 4` | **bidirectionnel** (← →) |
-| `a_conduit_a` | a conduit à | bleu `#1976D2`, plein | directionnel (→) |
-| `en_tension` | en tension avec | rouge `#C62828`, tirets `4 4` | **bidirectionnel** (← →) |
+`expertise-history-{perspective}` → tableau `HistoryEntry[]`, max 10 entrées, ordre chronologique inversé (la plus récente en premier).
 
-### Empty state onboarding
-
-Quand `nodes.length === 0` (premier accès ou après réinitialisation), le canvas est remplacé par une carte centrée sur fond pointillé :
-- Textarea autofocus (6 lignes) avec placeholder
-- 4 chips de profils pré-remplis : **Sociologue** · **Historien** · **Physicien** · **Juriste** (définis dans `EXAMPLE_PROMPTS`)
-- Bouton "Générer ma carte" (activé dès que le champ est non vide, `Ctrl+Entrée` aussi)
-- Après génération → canvas + panneau gauche s'affichent
-
-### Panneau gauche — 3 états contextuels
-
-| État | Condition | Contenu |
-|---|---|---|
-| **Rien sélectionné** | `selectedNodes.length === 0` et `drawerTab !== 'edge'` | Prompt LLM (action principale) · dernier prompt · "Ajouter un nœud" · légende en accordéon (replié par défaut) · stats |
-| **Nœud(s) sélectionné(s)** | `selectedNodes.length > 0` | Carte info colorée (type + nom + description) · [Modifier] [Supprimer] · "Ajouter un nœud" · légende · stats |
-| **Lien sélectionné** | `drawerTab === 'edge'` | Relation actuelle · sélecteur visuel par catégorie (prévisualisation du trait) · "Supprimer ce lien" |
-
-La légende (types de nœuds + types de liens) est dans un `Accordion` MUI replié par défaut, piloté par `legendOpen`.
-
-### Interactions utilisateur
-
-- **Générer depuis un prompt** : champ texte (panneau gauche ou empty state) + bouton → spinner 1,8 s → graphe pré-rempli
-- **Réinitialiser** : bouton `RestartAlt` dans le panneau top-right → vide nœuds/arêtes/meta → affiche l'empty state
-- **Ajouter un nœud** : bouton "Ajouter un nœud" → dialog (intitulé, type, description)
-- **Modifier un nœud** : sélection + bouton "Modifier" dans le panneau (état 2)
-- **Supprimer** : sélection + bouton "Supprimer" (état 2)
-- **Créer un lien** : tirer depuis un point d'ancrage vers un autre nœud (lien `croise` par défaut)
-- **Changer le type d'un lien** : clic sur le lien → panneau bascule état 3
-- **Enregistrer** : bouton "Enregistrer" → localStorage (JSON versionné)
-- **Exporter JSON** : bouton "JSON" → viewer + téléchargement du fichier
-
-### Responsive
-
-Le panneau gauche est un `Drawer` MUI dont le comportement change selon la largeur d'écran (seuil : 900 px, `useMediaQuery('(max-width: 899px)')`).
-
-| Mode | Variante Drawer | Comportement |
-|---|---|---|
-| **Desktop (≥ 900 px)** | `persistent` | S'insère dans le flux (`position: relative`, `height: 100%`), pousse le canvas |
-| **Mobile (< 900 px)** | `temporary` | Superposition (overlay), ne pousse pas le canvas ; fermé par défaut |
-
-**Initialisation SSR-safe :**
 ```ts
-const [drawerOpen, setDrawerOpen] = useState(
-  () => typeof window !== 'undefined' ? window.innerWidth >= 900 : true,
-)
-```
-
-**Auto-fermeture au passage en mobile :**
-```ts
-useEffect(() => { if (isMobile) setDrawerOpen(false) }, [isMobile])
-```
-
-**Bouton toggle :** toujours visible sauf quand `isMobile && drawerOpen` (le backdrop du Drawer temporaire gère déjà la fermeture). Sur mobile, le bouton est arrondi (`borderRadius: '50%'`) et positionné en `zIndex: 20`.
-
-**Astuce bas-de-canvas** (`bottom-center` React Flow Panel) : masquée sur mobile pour ne pas encombrer l'espace réduit.
-
-### Format de persistance JSON
-
-```json
-{
-  "nodes": [
-    {
-      "id": "n1",
-      "type": "expertiseNode",
-      "position": { "x": 400, "y": 220 },
-      "data": {
-        "label": "Migration pour le travail",
-        "nodeType": "main",
-        "description": "..."
-      }
-    }
-  ],
-  "edges": [
-    {
-      "id": "e1",
-      "source": "n1",
-      "target": "n2",
-      "type": "relationEdge",
-      "data": { "relationType": "terrain_geo" }
-    }
-  ],
-  "meta": {
-    "version": 2,
-    "lastUpdated": "2026-05-26",
-    "promptHistory": ["Je suis spécialiste de..."]
-  }
+interface HistoryEntry {
+  id: string        // `h${Date.now()}`
+  timestamp: string // ISO 8601
+  label: string     // ex : "Généré depuis 3 publications"
+  nodeCount: number
+  edgeCount: number
+  graph: ExpertiseGraph
 }
 ```
 
-Le fichier JSON **s'enrichit au fil des itérations** : chaque génération depuis un nouveau prompt incrémente `version` et ajoute le prompt à `promptHistory`.
+### Déclencheurs de sauvegarde automatique
 
-### Données d'exemple (graphe par défaut)
+- Bouton **Enregistrer** → label "Modification manuelle"
+- Bouton **Générer le graphe** (prompt) → label `Généré par IA — "…"`
+- Bouton **Générer mes expertises** (publications) → label `Généré depuis N publications`
 
-Exemple inspiré d'un profil en sciences sociales :
-- Nœud principal : **Migration pour le travail**
-- Terrains : Sri Lanka — Moyen-Orient · 2005 — aujourd'hui
-- Expertise secondaire : Politiques migratoires
-- Concepts : Genre et migration · Identités en migration · Valeur du travail
-- Relations : terrain géographique · terrain temporel · approfondit · croise · a conduit à · s'articule avec
+### Interface
 
----
-
-## Vue 2 — Vue à plat (à développer)
-
-### Principe
-
-Chaque nœud de type "expertise principale" ou "expertise secondaire" devient une entrée dans une liste structurée. À chaque expertise sont associées :
-- ses terrains de recherche (nœuds `terrain` connectés)
-- ses activités de recherche (publications, projets, encadrements issus de la rubrique Activités)
-- ses dates (déduites du terrain temporel ou saisies manuellement)
-
-### Référence de design
-
-L'ancienne maquette Figma/Vite (`maquettes/SVP/`) contient une vue plate à explorer pour le design de référence. Elle doit être adaptée au vocabulaire simplifié ("Auteur identifié" plutôt que "AureHAL", etc.).
-
-### Implémentation
-
-**Fichiers :** `components/FlatView/FlatView.tsx` · `components/FlatView/ExpertiseFlatCard.tsx`
-
-**Fonctionnement :** lit le graphe depuis `localStorage` (clé `expertise-graph-v1`), traverse les arêtes pour chaque nœud expertise (main/secondary), construit des `ExpertiseEntry` avec terrains, concepts et relations classés par catégorie.
-
-**Associations activités :** stockées séparément en `localStorage` (clé `expertise-activities-v1`), modifiables via un dialog avec liste à cocher. Pré-associées pour la démo : n1 → ANR + thèse, n3 → conférence + éditorial.
-
-**Navigation :** un bouton "Modifier le graphe →" et le bouton "Ajouter dans la carte mentale" basculent vers l'onglet Carte mentale via le prop `onGoToMindMap`.
-
-**À venir :** filtres par type/terrain/période, tri, recherche plein texte.
+Bouton `History` (icône) dans le Panel top-right, teal si des versions existent.  
+`HistoryDialog.tsx` : timeline verticale avec nœud coloré, date + heure, chips nœuds/liens/version, bouton "Restaurer" (désactivé pour la version actuelle).  
+La restauration recharge les nœuds/arêtes/meta et sauvegarde dans le graphe courant (sans ajouter à l'historique).
 
 ---
 
-## Vue 3 — Cartes impact (à développer)
+## Modèle de données du graphe
 
-### Principe
+### Nœud — un seul type
 
-Le chercheur décline ses expertises en **cartes contextualisées selon le public** auquel il s'adresse. Une expertise principale devient une "Famille" dont découlent N cartes pour différentes audiences.
-
-### Types de profils (issus du prototype `expertises/mes-cartes-impact---dashboard-chercheur.zip`)
-
-| Profil | Cible | Couleur |
+| Propriété | Type | Description |
 |---|---|---|
-| RECHERCHE | Chercheurs | Jaune |
-| INNOVATION | Industriels | Violet |
-| MEDIA | Journalistes | Vert |
-| VULGARISATION | Grand Public | Bleu |
+| `label` | `string` | Intitulé de l'expertise |
+| `nodeType` | `'expertise'` | Unique type (teal `#006A61`) |
+| `description` | `string?` | Description libre |
+| `temporal` | `TemporalRef[]?` | Couvertures temporelles |
+| `geographic` | `GeoRef[]?` | Lieux |
+| `persons` | `PersonRef[]?` | Personnes de référence |
+| `organizations` | `OrgRef[]?` | Organisations |
+| `concepts` | `ConceptRef[]?` | Mots-clés + vocabulaire |
 
-### Structure d'une carte impact
+### Arête — modèle atelier-first
 
-- **Famille** : nœud d'expertise source (ex : "Sécurité Alimentaire en Afrique")
-- **Titre** : formulation adaptée à l'audience (ex : "Analyse des sols sahéliens" pour chercheurs vs "Impact du changement climatique" pour grand public)
-- **Description** : texte vulgarisé selon le profil
-- **Niveau de spécialisation** : 1–10 (jauge)
-- **Audiences cibles** : liste libre
-- **Spécifiques** : champs libres (terrain, langue, framework, TRL…)
-- **Statut** : Validée · À valider · Personnalisée
-- **Visibilité** : Publique / Privée
+| Propriété | Type | Description |
+|---|---|---|
+| `direction` | `'forward' \| 'backward' \| 'bidirectional'` | Sens de la relation |
+| `label` | `string?` | Qualification libre (pointillés gris si absent) |
 
-### Génération depuis le graphe
+Pas de liste fixe de types de relations — la typologie émergera des ateliers.
 
-Un bouton "Générer les cartes impact depuis ce graphe" (dans la carte mentale) appellera un LLM pour proposer automatiquement une carte par profil pour chaque nœud d'expertise principale — que le chercheur pourra accepter, modifier ou rejeter.
+---
 
-### Implémentation
+## Caractéristiques — interfaces enrichies
 
-**Fichiers :**
-- `components/ImpactCards/impactCardsTypes.ts` — types, constantes, données mock (6 cartes, 2 familles)
-- `components/ImpactCards/ImpactCard.tsx` — carte portrait 260×390px (header coloré, pattern, icon, jauge spécialisation, audiences, footer)
-- `components/ImpactCards/CardDetailDialog.tsx` — Dialog MUI avec 3 onglets (Contenu, Spécificités, Métadonnées) + actions Dupliquer/Archiver
-- `components/ImpactCards/CreateCardWizard.tsx` — Wizard 3 étapes : (1) Profil + Famille, (2) Titre + Description, (3) Audiences + Spécifiques
-- `components/ImpactCards/ImpactCardsView.tsx` — Vue orchestratrice : KPI, sous-onglets (Toutes/À valider/Personnalisées/Privées), sections par famille + profil
+### `temporal` — `TemporalRef`
 
-**Fonctionnement :**
-- Persistence en `localStorage` (clé `expertise-cards-v1`)
-- Familles calées sur les nœuds du graphe (`nodeId` → `n1`, `n3`)
-- Sous-onglets filtrent les cartes par statut/visibilité
-- Bouton "Générer depuis le graphe" présent mais désactivé (future intégration LLM)
+```ts
+interface TemporalRef { label: string; yearFrom?: number; yearTo?: number }
+```
 
-**À venir :**
-- [ ] Bouton "Générer depuis le graphe" (intégration LLM)
-- [ ] Synchronisation dynamique des familles depuis le graphe localStorage
+Saisie via **ToggleButtonGroup** :
+- **"Plage d'années"** : Slider MUI double poignée (0–2030, `disableSwap`). Affiche `yearFrom — yearTo`. Stocke `yearFrom` et `yearTo` en plus du label formaté.
+- **"Période nommée"** : Autocomplete freeSolo avec ~40 suggestions (`NAMED_PERIODS` dans `mockIdRef.ts`) : Antiquité, Révolution française, Guerre froide, Pandémie Covid-19, etc.
+
+### `geographic` — `GeoRef`
+
+```ts
+interface GeoRef { label: string; geonamesId?: number }
+```
+
+Saisie via Autocomplete filtrant `GEONAMES_MOCK` (~70 lieux francophones).  
+Chips cliquables → `Dialog` avec :
+- Iframe `https://maps.google.com/maps?q={encoded}&output=embed&hl=fr` (320 px de haut)
+- Boutons "OpenStreetMap" et "GeoNames" (nouvelle fenêtre)
+
+### `persons` / `organizations` — `PersonRef` / `OrgRef`
+
+```ts
+interface PersonRef { label: string; identifier?: string }  // identifier = PPN IdRef
+interface OrgRef    { label: string; identifier?: string }
+```
+
+Saisie via Autocomplete filtrant les données mock de `mockIdRef.ts` :
+- **Personnes** : 25 entrées (Bourdieu, Foucault, Butler, Appadurai, Latour, Sayad…)
+- **Organismes** : 20 entrées (CNRS, EHESS, UNESCO, OIT, IRD, Sciences Po…)
+
+Les résultats affichent le nom, les dates et la description.  
+Quand un résultat est sélectionné, le PPN est stocké dans `identifier`.  
+Chips avec icône `OpenInNew` → `https://www.idref.fr/{ppn}` (nouvelle fenêtre).
+
+### `concepts` — `ConceptRef`
+
+```ts
+interface ConceptRef { label: string; vocabulary?: string; uri?: string }
+```
+
+Texte libre + sélecteur de vocabulaire contrôlé optionnel : RAMEAU · MeSH · Wikidata · JEL · AMS · MSC · LCSH · libre.
+
+---
+
+## Panneau gauche — 3 états contextuels
+
+| État | Condition | Contenu |
+|---|---|---|
+| **État 1** — rien sélectionné | `selectedNodes.length === 0` et `drawerTab !== 'edge'` | Prompt LLM · dernier prompt · **Publications analysées** (badge + recalcul) · Ajouter · Légende · Stats |
+| **État 2** — nœud(s) sélectionné(s) | `selectedNodes.length > 0` | Carte info (label + description) · [Modifier] [Supprimer] · **Caractéristiques** éditables inline · Ajouter · Légende · Stats |
+| **État 3** — lien sélectionné | `drawerTab === 'edge'` | Sélecteur direction (A→B / A←B / A↔B) · Label texte libre · Supprimer |
+
+---
+
+## Persistance JSON (`ExpertiseGraph`)
+
+```json
+{
+  "nodes": [{ "id": "n1", "type": "expertiseNode", "position": { "x": 380, "y": 200 },
+    "data": { "label": "Migration pour le travail", "nodeType": "expertise",
+      "temporal": [{ "label": "2005 — 2024", "yearFrom": 2005, "yearTo": 2024 }],
+      "geographic": [{ "label": "Sri Lanka" }],
+      "persons": [{ "label": "Sayad, Abdelmalek", "identifier": "033975051" }],
+      "concepts": [{ "label": "migration du travail", "vocabulary": "rameau" }]
+    }
+  }],
+  "edges": [{ "id": "e1", "source": "n1", "target": "n2",
+    "data": { "label": "approfondit", "direction": "forward" }
+  }],
+  "meta": { "version": 3, "lastUpdated": "2026-06-10",
+    "promptHistory": ["Généré depuis 4 publications", "Généré par IA — \"Je suis spécialiste…\""]
+  }
+}
+```
 
 ---
 
@@ -280,37 +211,34 @@ Un bouton "Générer les cartes impact depuis ce graphe" (dans la carte mentale)
 
 | Fichier | Rôle |
 |---|---|
-| `src/app/[lang]/expertise/page.tsx` | Page principale avec les 3 onglets |
-| `src/app/[lang]/expertise/layout.tsx` | Layout standard (MainLayout) |
-| `src/app/[lang]/expertise/types.ts` | Types TypeScript + constantes (NODE_TYPE_CONFIG, RELATION_TYPES, INITIAL_GRAPH) |
-| `src/app/[lang]/expertise/components/MindMap/MindMapView.tsx` | Canvas React Flow complet |
-| `src/app/[lang]/expertise/components/MindMap/ExpertiseNode.tsx` | Nœud personnalisé MUI |
-| `src/app/[lang]/expertise/components/MindMap/RelationEdge.tsx` | Arête personnalisée avec label coloré et flèche directionnelle (ou bidirectionnelle) |
-| `src/app/[lang]/expertise/components/MindMap/mockLlm.ts` | Simulation LLM (analyse de mots-clés → graphe) |
-| `src/app/[lang]/expertise/components/ImpactCards/impactCardsTypes.ts` | Types + constantes + données mock cartes impact |
-| `src/app/[lang]/expertise/components/ImpactCards/ImpactCard.tsx` | Carte portrait 260×390px |
-| `src/app/[lang]/expertise/components/ImpactCards/CardDetailDialog.tsx` | Dialog édition (3 onglets) |
-| `src/app/[lang]/expertise/components/ImpactCards/CreateCardWizard.tsx` | Wizard création (3 étapes) |
-| `src/app/[lang]/expertise/components/ImpactCards/ImpactCardsView.tsx` | Vue principale cartes impact |
+| `types.ts` | Types TypeScript : `ExpertiseNodeData`, `HistoryEntry`, `TemporalRef`, `GeoRef`, `PersonRef`, `OrgRef`, `EdgeData`, `CONTROLLED_VOCABULARIES` |
+| `MindMapView.tsx` | Composant principal (~1 000 lignes) : canvas React Flow, panneau 3 états, empty state, génération, versionnement |
+| `mockLlm.ts` | `generateGraphFromPrompt(prompt, meta)` · `generateGraphFromPublications(count, meta)` |
+| `mockIdRef.ts` | `searchIdRefPersons()` · `searchIdRefOrganizations()` · `GEONAMES_MOCK` · `NAMED_PERIODS` |
+| `HistoryDialog.tsx` | Dialog chronologique des versions avec restauration |
+| `ExpertiseNode.tsx` | Nœud React Flow personnalisé (label + attributs repliables) |
+| `RelationEdge.tsx` | Arête personnalisée (Bézier, marqueurs directionnels, pointillés si sans label) |
+| `FlatView/` | Vue à plat (projection du graphe) |
+| `ImpactCards/` | Cartes impact (projection par audience) |
 
-### Dépendances ajoutées
-
-- `@xyflow/react` (React Flow v12) — canvas interactif
-
-### Points de vigilance
-
-- React Flow nécessite `ssr: false` avec `next/dynamic` (utilise `window`)
-- Le CSS de React Flow (`@xyflow/react/dist/style.css`) doit être importé dans le composant client, pas dans un layout server
-- `expertises/` est exclu du `tsconfig.json` (contient des archives de prototypes avec des dépendances non installées)
-- La persistance est en `localStorage` pour la maquette — en production, ce sera un endpoint API
-- **Marqueurs SVG des flèches** : React Flow ne définit pas de marqueurs SVG natifs pour les arêtes personnalisées. Les marqueurs `<marker>` sont déclarés dans un `<svg width="0" height="0">` caché au début de `MindMapView.tsx` — un par couleur (`arrow-006A61`, `arrow-E65100`, `arrow-7B1FA2`, `arrow-1976D2`, `arrow-C62828`), avec `orient="auto-start-reverse"` pour gérer les flèches dans les deux sens. `RelationEdge` référence le marqueur par couleur (pas par catégorie) et ajoute `markerStart` pour les relations `bidirectional: true`.
+**Dépendances :** `@xyflow/react` (React Flow v12) · `@mui/material` Slider, Autocomplete, ToggleButtonGroup
 
 ---
 
-## Questions ouvertes pour les prochaines itérations
+## Points de vigilance techniques
 
-1. **Visibilité du graphe** : le graphe est-il visible publiquement (profil chercheur) ou uniquement en mode édition ?
-2. **Couplage activités ↔ expertises** : un clic sur un nœud d'expertise affiche-t-il les publications associées ? Comment associer automatiquement une publication à un nœud ?
-3. **Collaboration** : plusieurs chercheurs d'un même labo peuvent-ils co-construire un graphe commun ?
-4. **Export** : en plus du JSON, faut-il un export vers un format standard (SKOS, RDF) pour interopérabilité avec des référentiels de compétences ?
-5. **Génération LLM** : quel modèle ? Données envoyées au LLM (prompt seul, ou prompt + publications HAL du chercheur pour plus de pertinence) ?
+- React Flow nécessite `ssr: false` dans `next/dynamic` et `import '@xyflow/react/dist/style.css'` dans le composant client
+- `getPerspective()` lit `window.location.search` directement (pas `useSearchParams`) pour éviter la Suspense boundary — safe car le composant est client-only
+- Les marqueurs SVG (flèches) sont déclarés dans un `<svg width="0" height="0">` caché en début de `MindMapView` — un par couleur (`arrow-006A61`, `arrow-94a3b8`)
+- L'iframe Google Maps embed (sans clé API) peut être bloquée par certains bloqueurs de pub — acceptable pour la maquette
+
+---
+
+## Questions ouvertes
+
+1. **Génération LLM réelle** : quelles données envoyer au modèle (prompt seul, ou prompt + métadonnées des publications HAL sélectionnées) ?
+2. **Visibilité du graphe** : lecture publique (profil chercheur) ou édition uniquement ?
+3. **Couplage activités ↔ expertises** : association automatique publication → nœud d'expertise ?
+4. **Export interopérable** : SKOS / RDF pour compatibilité avec des référentiels de compétences ?
+5. **GeoNames réel** : l'API GeoNames (gratuite avec inscription) remplacerait `GEONAMES_MOCK` en production
+6. **IdRef réel** : l'API SudoC / IdRef remplacerait `mockIdRef.ts` en production

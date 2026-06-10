@@ -115,40 +115,46 @@ Composants partiellement implémentés dans `research-activities/components/Acti
 Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
 
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
-Page avec 3 onglets (renommés, réordonnés) :
-- **Mes domaines** (carte mentale, source de vérité, onglet par défaut)
-- **Profil structuré** (vue à plat — chip "depuis vos domaines")
-- **Fiches publics** (cartes impact — chip "depuis vos domaines")
+Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défaut) · **Profil structuré** · **Fiches publics**
 
-**Architecture retenue (Option A) :** la carte mentale est la source de vérité. Les deux autres vues sont des projections des nœuds du graphe.
+**Architecture (Option A) :** la carte mentale est la source de vérité. Les deux autres vues sont des projections des nœuds du graphe.
 
-**Carte mentale — fonctionnement :**
-- Canvas React Flow (`@xyflow/react`) chargé sans SSR (`next/dynamic`)
-- **Empty state onboarding** : quand `nodes.length === 0`, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils pré-remplis, Ctrl+Entrée pour générer)
-- **Panneau gauche — 3 états contextuels :**
-  - Rien sélectionné : prompt LLM (action principale) + légende en accordéon replié
-  - Nœud(s) sélectionné(s) : carte info + section **Caractéristiques** modifiable inline + Modifier/Supprimer
-  - Lien sélectionné : sélecteur de direction (A→B / A←B / A↔B) + champ texte libre pour qualifier la relation
-- Bouton **Réinitialiser** (icône `RestartAlt`) dans le panneau top-right → revient à l'empty state
-- Persistance en `localStorage` (clé `expertise-graph-v2`, JSON versionné avec `promptHistory`)
+**Isolation par perspective :**
+- Clés localStorage suffixées par `?perspective=` : `expertise-graph-v2-{p}`, `expertise-selected-publications-{p}`, `expertise-history-{p}`
+- `getPerspective()` lit `window.location.search` côté client — aucun hook nécessaire
+- Un profil sans graphe enregistré voit l'empty state (fallback `EMPTY_GRAPH`, plus `INITIAL_GRAPH`)
+
+**Flux de premier accès (publications-first) :**
+- Empty state : CTA "Sélectionner des publications →" (navigue vers `/documents?perspective=…`) + badge du nombre sélectionné + bouton "Générer mes expertises" (actif si ≥ 1 pub)
+- Séparateur "ou" + lien "Décrire mes domaines manuellement" (bascule vers l'ancien textarea + chips profils)
+- La colonne "Expertises" dans la liste des publications (icône `Psychology` toggleable, teal = incluse) persiste en localStorage par perspective
+
+**Mise à jour (graphe existant) :**
+- Panneau gauche état 1 : section "Publications analysées" avec badge + "Modifier les publications →" + "Recalculer à partir des publications"
+
+**Versionnement du graphe :**
+- Max 10 snapshots dans `expertise-history-{perspective}` ; sauvegarde automatique à chaque Enregistrer / Générer
+- Bouton `History` (icône) dans le Panel top-right → `HistoryDialog.tsx` : chronologie, chips nœuds/liens/version, bouton Restaurer
 
 **Un seul type de nœud : `expertise` (teal)**
 
-**Relations — modèle simplifié (atelier-first) :**
+**Relations — modèle atelier-first :**
 - Direction : `forward` (A→B) · `backward` (A←B) · `bidirectional` (A↔B)
-- Label : texte libre saisi par le chercheur (optionnel — relation affichée en pointillés gris si vide)
-- Pas de liste fixe de types — la typologie émergera des ateliers
+- Label texte libre ; pointillés gris si absent
 
-**Caractéristiques portées par chaque nœud :**
-- `temporal` : couvertures temporelles (texte libre)
-- `geographic` : lieux
-- `persons` : personnes de référence
-- `organizations` : organisations
-- `concepts` : mots-clés avec vocabulaire contrôlé optionnel (RAMEAU, MeSH, Wikidata, JEL, AMS, MSC, LCSH, libre)
+**Caractéristiques par nœud (saisie inline dans le panneau, chips supprimables) :**
+- `temporal` — **Slider MUI** (0–2030, double poignée, stocke `yearFrom`/`yearTo`) OU **Autocomplete** de ~40 périodes nommées (Révolution française, Moyen Âge, etc.)
+- `geographic` — Autocomplete GeoNames mock (~70 lieux) ; chips cliquables → dialog carte Google Maps + liens OpenStreetMap/GeoNames
+- `persons` / `organizations` — Autocomplete IdRef mock (25 personnes, 20 organismes) ; chips avec PPN → lien `https://www.idref.fr/{ppn}`
+- `concepts` — texte libre + vocabulaire contrôlé optionnel (RAMEAU, MeSH, Wikidata, JEL, AMS, MSC, LCSH, libre)
 
-Ajout inline depuis le panneau latéral quand un nœud est sélectionné. Les chips sont supprimables.
-
-**Fichiers clés :** `types.ts` (ExpertiseNodeData, EdgeData, CONTROLLED_VOCABULARIES, INITIAL_GRAPH) · `MindMapView.tsx` · `ExpertiseNode.tsx` · `RelationEdge.tsx` · `mockLlm.ts`
+**Fichiers clés :**
+- `types.ts` — `ExpertiseNodeData`, `HistoryEntry`, `TemporalRef`, `GeoRef`, `PersonRef`, `OrgRef`
+- `MindMapView.tsx` — composant principal (~1 000 lignes)
+- `mockLlm.ts` — `generateGraphFromPrompt()` + `generateGraphFromPublications(count)`
+- `mockIdRef.ts` — `searchIdRefPersons()`, `searchIdRefOrganizations()`, `GEONAMES_MOCK`, `NAMED_PERIODS`
+- `HistoryDialog.tsx` — dialog chronologique des versions
+- `ExpertiseNode.tsx` · `RelationEdge.tsx`
 
 **Descriptif complet :** `prompts/expertises.md`
 
