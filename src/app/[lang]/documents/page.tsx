@@ -150,6 +150,30 @@ const DocumentsPage = () => {
     })
   }, [expertisePubsKey])
 
+  const [expertiseMode, setExpertiseMode] = useState(false)
+  const [mrtRowSelection, setMrtRowSelection] = useState<Record<string, boolean>>({})
+
+  const enterExpertiseMode = useCallback(() => {
+    const selection: Record<string, boolean> = {}
+    expertiseSelectedPubs.forEach((uid) => { selection[uid] = true })
+    setMrtRowSelection(selection)
+    setExpertiseMode(true)
+  }, [expertiseSelectedPubs])
+
+  const confirmExpertiseSelection = useCallback(() => {
+    const selectedUids = Object.entries(mrtRowSelection).filter(([, v]) => v).map(([uid]) => uid)
+    localStorage.setItem(expertisePubsKey, JSON.stringify(selectedUids))
+    setExpertiseSelectedPubs(selectedUids)
+    setExpertiseMode(false)
+    const perspective = searchParams?.get('perspective') || 'default'
+    router.push(`/${lang}/expertise${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)
+  }, [mrtRowSelection, expertisePubsKey, lang, router, searchParams])
+
+  const cancelExpertiseMode = useCallback(() => {
+    setExpertiseMode(false)
+    setMrtRowSelection({})
+  }, [])
+
   const navigateToDetailsPage = useCallback(
     (documentUid: string) => {
       const params = new URLSearchParams(searchParams.toString())
@@ -791,11 +815,12 @@ const DocumentsPage = () => {
         columns={columns}
         data={documents}
         enableRowActions
-        enableRowSelection={(row) => {
+        enableRowSelection={expertiseMode ? true : (row) => {
           if (!isDocument(row.original)) return false
           const canMerge = ability.can(PermissionAction.merge, row.original)
           return canMerge && row.original.state == DocumentState.default
         }}
+        {...(expertiseMode ? { rowSelection: mrtRowSelection, onRowSelectionChange: setMrtRowSelection as never } : {})}
         manualFiltering
         manualPagination
         manualSorting
@@ -819,22 +844,59 @@ const DocumentsPage = () => {
           sorting: sorting || DEFAULT_SORTING,
         }}
         renderTopToolbarCustomActions={({ table }) => (
-          <Box sx={{ display: 'flex', gap: '1rem', p: '4px' }}>
-            <Button
-              color='secondary'
-              disabled={table.getSelectedRowModel().rows.length < 2}
-              onClick={async () => {
-                await onMergeDocuments(
-                  table
-                    .getSelectedRowModel()
-                    .rows.map((row) => row.original.uid),
-                )
-                table.resetRowSelection()
-              }}
-              variant='contained'
-            >
-              {t`documents_page_merge_selected_documents_button`}
-            </Button>
+          <Box sx={{ display: 'flex', gap: '1rem', p: '4px', alignItems: 'center' }}>
+            {expertiseMode ? (
+              <>
+                <Typography variant="body2" sx={{ color: '#006A61', fontWeight: 600 }}>
+                  {`${Object.values(mrtRowSelection).filter(Boolean).length} publication(s) sélectionnée(s)`}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={confirmExpertiseSelection}
+                  sx={{ bgcolor: '#006A61', '&:hover': { bgcolor: '#004d47' }, textTransform: 'none' }}
+                >
+                  Confirmer la sélection
+                </Button>
+                <Button variant="outlined" onClick={cancelExpertiseMode} sx={{ textTransform: 'none' }}>
+                  Annuler
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  color='secondary'
+                  disabled={table.getSelectedRowModel().rows.length < 2}
+                  onClick={async () => {
+                    await onMergeDocuments(
+                      table.getSelectedRowModel().rows.map((row) => row.original.uid),
+                    )
+                    table.resetRowSelection()
+                  }}
+                  variant='contained'
+                >
+                  {t`documents_page_merge_selected_documents_button`}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<Psychology fontSize="small" />}
+                  onClick={enterExpertiseMode}
+                  sx={{
+                    color: '#006A61', borderColor: '#006A61', textTransform: 'none',
+                    '&:hover': { borderColor: '#004d47', bgcolor: '#006A611a' },
+                  }}
+                >
+                  {'Sélectionner pour les expertises'}
+                  {expertiseSelectedPubs.length > 0 && (
+                    <Box component="span" sx={{
+                      ml: 0.75, bgcolor: '#006A61', color: 'white',
+                      borderRadius: '10px', fontSize: '0.7rem', px: 0.75, lineHeight: '18px',
+                    }}>
+                      {expertiseSelectedPubs.length}
+                    </Box>
+                  )}
+                </Button>
+              </>
+            )}
           </Box>
         )}
         renderRowActionMenuItems={({ row, table }) => {
