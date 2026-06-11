@@ -78,12 +78,8 @@ const HalStatusCellBadge = ({
     )
 
   if (type === HalStatusCellType.OutOfCollection) {
-    const numberOfAcronyms = acronyms?.length || 0
     const formattedAcronyms = acronyms?.join(', ') || ''
-    const collectionTooltip =
-      numberOfAcronyms > 0
-        ? t`documents_page_hal_status_tooltip_out_of_collection_with_acronyms ${formattedAcronyms}`
-        : t`documents_page_hal_status_tooltip_out_of_collection`
+    const collectionTooltip = t`documents_page_hal_status_tooltip_out_of_collection ${formattedAcronyms}`
     const tooltip = [collectionTooltip, submitTypeTooltip].filter(Boolean).join(' ')
 
     return wrapInTooltip(
