@@ -105,14 +105,39 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 
 ## Fonctionnalités à développer (restant)
 
-### 🔲 Dépôt dans HAL (à développer)
-Onglet "Déposer dans HAL" déjà présent dans la navigation de `documents/[uid]/page.tsx`.
-Voir l'ancien mockup `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\components\PublicationDetail.tsx` pour la maquette de référence (onglet HAL deposit conditionnel).
+### 🔲 Activités de recherche (à développer)
 
 ### 🔲 Activités de recherche (à développer)
 Page déjà existante : `src/app/[lang]/research-activities/`.
 Composants partiellement implémentés dans `research-activities/components/ActivityCard.tsx`.
 Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
+
+### ✅ Dépôt dans HAL (`src/app/[lang]/documents/[uid]/components/HalDeposit/HalDeposit.tsx`)
+
+Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publication n'est pas encore dans HAL.
+
+**Flux en 3 étapes :** formulaire → récapitulatif → upload animé → état de dépôt
+
+**Formulaire :** type de document, domaines HAL, langue, date, licence, champs contextuels (revue / congrès / institution / thèse), fichier PDF principal obligatoire + fichiers complémentaires optionnels. Titre, résumé et auteurs sont injectés en lecture seule depuis les autres onglets.
+
+**Validation :** type + domaines + fichier PDF obligatoires ; champs supplémentaires selon le type (revue pour ART, congrès pour COMM/POSTER/PRESCONF, etc.).
+
+**États de dépôt (persistés en localStorage par UID de document — clé `hal-deposit-status-{uid}`) :**
+
+| État | Déclencheur | Couleur | Ce qu'on affiche |
+|---|---|---|---|
+| `moderation` | Upload avec fichier PDF | Amber | Identifiant HAL temporaire cliquable, date de soumission, délai estimé |
+| `accepted` | Upload sans fichier (notice) ou simulation | Vert | Lien `hal.science/hal-XXXXXXX` |
+| `rejected` | Simulation | Rouge | Motif du rejet + bouton "Déposer à nouveau" |
+| `changes_requested` | Simulation | Orange | Commentaire du modérateur + bouton "Modifier et déposer à nouveau" |
+
+"Déposer à nouveau" / "Modifier et déposer à nouveau" efface le statut localStorage et remet le formulaire vierge.
+
+**Zone démo :** chaque écran de statut affiche une ligne de boutons discrets (ligne pointillée) pour basculer entre les 4 états sans re-soumettre + bouton "Réinitialiser".
+
+**Descriptif complet :** `public/prompts/hal-deposit.md`
+
+---
 
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
 Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défaut) · **Profil structuré** · **Fiches publics**
@@ -156,7 +181,7 @@ Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défa
 - `HistoryDialog.tsx` — dialog chronologique des versions
 - `ExpertiseNode.tsx` · `RelationEdge.tsx`
 
-**Descriptif complet :** `prompts/expertises.md`
+**Descriptif complet :** `public/prompts/expertises.md`
 
 ---
 
