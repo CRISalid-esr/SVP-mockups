@@ -81,12 +81,12 @@ function applyEdgeStyle(edge: Edge): Edge {
 }
 
 function loadGraph(key: string): ExpertiseGraph {
-  if (typeof window === 'undefined') return EMPTY_GRAPH
+  if (typeof window === 'undefined') return INITIAL_GRAPH
   try {
     const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
   } catch (_e) { /* ignore */ }
-  return EMPTY_GRAPH
+  return INITIAL_GRAPH
 }
 
 function saveGraph(key: string, graph: ExpertiseGraph) {
@@ -314,14 +314,14 @@ export default function MindMapView() {
   }
 
   const handleReset = useCallback(() => {
-    setNodes([])
-    setEdges([])
-    setMeta({ version: 2, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
-    localStorage.removeItem(storageKey)
+    setNodes(INITIAL_GRAPH.nodes)
+    setEdges(INITIAL_GRAPH.edges.map(applyEdgeStyle))
+    setMeta(INITIAL_GRAPH.meta)
+    saveGraph(storageKey, INITIAL_GRAPH)
     setSelectedEdgeId(null)
     setDrawerTab('graph')
     setAddingCat(null)
-  }, [setNodes, setEdges])
+  }, [setNodes, setEdges, storageKey])
 
   const handleSaveNodeDialog = () => {
     if (!nodeDialog.label.trim()) return
@@ -1167,8 +1167,8 @@ export default function MindMapView() {
                       <History fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Réinitialiser la carte">
-                    <IconButton size="small" onClick={handleReset} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
+                  <Tooltip title="Restaurer l'exemple de démonstration">
+                    <IconButton size="small" onClick={handleReset} sx={{ color: 'text.disabled', '&:hover': { color: TEAL } }}>
                       <RestartAlt fontSize="small" />
                     </IconButton>
                   </Tooltip>
