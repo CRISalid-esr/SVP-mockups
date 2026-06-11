@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import {
   AccountTree, Add, ArrowBack, AutoAwesome, AutoGraph, Business, ChevronLeft, ChevronRight,
-  Close, Delete, Download, Edit, ExpandMore, History, LocalOffer, Map as MapIcon,
+  Close, Delete, DeleteSweep, Download, Edit, ExpandMore, History, LocalOffer, Map as MapIcon,
   OpenInNew, Person, Place, RestartAlt, Restore, Save, Schedule,
 } from '@mui/icons-material'
 import ExpertiseNode from './ExpertiseNode'
@@ -318,6 +318,16 @@ export default function MindMapView() {
     setEdges(INITIAL_GRAPH.edges.map(applyEdgeStyle))
     setMeta(INITIAL_GRAPH.meta)
     saveGraph(storageKey, INITIAL_GRAPH)
+    setSelectedEdgeId(null)
+    setDrawerTab('graph')
+    setAddingCat(null)
+  }, [setNodes, setEdges, storageKey])
+
+  const handleClear = useCallback(() => {
+    setNodes([])
+    setEdges([])
+    setMeta({ version: 2, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] })
+    localStorage.removeItem(storageKey)
     setSelectedEdgeId(null)
     setDrawerTab('graph')
     setAddingCat(null)
@@ -1170,6 +1180,11 @@ export default function MindMapView() {
                   <Tooltip title="Restaurer l'exemple de démonstration">
                     <IconButton size="small" onClick={handleReset} sx={{ color: 'text.disabled', '&:hover': { color: TEAL } }}>
                       <RestartAlt fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Vider la carte (simuler un premier accès)">
+                    <IconButton size="small" onClick={handleClear} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
+                      <DeleteSweep fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </Box>
