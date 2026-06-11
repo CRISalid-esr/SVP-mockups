@@ -6,7 +6,7 @@
 
 SoVisu+ peut déposer automatiquement des publications dans HAL via l'API SWORD d'AureHAL. La maquette simule l'intégralité du parcours utilisateur, y compris le cycle de modération post-dépôt. Voir aussi l'issue GitHub [#838 — automated hal deposit](https://github.com/CRISalid-esr/SoVisuPlus/issues/838) pour l'état des expérimentations avec l'API SWORD.
 
-L'onglet est affiché dans `documents/[uid]/page.tsx` (onglet "Déposer dans HAL") et masqué dès que la publication possède un enregistrement HAL réel (`records.find(r => r.platform === BibliographicPlatform.HAL)`).
+L'onglet est masqué dès que la publication possède un enregistrement HAL réel.
 
 ---
 
@@ -40,7 +40,7 @@ Champs à saisir :
 | Institution / organisme de délivrance | Oui | type = `THESE`, `HDR`, `REPORT` |
 | Directeur de thèse / président du jury | Oui | type = `THESE`, `HDR` |
 | Titre de l'ouvrage | Oui | type = `COUV` |
-| Fichier PDF principal | Oui | toujours |
+| Fichier PDF principal | Non | toujours |
 | Fichiers complémentaires | Non | toujours |
 
 Types de documents HAL disponibles : `ART` · `COMM` · `THESE` · `HDR` · `OUV` · `COUV` · `REPORT` · `POSTER` · `PRESCONF`
@@ -55,20 +55,6 @@ Affiche toutes les valeurs saisies dans un `Paper` grisé. Boutons "Modifier" (r
 
 ---
 
-## Modèle de statut de dépôt
-
-```ts
-type DepositStatusStep = 'moderation' | 'accepted' | 'rejected' | 'changes_requested'
-
-interface DepositStatus {
-  step: DepositStatusStep
-  submittedAt: string   // ISO 8601
-  halId: string         // ex : "hal-04851234"
-  hasFile: boolean
-}
-```
-
-**Persistance :** `localStorage.getItem('hal-deposit-status-{uid}')` — chargé via `useEffect` au montage, écrit à chaque changement d'état.
 
 **Déclencheur initial :**
 - Dépôt avec fichier PDF → `step: 'moderation'`
@@ -173,10 +159,8 @@ Les statuts de `doc-3`, `doc-4` et `doc-5` sont initialisés en localStorage au 
 
 ## Questions ouvertes (métier)
 
-1. **Notice vs fichier** : quand un dépôt sans fichier (notice) est soumis, la maquette suppose qu'il passe directement en `accepted` (pas de modération). Est-ce le comportement attendu par les utilisateurs, ou veut-on toujours montrer un état intermédiaire avant la publication ?
+. **Messages de rejet et de modifications demandées** : dans la maquette, les motifs sont des exemples fictifs. Comment les utilisateurs s'attendent-ils à être informés — dans l'interface SoVisu+, par e-mail HAL, ou les deux ?
 
-2. **Messages de rejet et de modifications demandées** : dans la maquette, les motifs sont des exemples fictifs. Comment les utilisateurs s'attendent-ils à être informés — dans l'interface SoVisu+, par e-mail HAL, ou les deux ?
+. **Droits d'embargo** : HAL permet de déposer un fichier avec accès différé (embargo éditeur). Ce champ n'est pas encore dans le formulaire. Est-ce un besoin fréquent des utilisateurs du consortium ?
 
-3. **Droits d'embargo** : HAL permet de déposer un fichier avec accès différé (embargo éditeur). Ce champ n'est pas encore dans le formulaire. Est-ce un besoin fréquent des utilisateurs du consortium ?
-
-4. **Domaines HAL** : le formulaire propose les 393 domaines réels AureHAL (source : `api.archives-ouvertes.fr/ref/domain`), organisés hiérarchiquement (`chim`, `chim.anal`, etc.) et filtrables par saisie libre dans l'Autocomplete. Une arborescence dépliable serait-elle plus intuitive qu'une liste plate filtrée ?
+. **Domaines HAL** : le formulaire propose les 393 domaines réels AureHAL (source : `api.archives-ouvertes.fr/ref/domain`), organisés hiérarchiquement (`chim`, `chim.anal`, etc.) et filtrables par saisie libre dans l'Autocomplete. Une arborescence dépliable serait-elle plus intuitive qu'une liste plate filtrée ?
