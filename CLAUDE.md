@@ -103,15 +103,6 @@ Interface complète d'identification des auteurs et affiliations dans HAL :
 
 ---
 
-## Fonctionnalités à développer (restant)
-
-### 🔲 Activités de recherche (à développer)
-
-### 🔲 Activités de recherche (à développer)
-Page déjà existante : `src/app/[lang]/research-activities/`.
-Composants partiellement implémentés dans `research-activities/components/ActivityCard.tsx`.
-Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
-
 ### ✅ Dépôt dans HAL (`src/app/[lang]/documents/[uid]/components/HalDeposit/HalDeposit.tsx`)
 
 Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publication n'est pas encore dans HAL.
@@ -184,6 +175,15 @@ Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défa
 - `ExpertiseNode.tsx` · `RelationEdge.tsx`
 
 **Descriptif complet :** `public/prompts/expertises.md`
+
+---
+
+## Fonctionnalités à développer (restant)
+
+### 🔲 Activités de recherche
+Page déjà existante : `src/app/[lang]/research-activities/`.
+Composants partiellement implémentés dans `research-activities/components/ActivityCard.tsx`.
+Référence : `C:\Users\godet-g\Documents\GitHub\maquettes\SVP\src\` — chercher les composants liés aux activités.
 
 ---
 
