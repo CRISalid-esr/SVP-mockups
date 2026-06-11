@@ -135,6 +135,8 @@ Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publ
 
 **Zone démo :** chaque écran de statut affiche une ligne de boutons discrets (ligne pointillée) pour basculer entre les 4 états sans re-soumettre + bouton "Réinitialiser".
 
+**Badge dans la liste des documents (`HalStatusCellBadge`) :** quand `step === 'moderation'`, la colonne HAL affiche un chip bleu `color="info"` + icône `HourglassEmpty` ("En cours de modération") à la place du rouge "Hors HAL". `HalStatusCell` lit le localStorage au montage via `useEffect`.
+
 **Descriptif complet :** `public/prompts/hal-deposit.md`
 
 ---
