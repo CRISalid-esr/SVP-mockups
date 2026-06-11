@@ -5,6 +5,7 @@ import { Document } from '@/types/Document'
 import { BibliographicPlatform } from '@/types/BibliographicPlatform'
 import HalStatusCellBadge, { HalStatusCellType } from './HalStatusCellBadge'
 import AttachFileOffIcon from '@/app/theme/icons/AttachFileOffIcon'
+import { useEffect, useState } from 'react'
 
 const halSubmitTypeToHalSubmitTypeIcon = (halSubmitType: string | null) => {
   switch (halSubmitType) {
@@ -20,12 +21,26 @@ const halSubmitTypeToHalSubmitTypeIcon = (halSubmitType: string | null) => {
 
 const HalStatusCell = ({ row }: { row: { original: Document } }) => {
   const { currentPerspective } = useStore((state) => state.user)
+  const [isPendingModeration, setIsPendingModeration] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`hal-deposit-status-${row.original.uid}`)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      setIsPendingModeration(parsed.step === 'moderation')
+    } else {
+      setIsPendingModeration(false)
+    }
+  }, [row.original.uid])
 
   const halRecord = row.original.records.find(
     (record) => record.platform === BibliographicPlatform.HAL,
   )
 
   if (!halRecord) {
+    if (isPendingModeration) {
+      return <HalStatusCellBadge type={HalStatusCellType.PendingModeration} />
+    }
     return <HalStatusCellBadge type={HalStatusCellType.OutsideHal} />
   }
 

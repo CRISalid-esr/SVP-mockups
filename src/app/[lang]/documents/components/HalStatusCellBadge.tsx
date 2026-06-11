@@ -1,11 +1,13 @@
 import { Plural } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
+import { HourglassEmpty } from '@mui/icons-material'
 import { Chip } from '@mui/material'
 
 export enum HalStatusCellType {
   InCollection = 'InCollection',
   OutOfCollection = 'OutOfCollection',
   OutsideHal = 'OutsideHal',
+  PendingModeration = 'PendingModeration',
 }
 
 const multilineChipSx = {
@@ -19,7 +21,7 @@ const multilineChipSx = {
 
 type HalStatusCellBadgeProps =
   | {
-      type: HalStatusCellType.InCollection | HalStatusCellType.OutsideHal
+      type: HalStatusCellType.InCollection | HalStatusCellType.OutsideHal | HalStatusCellType.PendingModeration
       icon?: React.ReactElement | null
       acronyms?: string[]
       isSingleLine?: boolean
@@ -37,6 +39,17 @@ const HalStatusCellBadge = ({
   acronyms,
   isSingleLine,
 }: HalStatusCellBadgeProps) => {
+  if (type === HalStatusCellType.PendingModeration)
+    return (
+      <Chip
+        {...(!isSingleLine && { sx: multilineChipSx })}
+        icon={<HourglassEmpty />}
+        label="En cours de modération"
+        size='small'
+        color='info'
+      />
+    )
+
   if (type === HalStatusCellType.OutsideHal)
     return (
       <Chip
