@@ -116,7 +116,7 @@ Appelle `simulateStatus(step)` qui fait `saveDepositStatus({ ...depositStatus, s
 
 ## Indicateur dans la liste des documents
 
-`HalStatusCellBadge` expose un quatrième type `PendingModeration` (chip bleu `color="info"` + icône `HourglassEmpty`) qui s'affiche dans la colonne HAL de la liste des publications quand un dépôt est en cours de modération.
+`HalStatusCellBadge` expose un quatrième type `PendingModeration` (chip amber `color="warning"` + icône `HourglassEmpty`) qui s'affiche dans la colonne HAL de la liste des publications quand un dépôt est en cours de modération.
 
 **Fonctionnement :**
 - `HalStatusCell` lit `localStorage.getItem('hal-deposit-status-{uid}')` au montage (`useEffect`)
@@ -126,8 +126,8 @@ Appelle `simulateStatus(step)` qui fait `saveDepositStatus({ ...depositStatus, s
 | Type | Couleur MUI | Icône | Label |
 |---|---|---|---|
 | `OutsideHal` | `error` (rouge) | — | Hors HAL |
-| `PendingModeration` | `info` (bleu) | `HourglassEmpty` | En cours de modération |
-| `OutOfCollection` | `warning` (orange) | type dépôt | Hors collection |
+| `PendingModeration` | `warning` (amber) | `HourglassEmpty` | En cours de modération |
+| `OutOfCollection` | `info` (bleu) | type dépôt | Dans HAL |
 | `InCollection` | `success` (vert) | type dépôt | Dans la collection |
 
 ---
@@ -148,7 +148,7 @@ Pas de services dédiés — les listes (domaines, types, licences, langues) et 
 |---|---|---|---|
 | `doc-1` | A deep learning approach to climate modeling | Dans la collection (HAL, avec fichier) | — (déjà dans HAL) |
 | `doc-2` | Quantum Mechanics: A Modern Introduction | Hors HAL | Formulaire vide |
-| `doc-3` | Modélisation numérique des écoulements turbulents | **En cours de modération** (chip bleu) | État modération |
+| `doc-3` | Modélisation numérique des écoulements turbulents | **En cours de modération** (chip amber) | État modération |
 | `doc-4` | Migrations et identités en contexte postcolonial | Hors HAL | État rejeté (motif affiché) |
 | `doc-5` | État de l'art des systèmes de recommandation | Hors HAL | Modifications demandées |
 | `doc-6` | Biodiversité des sols agricoles | Hors collection (HAL, notice, autre labo) | — (déjà dans HAL) |
