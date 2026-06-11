@@ -55,6 +55,7 @@ const HalStatusCell = ({ row }: { row: { original: Document } }) => {
       <HalStatusCellBadge
         type={HalStatusCellType.InCollection}
         icon={halSubmitTypeIcon}
+        halSubmitType={halSubmitType}
       />
     )
   }
@@ -65,6 +66,7 @@ const HalStatusCell = ({ row }: { row: { original: Document } }) => {
     <HalStatusCellBadge
       type={HalStatusCellType.OutOfCollection}
       icon={halSubmitTypeIcon}
+      halSubmitType={halSubmitType}
       acronyms={acronyms}
     />
   )

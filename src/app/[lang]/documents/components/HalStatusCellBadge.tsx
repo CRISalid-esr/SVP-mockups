@@ -1,7 +1,7 @@
 import { Plural } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
 import { HourglassEmpty } from '@mui/icons-material'
-import { Chip } from '@mui/material'
+import { Chip, Tooltip } from '@mui/material'
 
 export enum HalStatusCellType {
   InCollection = 'InCollection',
@@ -23,12 +23,14 @@ type HalStatusCellBadgeProps =
   | {
       type: HalStatusCellType.InCollection | HalStatusCellType.OutsideHal | HalStatusCellType.PendingModeration
       icon?: React.ReactElement | null
+      halSubmitType?: string | null
       acronyms?: string[]
       isSingleLine?: boolean
     }
   | {
       type: HalStatusCellType.OutOfCollection
       icon?: React.ReactElement | null
+      halSubmitType?: string | null
       acronyms: string[]
       isSingleLine?: boolean
     }
@@ -36,35 +38,55 @@ type HalStatusCellBadgeProps =
 const HalStatusCellBadge = ({
   type,
   icon,
+  halSubmitType,
   acronyms,
   isSingleLine,
 }: HalStatusCellBadgeProps) => {
+  const submitTypeTooltip =
+    halSubmitType === 'file'
+      ? t`documents_page_hal_status_submit_type_file`
+      : halSubmitType === 'notice'
+      ? t`documents_page_hal_status_submit_type_notice`
+      : ''
+
+  const wrapInTooltip = (label: React.ReactNode, title: string) => (
+    <Tooltip title={title} arrow>
+      <span style={{ display: 'inline-flex', cursor: 'default' }}>{label}</span>
+    </Tooltip>
+  )
+
   if (type === HalStatusCellType.PendingModeration)
-    return (
+    return wrapInTooltip(
       <Chip
         {...(!isSingleLine && { sx: multilineChipSx })}
         icon={<HourglassEmpty />}
         label="En cours de modération"
         size='small'
         color='info'
-      />
+      />,
+      t`documents_page_hal_status_tooltip_pending_moderation`,
     )
 
   if (type === HalStatusCellType.OutsideHal)
-    return (
+    return wrapInTooltip(
       <Chip
         {...(!isSingleLine && { sx: multilineChipSx })}
         label={t`documents_page_hal_status_outside_hal`}
         size='small'
         color='error'
-      />
+      />,
+      t`documents_page_hal_status_tooltip_outside_hal`,
     )
 
   if (type === HalStatusCellType.OutOfCollection) {
     const numberOfAcronyms = acronyms?.length || 0
     const formattedAcronyms = acronyms?.join(', ') || ''
+    const tooltip =
+      numberOfAcronyms > 0
+        ? t`documents_page_hal_status_tooltip_out_of_collection_with_acronyms ${formattedAcronyms}`
+        : t`documents_page_hal_status_tooltip_out_of_collection`
 
-    return (
+    return wrapInTooltip(
       <Chip
         {...(!isSingleLine && { sx: multilineChipSx })}
         {...(icon && { icon })}
@@ -77,19 +99,28 @@ const HalStatusCellBadge = ({
         }
         size='small'
         color='info'
-      />
+      />,
+      tooltip,
     )
   }
 
   if (type === HalStatusCellType.InCollection) {
-    return (
+    const tooltip = [
+      t`documents_page_hal_status_tooltip_in_collection`,
+      submitTypeTooltip,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return wrapInTooltip(
       <Chip
         {...(!isSingleLine && { sx: multilineChipSx })}
         {...(icon && { icon })}
         label={t`documents_page_hal_status_in_collection`}
         size='small'
         color='success'
-      />
+      />,
+      tooltip,
     )
   }
 }

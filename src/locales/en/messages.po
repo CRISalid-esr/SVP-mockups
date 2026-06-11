@@ -573,6 +573,41 @@ msgid "{numberOfAcronyms, plural, one {documents_page_hal_status_out_of_collecti
 msgstr "{numberOfAcronyms, plural, one {In HAL but out of collection {formattedAcronyms}} other {In HAL but out of collections {formattedAcronyms}}}"
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:35
+msgid "documents_page_hal_status_tooltip_pending_moderation"
+msgstr "The HAL deposit is currently under moderation."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:49
+msgid "documents_page_hal_status_tooltip_outside_hal"
+msgstr "This publication is not yet present in HAL."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:69
+msgid "documents_page_hal_status_tooltip_out_of_collection"
+msgstr "This publication is in HAL but outside the research structure's collection."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:69
+msgid "documents_page_hal_status_tooltip_out_of_collection_with_acronyms"
+msgstr "This publication is in HAL but outside the collection {formattedAcronyms}."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:84
+msgid "documents_page_hal_status_tooltip_in_collection"
+msgstr "This publication is in HAL and in the research structure's HAL collection."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:65
+msgid "documents_page_hal_status_submit_type_file"
+msgstr "Uploaded with a PDF file."
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:65
+msgid "documents_page_hal_status_submit_type_notice"
+msgstr "HAL notice only."
+
+#. js-lingui-explicit-id
 #. placeholder {0}: journal.issnL
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Journal.tsx:72
 msgid "document_details_page_journal_issn"
