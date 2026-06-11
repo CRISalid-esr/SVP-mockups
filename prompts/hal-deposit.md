@@ -128,11 +128,31 @@ Appelle `simulateStatus(step)` qui fait `saveDepositStatus({ ...depositStatus, s
 
 ---
 
-## Fichier technique
+## Indicateur dans la liste des documents
+
+`HalStatusCellBadge` expose un quatrième type `PendingModeration` (chip bleu `color="info"` + icône `HourglassEmpty`) qui s'affiche dans la colonne HAL de la liste des publications quand un dépôt est en cours de modération.
+
+**Fonctionnement :**
+- `HalStatusCell` lit `localStorage.getItem('hal-deposit-status-{uid}')` au montage (`useEffect`)
+- Si `parsed.step === 'moderation'` → badge `PendingModeration` à la place du rouge "Hors HAL"
+- Dès que le statut change (accepté / rejeté / modifications demandées / réinitialisé), le badge disparaît au prochain rendu de la liste
+
+| Type | Couleur MUI | Icône | Label |
+|---|---|---|---|
+| `OutsideHal` | `error` (rouge) | — | Hors HAL |
+| `PendingModeration` | `info` (bleu) | `HourglassEmpty` | En cours de modération |
+| `OutOfCollection` | `warning` (orange) | type dépôt | Hors collection |
+| `InCollection` | `success` (vert) | type dépôt | Dans la collection |
+
+---
+
+## Fichiers techniques
 
 | Fichier | Rôle |
 |---|---|
 | `HalDeposit.tsx` | Composant unique (~850 lignes) : formulaire, récapitulatif, upload, 4 états de statut, zone démo |
+| `HalStatusCellBadge.tsx` | Chip de statut HAL — 4 types dont `PendingModeration` |
+| `HalStatusCell.tsx` | Cellule MRT : lit le localStorage pour détecter la modération en cours |
 
 Pas de fichiers de données mock ni de services dédiés — tout est statique dans le composant (listes de domaines, types, licences, langues, messages mock).
 
@@ -144,5 +164,4 @@ Pas de fichiers de données mock ni de services dédiés — tout est statique d
 2. **Statut en temps réel** : HAL ne pousse pas de webhook — faut-il un polling de l'état de modération (API HAL Search), ou un e-mail de notification suffit-il ?
 3. **Dépôt PUT (mise à jour)** : déposé en issue #838 comme hors-scope phase 1. Nécessite téléchargement du TEI-XML existant + création d'une nouvelle version.
 4. **Notice vs fichier** : la maquette suppose qu'une notice passe directement en `accepted`. Est-ce le comportement réel de HAL, ou les notices passent-elles aussi par modération ?
-5. **Lien depuis la liste** : un indicateur dans `HalStatusCellBadge` pour les publications en modération (état intermédiaire entre "hors HAL" et "dans HAL") serait utile.
-6. **Droits d'embargo** : la date d'embargo sur le fichier principal n'est pas encore gérée dans le formulaire.
+5. **Droits d'embargo** : la date d'embargo sur le fichier principal n'est pas encore gérée dans le formulaire.
