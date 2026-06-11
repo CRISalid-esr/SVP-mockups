@@ -179,4 +179,4 @@ Les statuts de `doc-3`, `doc-4` et `doc-5` sont initialisés en localStorage au 
 
 3. **Droits d'embargo** : HAL permet de déposer un fichier avec accès différé (embargo éditeur). Ce champ n'est pas encore dans le formulaire. Est-ce un besoin fréquent des utilisateurs du consortium ?
 
-4. **Domaines HAL** : le formulaire propose une liste de 9 domaines (mock). La liste réelle AureHAL est hiérarchique (~200 entrées). Une recherche par saisie libre ou une sélection arborescente sont-elles préférables pour les utilisateurs ?
+4. **Domaines HAL** : le formulaire propose les 393 domaines réels AureHAL (source : `api.archives-ouvertes.fr/ref/domain`), organisés hiérarchiquement (`chim`, `chim.anal`, etc.) et filtrables par saisie libre dans l'Autocomplete. Une arborescence dépliable serait-elle plus intuitive qu'une liste plate filtrée ?
