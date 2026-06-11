@@ -160,8 +160,24 @@ Pas de fichiers de données mock ni de services dédiés — tout est statique d
 
 ## Questions ouvertes
 
-1. **API SWORD réelle** : la soumission POST est documentée dans l'issue #838. Quelle gestion de l'authentification (compte HAL dédié SoVisu+ avec impersonnation, ou compte personnel de l'utilisateur) ?
-2. **Statut en temps réel** : HAL ne pousse pas de webhook — faut-il un polling de l'état de modération (API HAL Search), ou un e-mail de notification suffit-il ?
-3. **Dépôt PUT (mise à jour)** : déposé en issue #838 comme hors-scope phase 1. Nécessite téléchargement du TEI-XML existant + création d'une nouvelle version.
-4. **Notice vs fichier** : la maquette suppose qu'une notice passe directement en `accepted`. Est-ce le comportement réel de HAL, ou les notices passent-elles aussi par modération ?
-5. **Droits d'embargo** : la date d'embargo sur le fichier principal n'est pas encore gérée dans le formulaire.
+### Intégration SWORD
+
+1. **Authentification** : compte HAL dédié SoVisu+ avec impersonnation (comme décrit dans l'issue #838), ou connexion avec le compte HAL personnel de l'utilisateur (via OAuth) ? Les deux approches ont des implications différentes sur les droits de modération et la traçabilité du dépôt.
+
+2. **`halId` réel** : dans la maquette, l'identifiant HAL est généré aléatoirement (`hal-0485XXXX`). En production, il est retourné dans le corps de la réponse SWORD (header `Location` ou corps XML Atom). Ce champ devra être stocké côté serveur, pas en localStorage.
+
+3. **Dépôt PUT (mise à jour)** : hors-scope phase 1 (issue #838). Nécessite téléchargement du TEI-XML existant + création d'une nouvelle version + droits d'impersonnation sur le dépôt d'origine.
+
+### Cycle de modération
+
+4. **Suivi du statut en temps réel** : HAL ne pousse pas de webhook. En production, le statut de modération devra être récupéré par polling de l'API HAL Search (champ `status_s`) ou via un e-mail de notification HAL. La maquette simule les transitions manuellement via la zone démo.
+
+5. **Notice vs fichier** : la maquette suppose qu'une notice (sans fichier) passe directement en `accepted`. À confirmer avec HAL : les notices passent-elles aussi par modération, ou sont-elles publiées immédiatement ?
+
+6. **Messages de rejet et de modifications** : dans la maquette, les motifs sont des chaînes statiques. En production, ils proviennent du modérateur HAL (champ `comment` de l'API ou e-mail) — il faut décider comment SoVisu+ les récupère et les affiche.
+
+### Formulaire
+
+7. **Droits d'embargo** : la date d'embargo sur le fichier principal n'est pas encore gérée dans le formulaire. HAL permet de déposer un fichier avec embargo (accès différé) — champ à ajouter pour les cas d'usage fréquents (articles sous embargo éditeur).
+
+8. **Domaines HAL** : la liste mock contient 9 domaines. La liste réelle AureHAL est hiérarchique (~200 feuilles). Faut-il reproduire l'arborescence complète ou permettre une recherche plein texte ?
