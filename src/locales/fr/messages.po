@@ -102,7 +102,7 @@ msgstr "La liste des publications de {name} a changé"
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:144
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:207
 msgid "documents_page_hal_status_in_collection"
-msgstr ""
+msgstr "Dans HAL et dans la collection HAL du labo du chercheur"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:160
@@ -112,7 +112,7 @@ msgstr ""
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:185
 msgid "documents_page_hal_status_outside_hal"
-msgstr ""
+msgstr "Hors HAL"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/documentsSyncModal/DocumentSyncDialog.test.tsx:78

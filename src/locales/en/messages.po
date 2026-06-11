@@ -102,7 +102,7 @@ msgstr ""
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:144
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:207
 msgid "documents_page_hal_status_in_collection"
-msgstr ""
+msgstr "In HAL and in the research structure's HAL collection"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:160
@@ -112,7 +112,7 @@ msgstr ""
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:185
 msgid "documents_page_hal_status_outside_hal"
-msgstr ""
+msgstr "Outside HAL"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/documentsSyncModal/DocumentSyncDialog.test.tsx:78
@@ -570,7 +570,7 @@ msgstr "Publisher: {0}"
 
 #: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:59
 msgid "{numberOfAcronyms, plural, one {documents_page_hal_status_out_of_collection {formattedAcronyms}} other {documents_page_hal_status_out_of_collections {formattedAcronyms}}}"
-msgstr "{numberOfAcronyms, plural, one {In HAL but out of collection {formattedAcronyms}} other {In HAL but out of collections {formattedAcronyms}}}\""
+msgstr "{numberOfAcronyms, plural, one {In HAL but out of collection {formattedAcronyms}} other {In HAL but out of collections {formattedAcronyms}}}"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: journal.issnL

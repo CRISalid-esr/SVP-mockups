@@ -76,7 +76,7 @@ const HalStatusCellBadge = ({
           />
         }
         size='small'
-        color='warning'
+        color='info'
       />
     )
   }
