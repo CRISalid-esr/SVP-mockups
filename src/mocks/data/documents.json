@@ -187,5 +187,248 @@
             }
         ],
         "state": "default"
+    },
+    {
+        "uid": "doc-3",
+        "documentType": "Article",
+        "oaStatus": "green",
+        "publicationDate": "2024-03-10",
+        "publicationDateStart": "2024-03-10T00:00:00.000Z",
+        "publicationDateEnd": "2024-03-10T00:00:00.000Z",
+        "upwOAStatus": "green",
+        "titles": [
+            {
+                "language": "fr",
+                "value": "Modélisation numérique des écoulements turbulents en milieu côtier"
+            },
+            {
+                "language": "en",
+                "value": "Numerical modeling of turbulent flows in coastal environments"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "fr",
+                "value": "Cet article présente une approche numérique pour simuler les écoulements turbulents dans les zones côtières à forte variabilité bathymétrique."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 1,
+                    "uid": "person-1",
+                    "firstName": "Jean",
+                    "lastName": "Dupont",
+                    "displayName": "Jean Dupont",
+                    "email": "jean.dupont@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 1
+            }
+        ],
+        "records": [
+            {
+                "uid": "rec-3-openalex",
+                "sourceIdentifier": "openalex-W3012345678",
+                "identifiers": [{ "type": "doi", "value": "10.1016/j.coastal.2024.03.001" }],
+                "contributions": [],
+                "documentTypes": ["Article"],
+                "publicationDate": "2024-03-10T00:00:00.000Z",
+                "platform": "openalex",
+                "titles": [{ "language": "en", "value": "Numerical modeling of turbulent flows in coastal environments" }],
+                "_url": "https://openalex.org/W3012345678",
+                "halCollectionCodes": [],
+                "halSubmitType": null
+            }
+        ],
+        "state": "default",
+        "journal": {
+            "id": 2,
+            "issnL": "0378-3839",
+            "publisher": "Elsevier",
+            "title": "Coastal Engineering",
+            "identifiers": []
+        }
+    },
+    {
+        "uid": "doc-4",
+        "documentType": "Conference",
+        "oaStatus": "closed",
+        "publicationDate": "2023-09-22",
+        "publicationDateStart": "2023-09-22T00:00:00.000Z",
+        "publicationDateEnd": "2023-09-22T00:00:00.000Z",
+        "upwOAStatus": "closed",
+        "titles": [
+            {
+                "language": "fr",
+                "value": "Migrations et identités en contexte postcolonial : nouvelles perspectives"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "fr",
+                "value": "Cette communication examine les reconfigurations identitaires des populations migrantes issues des anciens territoires coloniaux français."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 2,
+                    "uid": "person-2",
+                    "firstName": "Sophie",
+                    "lastName": "Martin",
+                    "displayName": "Sophie Martin",
+                    "email": "sophie.martin@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 1
+            }
+        ],
+        "records": [
+            {
+                "uid": "rec-4-scopus",
+                "sourceIdentifier": "scopus-2-s2.0-84999999",
+                "identifiers": [],
+                "contributions": [],
+                "documentTypes": ["Conference"],
+                "publicationDate": "2023-09-22T00:00:00.000Z",
+                "platform": "scopus",
+                "titles": [{ "language": "fr", "value": "Migrations et identités en contexte postcolonial : nouvelles perspectives" }],
+                "_url": "https://www.scopus.com/record/display.uri?eid=2-s2.0-84999999",
+                "halCollectionCodes": [],
+                "halSubmitType": null
+            }
+        ],
+        "state": "default"
+    },
+    {
+        "uid": "doc-5",
+        "documentType": "Report",
+        "oaStatus": "closed",
+        "publicationDate": "2024-01-15",
+        "publicationDateStart": "2024-01-15T00:00:00.000Z",
+        "publicationDateEnd": "2024-01-15T00:00:00.000Z",
+        "upwOAStatus": "closed",
+        "titles": [
+            {
+                "language": "fr",
+                "value": "État de l'art des systèmes de recommandation dans l'enseignement supérieur"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "fr",
+                "value": "Ce rapport dresse un panorama des approches actuelles en matière de systèmes de recommandation appliqués aux plateformes d'apprentissage en ligne."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 1,
+                    "uid": "person-1",
+                    "firstName": "Jean",
+                    "lastName": "Dupont",
+                    "displayName": "Jean Dupont",
+                    "email": "jean.dupont@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 1
+            },
+            {
+                "person": {
+                    "id": 2,
+                    "uid": "person-2",
+                    "firstName": "Sophie",
+                    "lastName": "Martin",
+                    "displayName": "Sophie Martin",
+                    "email": "sophie.martin@universite.fr",
+                    "external": false,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 2
+            }
+        ],
+        "records": [],
+        "state": "default"
+    },
+    {
+        "uid": "doc-6",
+        "documentType": "Article",
+        "oaStatus": "bronze",
+        "publicationDate": "2022-06-30",
+        "publicationDateStart": "2022-06-30T00:00:00.000Z",
+        "publicationDateEnd": "2022-06-30T00:00:00.000Z",
+        "upwOAStatus": "bronze",
+        "titles": [
+            {
+                "language": "fr",
+                "value": "Biodiversité des sols agricoles : impact des pratiques culturales intensives"
+            },
+            {
+                "language": "en",
+                "value": "Agricultural soil biodiversity: impact of intensive farming practices"
+            }
+        ],
+        "abstracts": [
+            {
+                "language": "fr",
+                "value": "Cette étude analyse l'effet des pratiques agricoles intensives sur la diversité microbienne et faunistique des sols à l'échelle de la parcelle."
+            }
+        ],
+        "subjects": [],
+        "contributions": [
+            {
+                "person": {
+                    "id": 11,
+                    "uid": "person-ext-2",
+                    "firstName": "Anne",
+                    "lastName": "Leclerc",
+                    "displayName": "Anne Leclerc",
+                    "email": null,
+                    "external": true,
+                    "createdAt": "2023-01-01T00:00:00.000Z",
+                    "updatedAt": "2023-01-01T00:00:00.000Z"
+                },
+                "roles": ["author"],
+                "rank": 1
+            }
+        ],
+        "records": [
+            {
+                "uid": "rec-6-hal",
+                "sourceIdentifier": "hal-03987654",
+                "identifiers": [{ "type": "doi", "value": "10.1007/s10533-022-00987-1" }],
+                "contributions": [],
+                "documentTypes": ["Article"],
+                "publicationDate": "2022-06-30T00:00:00.000Z",
+                "platform": "hal",
+                "titles": [{ "language": "fr", "value": "Biodiversité des sols agricoles : impact des pratiques culturales intensives" }],
+                "_url": "https://hal.science/hal-03987654",
+                "halCollectionCodes": ["INRAE-AGROECOLOGIE"],
+                "halSubmitType": "notice"
+            }
+        ],
+        "state": "default",
+        "journal": {
+            "id": 3,
+            "issnL": "0168-2563",
+            "publisher": "Springer",
+            "title": "Biogeochemistry",
+            "identifiers": []
+        }
     }
 ]

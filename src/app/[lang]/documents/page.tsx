@@ -718,6 +718,19 @@ const DocumentsPage = () => {
     return () => clearTimeout(id)
   }, [columnFilters])
 
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_USE_MOCK !== 'true') return
+    const MOCK_DEPOSIT_STATUSES = [
+      { uid: 'doc-3', step: 'moderation', halId: 'hal-04853421', hasFile: true, submittedAt: '2026-06-08T10:30:00.000Z' },
+      { uid: 'doc-4', step: 'rejected',   halId: 'hal-04856789', hasFile: true, submittedAt: '2026-05-20T14:15:00.000Z' },
+      { uid: 'doc-5', step: 'changes_requested', halId: 'hal-04859012', hasFile: true, submittedAt: '2026-05-28T09:00:00.000Z' },
+    ]
+    MOCK_DEPOSIT_STATUSES.forEach(({ uid, ...status }) => {
+      const key = `hal-deposit-status-${uid}`
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(status))
+    })
+  }, [])
+
   return (
     <Box>
       <DocumentHeader

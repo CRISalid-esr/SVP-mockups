@@ -154,30 +154,29 @@ Appelle `simulateStatus(step)` qui fait `saveDepositStatus({ ...depositStatus, s
 | `HalStatusCellBadge.tsx` | Chip de statut HAL — 4 types dont `PendingModeration` |
 | `HalStatusCell.tsx` | Cellule MRT : lit le localStorage pour détecter la modération en cours |
 
-Pas de fichiers de données mock ni de services dédiés — tout est statique dans le composant (listes de domaines, types, licences, langues, messages mock).
+Pas de services dédiés — les listes (domaines, types, licences, langues) et les messages d'exemple (rejet, modifications) sont statiques dans le composant.
+
+**Documents mock pré-configurés** (`src/mocks/data/documents.json` + init localStorage dans `documents/page.tsx`) :
+
+| Document | Titre | Statut dans la liste HAL | Statut dans l'onglet dépôt |
+|---|---|---|---|
+| `doc-1` | A deep learning approach to climate modeling | Dans la collection (HAL, avec fichier) | — (déjà dans HAL) |
+| `doc-2` | Quantum Mechanics: A Modern Introduction | Hors HAL | Formulaire vide |
+| `doc-3` | Modélisation numérique des écoulements turbulents | **En cours de modération** (chip bleu) | État modération |
+| `doc-4` | Migrations et identités en contexte postcolonial | Hors HAL | État rejeté (motif affiché) |
+| `doc-5` | État de l'art des systèmes de recommandation | Hors HAL | Modifications demandées |
+| `doc-6` | Biodiversité des sols agricoles | Hors collection (HAL, notice, autre labo) | — (déjà dans HAL) |
+
+Les statuts de `doc-3`, `doc-4` et `doc-5` sont initialisés en localStorage au premier chargement de la page documents (uniquement en mode mock). Ils ne s'écrasent pas si l'utilisateur a modifié l'état via le switcher démo.
 
 ---
 
-## Questions ouvertes
+## Questions ouvertes (métier)
 
-### Intégration SWORD
+1. **Notice vs fichier** : quand un dépôt sans fichier (notice) est soumis, la maquette suppose qu'il passe directement en `accepted` (pas de modération). Est-ce le comportement attendu par les utilisateurs, ou veut-on toujours montrer un état intermédiaire avant la publication ?
 
-1. **Authentification** : compte HAL dédié SoVisu+ avec impersonnation (comme décrit dans l'issue #838), ou connexion avec le compte HAL personnel de l'utilisateur (via OAuth) ? Les deux approches ont des implications différentes sur les droits de modération et la traçabilité du dépôt.
+2. **Messages de rejet et de modifications demandées** : dans la maquette, les motifs sont des exemples fictifs. Comment les utilisateurs s'attendent-ils à être informés — dans l'interface SoVisu+, par e-mail HAL, ou les deux ?
 
-2. **`halId` réel** : dans la maquette, l'identifiant HAL est généré aléatoirement (`hal-0485XXXX`). En production, il est retourné dans le corps de la réponse SWORD (header `Location` ou corps XML Atom). Ce champ devra être stocké côté serveur, pas en localStorage.
+3. **Droits d'embargo** : HAL permet de déposer un fichier avec accès différé (embargo éditeur). Ce champ n'est pas encore dans le formulaire. Est-ce un besoin fréquent des utilisateurs du consortium ?
 
-3. **Dépôt PUT (mise à jour)** : hors-scope phase 1 (issue #838). Nécessite téléchargement du TEI-XML existant + création d'une nouvelle version + droits d'impersonnation sur le dépôt d'origine.
-
-### Cycle de modération
-
-4. **Suivi du statut en temps réel** : HAL ne pousse pas de webhook. En production, le statut de modération devra être récupéré par polling de l'API HAL Search (champ `status_s`) ou via un e-mail de notification HAL. La maquette simule les transitions manuellement via la zone démo.
-
-5. **Notice vs fichier** : la maquette suppose qu'une notice (sans fichier) passe directement en `accepted`. À confirmer avec HAL : les notices passent-elles aussi par modération, ou sont-elles publiées immédiatement ?
-
-6. **Messages de rejet et de modifications** : dans la maquette, les motifs sont des chaînes statiques. En production, ils proviennent du modérateur HAL (champ `comment` de l'API ou e-mail) — il faut décider comment SoVisu+ les récupère et les affiche.
-
-### Formulaire
-
-7. **Droits d'embargo** : la date d'embargo sur le fichier principal n'est pas encore gérée dans le formulaire. HAL permet de déposer un fichier avec embargo (accès différé) — champ à ajouter pour les cas d'usage fréquents (articles sous embargo éditeur).
-
-8. **Domaines HAL** : la liste mock contient 9 domaines. La liste réelle AureHAL est hiérarchique (~200 feuilles). Faut-il reproduire l'arborescence complète ou permettre une recherche plein texte ?
+4. **Domaines HAL** : le formulaire propose une liste de 9 domaines (mock). La liste réelle AureHAL est hiérarchique (~200 entrées). Une recherche par saisie libre ou une sélection arborescente sont-elles préférables pour les utilisateurs ?
