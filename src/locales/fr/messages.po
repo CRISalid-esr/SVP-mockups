@@ -107,7 +107,7 @@ msgstr "Dans HAL et dans la collection HAL du labo du chercheur"
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:160
 msgid "documents_page_hal_status_out_of_collection"
-msgstr ""
+msgstr "Dans HAL"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:185

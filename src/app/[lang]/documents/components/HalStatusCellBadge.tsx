@@ -1,4 +1,3 @@
-import { Plural } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
 import { HourglassEmpty } from '@mui/icons-material'
 import { Chip, Tooltip } from '@mui/material'
@@ -62,7 +61,7 @@ const HalStatusCellBadge = ({
         icon={<HourglassEmpty />}
         label="En cours de modération"
         size='small'
-        color='info'
+        color='warning'
       />,
       t`documents_page_hal_status_tooltip_pending_moderation`,
     )
@@ -81,22 +80,17 @@ const HalStatusCellBadge = ({
   if (type === HalStatusCellType.OutOfCollection) {
     const numberOfAcronyms = acronyms?.length || 0
     const formattedAcronyms = acronyms?.join(', ') || ''
-    const tooltip =
+    const collectionTooltip =
       numberOfAcronyms > 0
         ? t`documents_page_hal_status_tooltip_out_of_collection_with_acronyms ${formattedAcronyms}`
         : t`documents_page_hal_status_tooltip_out_of_collection`
+    const tooltip = [collectionTooltip, submitTypeTooltip].filter(Boolean).join(' ')
 
     return wrapInTooltip(
       <Chip
         {...(!isSingleLine && { sx: multilineChipSx })}
         {...(icon && { icon })}
-        label={
-          <Plural
-            value={numberOfAcronyms}
-            one={`documents_page_hal_status_out_of_collection ${formattedAcronyms}`}
-            other={`documents_page_hal_status_out_of_collections ${formattedAcronyms}`}
-          />
-        }
+        label={t`documents_page_hal_status_out_of_collection`}
         size='small'
         color='info'
       />,
