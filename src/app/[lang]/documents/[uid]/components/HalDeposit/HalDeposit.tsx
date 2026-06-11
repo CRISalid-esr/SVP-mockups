@@ -9,6 +9,10 @@ import {
   CheckCircle,
   Close,
   CloudUpload,
+  ErrorOutline,
+  HourglassEmpty,
+  OpenInNew,
+  WarningAmber,
 } from '@mui/icons-material'
 import {
   Alert,
@@ -21,6 +25,7 @@ import {
   IconButton,
   InputLabel,
   LinearProgress,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -29,7 +34,7 @@ import {
 } from '@mui/material'
 import * as Lingui from '@lingui/core'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -104,7 +109,23 @@ const DOC_TYPE_TO_HAL: Record<string, string> = {
 }
 
 type AttachedFile = { name: string; size: number }
-type Step = 'form' | 'review' | 'uploading' | 'success'
+type Step = 'form' | 'review' | 'uploading'
+
+type DepositStatusStep = 'moderation' | 'accepted' | 'rejected' | 'changes_requested'
+type DepositStatus = {
+  step: DepositStatusStep
+  submittedAt: string
+  halId: string
+  hasFile: boolean
+}
+
+const MOCK_REJECTION_REASON =
+  'Le fichier PDF fourni ne respecte pas les critères de HAL (le document semble être protégé contre la copie). Merci de fournir un PDF non protégé.'
+
+const MOCK_CHANGES_COMMENT =
+  'Le résumé en anglais est manquant. Merci d’ajouter un abstract en anglais avant de soumettre à nouveau.'
+
+const depositStorageKey = (uid: string) => `hal-deposit-status-${uid}`
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -122,6 +143,7 @@ export default function HalDeposit() {
 
   const [step, setStep] = useState<Step>('form')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [depositStatus, setDepositStatus] = useState<DepositStatus | null>(null)
 
   const [documentType, setDocumentType] = useState(
     selectedDocument ? (DOC_TYPE_TO_HAL[selectedDocument.documentType] ?? '') : '',
@@ -143,12 +165,18 @@ export default function HalDeposit() {
   const [mainFile, setMainFile] = useState<AttachedFile | null>(null)
   const [annexFiles, setAnnexFiles] = useState<AttachedFile[]>([])
 
+  useEffect(() => {
+    if (!selectedDocument) return
+    const saved = localStorage.getItem(depositStorageKey(selectedDocument.uid))
+    if (saved) setDepositStatus(JSON.parse(saved))
+  }, [selectedDocument?.uid])
+
   if (!selectedDocument) return null
 
   const isInHal = selectedDocument.records.some(
     (r) => r.platform === BibliographicPlatform.HAL,
   )
-  if (isInHal) return null
+  if (isInHal && !depositStatus) return null
 
   const title =
     selectedDocument.titles.find((t) => t.language === 'fr')?.value ??
@@ -166,6 +194,22 @@ export default function HalDeposit() {
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', tab)
     router.push(`/${lang}/documents/${selectedDocument.uid}?${params.toString()}`)
+  }
+
+  const saveDepositStatus = (status: DepositStatus) => {
+    setDepositStatus(status)
+    localStorage.setItem(depositStorageKey(selectedDocument.uid), JSON.stringify(status))
+  }
+
+  const clearDepositStatus = () => {
+    setDepositStatus(null)
+    localStorage.removeItem(depositStorageKey(selectedDocument.uid))
+    setStep('form')
+  }
+
+  const simulateStatus = (s: DepositStatusStep) => {
+    if (!depositStatus) return
+    saveDepositStatus({ ...depositStatus, step: s })
   }
 
   const handleMainFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,11 +239,19 @@ export default function HalDeposit() {
   const handleConfirm = () => {
     setStep('uploading')
     setUploadProgress(0)
+    const halId = `hal-0485${Math.floor(Math.random() * 9000 + 1000)}`
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(() => setStep('success'), 400)
+          setTimeout(() => {
+            saveDepositStatus({
+              step: mainFile ? 'moderation' : 'accepted',
+              submittedAt: new Date().toISOString(),
+              halId,
+              hasFile: !!mainFile,
+            })
+          }, 400)
           return 100
         }
         return prev + 10
@@ -207,27 +259,222 @@ export default function HalDeposit() {
     }, 180)
   }
 
-  // ─── Success ────────────────────────────────────────────────────────────────
+  // ─── Deposit status views ────────────────────────────────────────────────────
 
-  if (step === 'success') {
-    return (
-      <Box sx={{ p: 6, textAlign: 'center' }}>
-        <CheckCircle sx={{ fontSize: 64, color: '#34A853', mb: 2 }} />
-        <Typography variant="h6" sx={{ color: TEAL, fontWeight: 600, mb: 1 }}>
-          {'Dépôt réussi !'}
+  if (depositStatus) {
+    const halUrl = `https://hal.science/${depositStatus.halId}`
+    const submittedDate = new Date(depositStatus.submittedAt).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    const DemoSwitcher = () => (
+      <Box
+        sx={{
+          mt: 4,
+          pt: 2,
+          borderTop: `1px dashed ${BORDER}`,
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        <Typography sx={{ color: MUTED, fontSize: '0.75rem', mr: 0.5 }}>
+          {'Simuler :'}
         </Typography>
-        <Typography sx={{ color: MUTED, mb: 4 }}>
-          {'Votre publication a été déposée avec succès sur HAL.'}
-        </Typography>
+        {(['moderation', 'accepted', 'rejected', 'changes_requested'] as DepositStatusStep[]).map(
+          (s) => {
+            const labels: Record<DepositStatusStep, string> = {
+              moderation: 'En modération',
+              accepted: 'Accepté',
+              rejected: 'Rejeté',
+              changes_requested: 'Modifications demandées',
+            }
+            return (
+              <Button
+                key={s}
+                size="small"
+                variant={depositStatus.step === s ? 'outlined' : 'text'}
+                onClick={() => simulateStatus(s)}
+                sx={{ textTransform: 'none', fontSize: '0.75rem', color: MUTED, borderColor: BORDER, minWidth: 0, py: 0.25, px: 1 }}
+              >
+                {labels[s]}
+              </Button>
+            )
+          },
+        )}
         <Button
-          variant="contained"
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK }, textTransform: 'none' }}
-          onClick={() => navigateTo('bibliographic_information')}
+          size="small"
+          variant="text"
+          onClick={clearDepositStatus}
+          sx={{ textTransform: 'none', fontSize: '0.75rem', color: '#c62828', ml: 'auto' }}
         >
-          {'Retour aux informations bibliographiques'}
+          {'Réinitialiser'}
         </Button>
       </Box>
     )
+
+    if (depositStatus.step === 'moderation') {
+      return (
+        <Box sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            <HourglassEmpty sx={{ color: '#ED6C02', fontSize: 28 }} />
+            <Typography variant="h6" sx={{ color: '#ED6C02', fontWeight: 600 }}>
+              {'En cours de modération'}
+            </Typography>
+          </Box>
+          <Typography sx={{ color: MUTED, fontSize: '0.875rem', mb: 3 }}>
+            {`Soumis le ${submittedDate}`}
+          </Typography>
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            {'Votre dépôt est en attente de validation par les équipes de modération HAL. Ce processus prend généralement entre 1 et 5 jours ouvrés.'}
+          </Alert>
+          <Paper elevation={0} sx={{ bgcolor: SURFACE, p: 2.5, borderRadius: 2, border: `1px solid ${BORDER}`, mb: 3 }}>
+            <Typography sx={{ color: MUTED, fontSize: '0.75rem', mb: 0.5, textTransform: 'uppercase', fontWeight: 600 }}>
+              {'Identifiant HAL (temporaire)'}
+            </Typography>
+            <Link href={halUrl} target="_blank" rel="noopener" sx={{ color: TEAL, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {depositStatus.halId}
+              <OpenInNew sx={{ fontSize: 14 }} />
+            </Link>
+          </Paper>
+          <Button
+            variant="outlined"
+            onClick={() => navigateTo('bibliographic_information')}
+            sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', '&:hover': { borderColor: TEAL_DARK } }}
+          >
+            {'Retour aux informations bibliographiques'}
+          </Button>
+          <DemoSwitcher />
+        </Box>
+      )
+    }
+
+    if (depositStatus.step === 'accepted') {
+      return (
+        <Box sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            <CheckCircle sx={{ color: '#2E7D32', fontSize: 28 }} />
+            <Typography variant="h6" sx={{ color: '#2E7D32', fontWeight: 600 }}>
+              {'Dépôt accepté'}
+            </Typography>
+          </Box>
+          <Typography sx={{ color: MUTED, fontSize: '0.875rem', mb: 3 }}>
+            {`Soumis le ${submittedDate}`}
+          </Typography>
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {'Votre publication a été acceptée et publiée sur HAL.'}
+          </Alert>
+          <Paper elevation={0} sx={{ bgcolor: SURFACE, p: 2.5, borderRadius: 2, border: `1px solid ${BORDER}`, mb: 3 }}>
+            <Typography sx={{ color: MUTED, fontSize: '0.75rem', mb: 0.5, textTransform: 'uppercase', fontWeight: 600 }}>
+              {'Voir la publication sur HAL'}
+            </Typography>
+            <Link href={halUrl} target="_blank" rel="noopener" sx={{ color: TEAL, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {halUrl}
+              <OpenInNew sx={{ fontSize: 14 }} />
+            </Link>
+          </Paper>
+          <Button
+            variant="outlined"
+            onClick={() => navigateTo('bibliographic_information')}
+            sx={{ color: TEAL, borderColor: TEAL, textTransform: 'none', '&:hover': { borderColor: TEAL_DARK } }}
+          >
+            {'Retour aux informations bibliographiques'}
+          </Button>
+          <DemoSwitcher />
+        </Box>
+      )
+    }
+
+    if (depositStatus.step === 'rejected') {
+      return (
+        <Box sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            <ErrorOutline sx={{ color: '#C62828', fontSize: 28 }} />
+            <Typography variant="h6" sx={{ color: '#C62828', fontWeight: 600 }}>
+              {'Dépôt rejeté'}
+            </Typography>
+          </Box>
+          <Typography sx={{ color: MUTED, fontSize: '0.875rem', mb: 3 }}>
+            {`Soumis le ${submittedDate}`}
+          </Typography>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {'Votre dépôt a été rejeté par les équipes de modération HAL.'}
+          </Alert>
+          <Paper elevation={0} sx={{ bgcolor: '#FFF8F8', p: 2.5, borderRadius: 2, border: `1px solid #FFCDD2`, mb: 3 }}>
+            <Typography sx={{ color: MUTED, fontSize: '0.75rem', mb: 0.5, textTransform: 'uppercase', fontWeight: 600 }}>
+              {'Motif du rejet'}
+            </Typography>
+            <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
+              {MOCK_REJECTION_REASON}
+            </Typography>
+          </Paper>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={clearDepositStatus}
+              sx={{ bgcolor: TEAL, textTransform: 'none', '&:hover': { bgcolor: TEAL_DARK } }}
+            >
+              {'Déposer à nouveau'}
+            </Button>
+            <Button
+              variant="text"
+              onClick={() => navigateTo('bibliographic_information')}
+              sx={{ color: MUTED, textTransform: 'none' }}
+            >
+              {'Retour'}
+            </Button>
+          </Box>
+          <DemoSwitcher />
+        </Box>
+      )
+    }
+
+    if (depositStatus.step === 'changes_requested') {
+      return (
+        <Box sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            <WarningAmber sx={{ color: '#ED6C02', fontSize: 28 }} />
+            <Typography variant="h6" sx={{ color: '#ED6C02', fontWeight: 600 }}>
+              {'Modifications demandées'}
+            </Typography>
+          </Box>
+          <Typography sx={{ color: MUTED, fontSize: '0.875rem', mb: 3 }}>
+            {`Soumis le ${submittedDate}`}
+          </Typography>
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            {'Les équipes de modération HAL ont demandé des corrections avant de valider votre dépôt.'}
+          </Alert>
+          <Paper elevation={0} sx={{ bgcolor: '#FFFBF0', p: 2.5, borderRadius: 2, border: `1px solid #FFE082`, mb: 3 }}>
+            <Typography sx={{ color: MUTED, fontSize: '0.75rem', mb: 0.5, textTransform: 'uppercase', fontWeight: 600 }}>
+              {'Commentaire du modérateur'}
+            </Typography>
+            <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
+              {MOCK_CHANGES_COMMENT}
+            </Typography>
+          </Paper>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={clearDepositStatus}
+              sx={{ bgcolor: TEAL, textTransform: 'none', '&:hover': { bgcolor: TEAL_DARK } }}
+            >
+              {'Modifier et déposer à nouveau'}
+            </Button>
+            <Button
+              variant="text"
+              onClick={() => navigateTo('bibliographic_information')}
+              sx={{ color: MUTED, textTransform: 'none' }}
+            >
+              {'Retour'}
+            </Button>
+          </Box>
+          <DemoSwitcher />
+        </Box>
+      )
+    }
   }
 
   // ─── Uploading ──────────────────────────────────────────────────────────────
