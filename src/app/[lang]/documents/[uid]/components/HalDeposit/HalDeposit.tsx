@@ -455,15 +455,64 @@ const HAL_DOC_TYPES = [
 ]
 
 const LICENSES = [
-  { value: 'cc-by', label: 'CC BY – Attribution' },
-  { value: 'cc-by-sa', label: 'CC BY-SA – Partage dans les mêmes conditions' },
-  { value: 'cc-by-nd', label: 'CC BY-ND – Pas de modification' },
-  { value: 'cc-by-nc', label: "CC BY-NC – Pas d'utilisation commerciale" },
+  { value: '', label: '— Choisir une licence —' },
+  { value: 'cc-by', label: 'CC BY 4.0 – Attribution' },
+  {
+    value: 'cc-by-sa',
+    label: 'CC BY-SA 4.0 – Attribution, Partage dans les mêmes conditions',
+  },
+  {
+    value: 'cc-by-nc',
+    label: "CC BY-NC 4.0 – Attribution, Pas d'utilisation commerciale",
+  },
+  {
+    value: 'cc-by-nc-sa',
+    label:
+      "CC BY-NC-SA 4.0 – Attribution, Pas d'utilisation commerciale, Partage dans les mêmes conditions",
+  },
+  { value: 'cc-by-nd', label: "CC BY-ND 4.0 – Attribution, Pas d'œuvre dérivée" },
   {
     value: 'cc-by-nc-nd',
-    label: "CC BY-NC-ND – Pas d'utilisation commerciale, pas de modification",
+    label:
+      "CC BY-NC-ND 4.0 – Attribution, Pas d'utilisation commerciale, Pas d'œuvre dérivée",
   },
-  { value: 'cc0', label: 'CC0 – Domaine public' },
+  { value: 'etalab', label: 'ETALAB – Licence Ouverte' },
+  { value: 'copyright', label: 'Copyright – Tous droits réservés' },
+]
+
+// Origine du fichier (cf. formulaire de dépôt HAL)
+const FILE_ORIGINS = [
+  { value: 'author', label: "Fichier(s) produit(s) par l'(les) auteur(s)" },
+  {
+    value: 'greenPublisher',
+    label: "Éditeur autorisant le dépôt des fichiers éditeurs (vérifié)",
+  },
+  {
+    value: 'publisherAgreement',
+    label: "Accord explicite de l'éditeur pour ce dépôt",
+  },
+  {
+    value: 'publisherPaid',
+    label: 'Frais de publication financés pour le libre accès',
+  },
+]
+
+// Type / nature du fichier (cf. formulaire de dépôt HAL)
+const FILE_KINDS = [
+  { value: 'file', label: 'Document (pdf, jpg, …)' },
+  { value: 'src', label: 'Fichier source (word, tex, …)' },
+  { value: 'annex', label: 'Données supplémentaires' },
+]
+
+// Visibilité / embargo du fichier (cf. formulaire de dépôt HAL)
+const VISIBILITY_OPTIONS = [
+  { value: 'now', label: 'Immédiatement' },
+  { value: '15d', label: 'Dans 15 jours' },
+  { value: '1m', label: 'Dans 1 mois' },
+  { value: '3m', label: 'Dans 3 mois' },
+  { value: '6m', label: 'Dans 6 mois' },
+  { value: '1y', label: 'Dans 1 an' },
+  { value: '2y', label: 'Dans 2 ans' },
 ]
 
 const LANGUAGES = [
@@ -490,8 +539,31 @@ const DOC_TYPE_TO_HAL: Record<string, string> = {
   Report: 'REPORT',
 }
 
-type AttachedFile = { name: string; size: number }
+type AttachedFile = {
+  name: string
+  size: number
+  origin: string
+  kind: string
+  visibility: string
+  license: string
+}
 type Step = 'form' | 'review' | 'uploading'
+
+const labelOf = (list: { value: string; label: string }[], value: string) =>
+  list.find((o) => o.value === value)?.label ?? value
+
+const makeAttachedFile = (
+  name: string,
+  size: number,
+  kind: string,
+): AttachedFile => ({
+  name,
+  size,
+  origin: 'author',
+  kind,
+  visibility: 'now',
+  license: '',
+})
 
 type DepositStatusStep = 'moderation' | 'accepted' | 'rejected' | 'changes_requested'
 type DepositStatus = {
@@ -536,7 +608,6 @@ export default function HalDeposit() {
     selectedDocument?.publicationDate?.substring(0, 10) ??
       new Date().toISOString().substring(0, 10),
   )
-  const [license, setLicense] = useState('cc-by')
   const [journal, setJournal] = useState('')
   const [conferenceTitle, setConferenceTitle] = useState('')
   const [city, setCity] = useState('')
@@ -596,18 +667,28 @@ export default function HalDeposit() {
 
   const handleMainFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
-    if (f) setMainFile({ name: f.name, size: f.size })
+    if (f) setMainFile(makeAttachedFile(f.name, f.size, 'file'))
   }
 
   const handleAnnexFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
-    if (f) setAnnexFiles((prev) => [...prev, { name: f.name, size: f.size }])
+    if (f) setAnnexFiles((prev) => [...prev, makeAttachedFile(f.name, f.size, 'annex')])
   }
+
+  const updateMainFile = (patch: Partial<AttachedFile>) =>
+    setMainFile((prev) => (prev ? { ...prev, ...patch } : prev))
+
+  const updateAnnexFile = (index: number, patch: Partial<AttachedFile>) =>
+    setAnnexFiles((prev) =>
+      prev.map((f, i) => (i === index ? { ...f, ...patch } : f)),
+    )
 
   const validate = () => {
     if (!documentType) return 'Le type de document est obligatoire'
     if (domains.length === 0) return 'Au moins un domaine HAL est requis'
     if (!mainFile) return 'Le fichier PDF principal est obligatoire'
+    if (mainFile && !mainFile.license)
+      return 'La licence du fichier principal est obligatoire'
     if (documentType === 'ART' && !journal.trim()) return 'Le nom de la revue est obligatoire'
     if (['COMM', 'POSTER', 'PRESCONF'].includes(documentType) && !conferenceTitle.trim())
       return 'Le titre du congrès est obligatoire'
@@ -950,21 +1031,10 @@ export default function HalDeposit() {
           <Box>
             <ReviewLabel>{'Fichiers'}</ReviewLabel>
             {mainFile && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AttachFile sx={{ fontSize: 16, color: TEAL }} />
-                <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
-                  {mainFile.name} ({formatFileSize(mainFile.size)}) —{' '}
-                  <strong>{'Principal'}</strong>
-                </Typography>
-              </Box>
+              <ReviewFile file={mainFile} isMain />
             )}
             {annexFiles.map((f, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <AttachFile sx={{ fontSize: 16, color: MUTED }} />
-                <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
-                  {f.name} ({formatFileSize(f.size)})
-                </Typography>
-              </Box>
+              <ReviewFile key={i} file={f} />
             ))}
           </Box>
         </Paper>
@@ -1160,21 +1230,6 @@ export default function HalDeposit() {
         sx={{ mb: 3 }}
       />
 
-      <FormControl fullWidth sx={{ mb: 3 }}>
-        <InputLabel>{'Licence de diffusion *'}</InputLabel>
-        <Select
-          value={license}
-          onChange={(e) => setLicense(e.target.value)}
-          label="Licence de diffusion *"
-        >
-          {LICENSES.map((l) => (
-            <MenuItem key={l.value} value={l.value}>
-              {l.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
       {documentType === 'ART' && (
         <TextField
           label="Nom de la revue *"
@@ -1254,24 +1309,34 @@ export default function HalDeposit() {
             sx={{
               bgcolor: TEAL_LIGHT,
               p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
               borderRadius: 2,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachFile sx={{ color: TEAL }} />
-              <Box>
-                <Typography sx={{ color: TEAL, fontWeight: 500 }}>{mainFile.name}</Typography>
-                <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
-                  {formatFileSize(mainFile.size)}
-                </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachFile sx={{ color: TEAL }} />
+                <Box>
+                  <Typography sx={{ color: TEAL, fontWeight: 500 }}>{mainFile.name}</Typography>
+                  <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
+                    {formatFileSize(mainFile.size)}
+                  </Typography>
+                </Box>
               </Box>
+              <IconButton onClick={() => setMainFile(null)} size="small">
+                <Close sx={{ fontSize: 18 }} />
+              </IconButton>
             </Box>
-            <IconButton onClick={() => setMainFile(null)} size="small">
-              <Close sx={{ fontSize: 18 }} />
-            </IconButton>
+            <FileMetaControls
+              file={mainFile}
+              requireLicense
+              onChange={updateMainFile}
+            />
           </Paper>
         ) : (
           <Button
@@ -1304,29 +1369,38 @@ export default function HalDeposit() {
               bgcolor: SURFACE,
               p: 2,
               mb: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
               borderRadius: 2,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachFile sx={{ color: MUTED }} />
-              <Box>
-                <Typography sx={{ color: TEXT, fontWeight: 500, fontSize: '0.875rem' }}>
-                  {f.name}
-                </Typography>
-                <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
-                  {formatFileSize(f.size)}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton
-              onClick={() => setAnnexFiles((prev) => prev.filter((_, j) => j !== i))}
-              size="small"
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
-              <Close sx={{ fontSize: 18 }} />
-            </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachFile sx={{ color: MUTED }} />
+                <Box>
+                  <Typography sx={{ color: TEXT, fontWeight: 500, fontSize: '0.875rem' }}>
+                    {f.name}
+                  </Typography>
+                  <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
+                    {formatFileSize(f.size)}
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton
+                onClick={() => setAnnexFiles((prev) => prev.filter((_, j) => j !== i))}
+                size="small"
+              >
+                <Close sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+            <FileMetaControls
+              file={f}
+              onChange={(patch) => updateAnnexFile(i, patch)}
+            />
           </Paper>
         ))}
         <Button
@@ -1422,6 +1496,117 @@ function ReviewField({
     <Box sx={{ mb: 2 }}>
       <ReviewLabel>{label}</ReviewLabel>
       <Typography sx={{ color: TEXT }}>{value}</Typography>
+    </Box>
+  )
+}
+
+function ReviewFile({ file, isMain }: { file: AttachedFile; isMain?: boolean }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+      <AttachFile sx={{ fontSize: 16, color: isMain ? TEAL : MUTED, mt: 0.25 }} />
+      <Box>
+        <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
+          {file.name} ({formatFileSize(file.size)})
+          {isMain && (
+            <>
+              {' — '}
+              <strong>{'Principal'}</strong>
+            </>
+          )}
+        </Typography>
+        <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>
+          {[
+            labelOf(FILE_KINDS, file.kind),
+            labelOf(VISIBILITY_OPTIONS, file.visibility),
+            file.license ? labelOf(LICENSES, file.license) : 'Sans licence',
+          ].join(' · ')}
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
+// ─── Métadonnées par fichier (origine, type, visibilité, licence) ───────────────
+
+function FileMetaControls({
+  file,
+  requireLicense,
+  onChange,
+}: {
+  file: AttachedFile
+  requireLicense?: boolean
+  onChange: (patch: Partial<AttachedFile>) => void
+}) {
+  return (
+    <Box
+      sx={{
+        mt: 2,
+        pt: 2,
+        borderTop: `1px solid ${BORDER}`,
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+        gap: 2,
+      }}
+    >
+      <FormControl size="small" fullWidth>
+        <InputLabel>{'Origine du fichier'}</InputLabel>
+        <Select
+          value={file.origin}
+          label="Origine du fichier"
+          onChange={(e) => onChange({ origin: e.target.value })}
+        >
+          {FILE_ORIGINS.map((o) => (
+            <MenuItem key={o.value} value={o.value}>
+              {o.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" fullWidth>
+        <InputLabel>{'Type de fichier'}</InputLabel>
+        <Select
+          value={file.kind}
+          label="Type de fichier"
+          onChange={(e) => onChange({ kind: e.target.value })}
+        >
+          {FILE_KINDS.map((k) => (
+            <MenuItem key={k.value} value={k.value}>
+              {k.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" fullWidth>
+        <InputLabel>{'Visibilité du fichier'}</InputLabel>
+        <Select
+          value={file.visibility}
+          label="Visibilité du fichier"
+          onChange={(e) => onChange({ visibility: e.target.value })}
+        >
+          {VISIBILITY_OPTIONS.map((v) => (
+            <MenuItem key={v.value} value={v.value}>
+              {v.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" fullWidth error={requireLicense && !file.license}>
+        <InputLabel>{requireLicense ? 'Licence *' : 'Licence'}</InputLabel>
+        <Select
+          value={file.license}
+          label={requireLicense ? 'Licence *' : 'Licence'}
+          onChange={(e) => onChange({ license: e.target.value })}
+        >
+          {LICENSES.map((l) => (
+            <MenuItem key={l.value} value={l.value}>
+              {l.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
     </Box>
   )
 }
