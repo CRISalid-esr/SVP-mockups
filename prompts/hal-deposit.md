@@ -1,6 +1,6 @@
 # Dépôt dans HAL — Descriptif fonctionnel (état courant)
 
-> Dernière mise à jour : juin 2026
+> Dernière mise à jour : juin 2026 (licence et métadonnées au niveau du fichier)
 
 ## Contexte
 
@@ -34,7 +34,6 @@ Champs à saisir :
 | Domaines HAL | Oui | toujours (min. 1) |
 | Langue | Oui | toujours |
 | Date (publication / congrès / soutenance) | Oui | toujours |
-| Licence de diffusion | Oui | toujours |
 | Nom de la revue | Oui | type = `ART` |
 | Titre du congrès + ville + pays | Oui | type = `COMM`, `POSTER`, `PRESCONF` |
 | Institution / organisme de délivrance | Oui | type = `THESE`, `HDR`, `REPORT` |
@@ -45,9 +44,26 @@ Champs à saisir :
 
 Types de documents HAL disponibles : `ART` · `COMM` · `THESE` · `HDR` · `OUV` · `COUV` · `REPORT` · `POSTER` · `PRESCONF`
 
+> **La licence n'est plus une métadonnée globale du dépôt** : elle est portée par chaque fichier (voir ci-dessous), comme dans le formulaire de dépôt HAL réel.
+
+#### Métadonnées par fichier
+
+Chaque fichier joint (principal **et** complémentaires) affiche, sous son nom, une grille de quatre sélecteurs reproduisant le formulaire de dépôt HAL :
+
+| Champ | Valeurs | Défaut |
+|---|---|---|
+| **Origine du fichier** | Fichier(s) produit(s) par l'(les) auteur(s) · Éditeur autorisant le dépôt (vérifié) · Accord explicite de l'éditeur · Frais de publication financés | Auteur |
+| **Type de fichier** | Document (pdf, jpg…) · Fichier source (word, tex…) · Données supplémentaires | `Document` pour le principal, `Données supplémentaires` pour les annexes |
+| **Visibilité du fichier** (embargo) | Immédiatement · 15 jours · 1 mois · 3 mois · 6 mois · 1 an · 2 ans | Immédiatement |
+| **Licence** | CC BY · CC BY-SA · CC BY-NC · CC BY-NC-SA · CC BY-ND · CC BY-NC-ND · ETALAB Licence Ouverte · Copyright Tous droits réservés | Aucune |
+
+**Validation** : la licence du **fichier principal** est obligatoire pour passer au récapitulatif (champ en erreur tant qu'il est vide). Les annexes peuvent rester sans licence.
+
+Modélisé par le type `AttachedFile` (`name`, `size`, `origin`, `kind`, `visibility`, `license`), instancié via `makeAttachedFile()`. Le composant réutilisable `FileMetaControls` (prop `requireLicense` pour le principal) rend la grille.
+
 ### Étape 2 — Récapitulatif
 
-Affiche toutes les valeurs saisies dans un `Paper` grisé. Boutons "Modifier" (retour formulaire) et "Confirmer le dépôt".
+Affiche toutes les valeurs saisies dans un `Paper` grisé. Chaque fichier y est listé via `ReviewFile` avec sa ligne de métadonnées `type · visibilité · licence` (ou « Sans licence »). Boutons "Modifier" (retour formulaire) et "Confirmer le dépôt".
 
 ### Étape 3 — Upload animé
 
@@ -140,7 +156,7 @@ Appelle `simulateStatus(step)` qui fait `saveDepositStatus({ ...depositStatus, s
 | `HalStatusCellBadge.tsx` | Chip de statut HAL — 4 types dont `PendingModeration` |
 | `HalStatusCell.tsx` | Cellule MRT : lit le localStorage pour détecter la modération en cours |
 
-Pas de services dédiés — les listes (domaines, types, licences, langues) et les messages d'exemple (rejet, modifications) sont statiques dans le composant.
+Pas de services dédiés — les listes (domaines, types de document, origines de fichier, types de fichier, visibilités, licences, langues) et les messages d'exemple (rejet, modifications) sont statiques dans le composant.
 
 **Documents mock pré-configurés** (`src/mocks/data/documents.json` + init localStorage dans `documents/page.tsx`) :
 
@@ -161,6 +177,6 @@ Les statuts de `doc-3`, `doc-4` et `doc-5` sont initialisés en localStorage au 
 
 . **Messages de rejet et de modifications demandées** : dans la maquette, les motifs sont des exemples fictifs. Comment les utilisateurs s'attendent-ils à être informés — dans l'interface SoVisu+, par e-mail HAL, ou les deux ?
 
-. **Droits d'embargo** : HAL permet de déposer un fichier avec accès différé (embargo éditeur). Ce champ n'est pas encore dans le formulaire. Est-ce un besoin fréquent des utilisateurs du consortium ?
+. **Droits d'embargo** : la visibilité différée par fichier (immédiate → 2 ans) est désormais proposée au niveau de chaque fichier. Les paliers actuels suffisent-ils, ou faut-il aussi permettre une date d'embargo précise comme dans HAL ?
 
 . **Domaines HAL** : le formulaire propose les 393 domaines réels AureHAL (source : `api.archives-ouvertes.fr/ref/domain`), organisés hiérarchiquement (`chim`, `chim.anal`, etc.) et filtrables par saisie libre dans l'Autocomplete. Une arborescence dépliable serait-elle plus intuitive qu'une liste plate filtrée ?
