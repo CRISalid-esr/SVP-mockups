@@ -178,6 +178,30 @@ Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défa
 
 ---
 
+### ✅ Tableau de bord — Portage des dataviz Nantilux (`src/app/[lang]/dashboard/`)
+
+Enrichissement du tableau de bord avec les dataviz de **Nantilux** (`C:\Users\godet-g\Documents\GitHub\nantilux`, Streamlit + Plotly, ~56 graphes / 9 onglets). Onglets Nantilux *Liste de publications* et *Correspondance auteurs* **hors périmètre**.
+
+**Décisions :** tout en **ECharts** (pas de Plotly) · données de démo = **export Nantilux anonymisé** (sans noms d'auteurs ; réseau pseudonymisé) · onglets Équipes/Axes/Doctorants/Réseau/Par chercheur réservés aux perspectives **structure**.
+
+⚠️ **Jeu de démo = IREENA** (`src/mocks/data/dashboard-publications.json`, 330 publis), basculé depuis LS2N en phase 3 car IREENA a un `effectifs.csv` (équipes UTR1-3 + doctorants). Tous les onglets affichent donc IREENA.
+
+**Switcher de perspective (Chercheur / Laboratoire)** dans l'en-tête (à droite du titre, `page.tsx`). État géré par `DashboardViewContext.tsx` (`DashboardDataProvider` + hook `useDashboardData`) :
+- **Chercheur** : publications filtrées sur l'auteur interne le plus prolifique (profil de démo) ; titre = nom de la perspective connectée (ex. Jean Dupont) ; onglets limités à *Vue d'ensemble, Collaborations internationales, Impact, Chapitres & monographies* ; Sankey/Sunburst (basés équipe) masqués dans International.
+- **Laboratoire** : toutes les publications, tous les onglets, titre = nom du labo (IREENA).
+Tous les onglets lisent `publications`/`authors` via `useDashboardData()` (plus d'appel direct à `dashboardMockService` dans les tabs).
+
+**Architecture à onglets** (`DashboardTabs.tsx` via `TabFilter`). Onglets des phases 2-3 présents en placeholder « À venir » + badge de phase.
+
+**Roadmap :**
+- **Phase 1 — ✅ livrée** : socle à onglets + onglet *Vue d'ensemble* = 3 viz existantes (carte d'identité, publications/an, WordStream) déplacées dans `tabs/OverviewTab.tsx` + 6 viz Nantilux (KPI cards, évolution annuelle, langues, types, accès ouvert, APC). Charts dans `components/charts/`. Données via `src/mocks/dashboardMockService.ts` + `dashboard-publications.json` (4041 publis LS2N 2020-2026). KPI doctorants = « — » (pas d'`effectifs.csv`).
+- **Phase 2 — ✅ livrée** : *Collaborations internationales* (`tabs/InternationalTab.tsx` — intl/national, % intl, carte choroplèthe monde via `public/vendor/world.json`, top 20 pays, UE/hors-UE, heatmap pays×années, top organismes partenaires, **Sankey + Sunburst équipe→pays→organisme**, **carte de flux** labo→villes partenaires) + *Impact & citations* (`tabs/ImpactTab.tsx` — KPI FWCI, quartiles Scimago, Top 1%/10% par année, distribution FWCI). Agrégats : `charts/internationalAggregates.ts`, `charts/impactAggregates.ts`. Export v2 ajoute `partnerInstitutions`, `sjrQuartile`, `countryNames.json`.
+- **Phase 3 — ✅ livrée (sauf Axes)** : *Ouvrages* (`BooksTab`), *Équipes* (`TeamsTab` — répartition/évolution/types par équipe + **radar disciplinaire** via `subfields`), *Par chercheur* (`ResearchersTab`), *Doctorants* (`PhdTab`), *Réseau de co-signatures* (`NetworkTab` — graphe force ECharts, auteurs **pseudonymisés**). Agrégats : `charts/structureAggregates.ts`, `charts/networkAggregates.ts`, `charts/booksAggregates.ts`. Équipe/doctorant dérivés par appariement `authors_lab`↔`effectifs.csv` (export v3 `export_ireena_v3.py`). **Axes reste placeholder** : `chosen_axe` est vide (« Autre / Non classé ») pour IREENA comme pour LS2N.
+
+**Descriptif fonctionnel et technique (écran par écran, charts utilisés, modèle de données) :** `public/prompts/dashboard.md`
+
+---
+
 ## Fonctionnalités à développer (restant)
 
 ### 🔲 Activités de recherche

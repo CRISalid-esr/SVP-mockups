@@ -79,19 +79,9 @@ msgid "documents_page_refresh_document_alert"
 msgstr "Les informations relatives à cette publication ont changé"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:101
-msgid "document_details_page_keywords_tab_card_title"
-msgstr "Mots-clés"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:120
-msgid "document_details_page_keywords_tab_card_empty_content"
-msgstr "Aucun mot-clé"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:134
-msgid "document_details_page_keywords_search_field_title"
-msgstr "Sélectionner un ou plusieurs vocabulaires contrôlés"
+#: src/app/[lang]/documents/[uid]/components/DocumentDetailsHeader.test.tsx:54
+msgid "document_details_page_back_to_my_publications"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Keywords/ConceptChip.test.tsx:60
@@ -119,9 +109,29 @@ msgid "concept_chip_action_delete"
 msgstr "Supprimer"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/DocumentDetailsHeader.test.tsx:54
-msgid "document_details_page_back_to_my_publications"
-msgstr ""
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:101
+msgid "document_details_page_keywords_tab_card_title"
+msgstr "Mots-clés"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:120
+msgid "document_details_page_keywords_tab_card_empty_content"
+msgstr "Aucun mot-clé"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:134
+msgid "document_details_page_keywords_search_field_title"
+msgstr "Sélectionner un ou plusieurs vocabulaires contrôlés"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/page.tsx:755
+msgid "documents_page_refresh_list_alert_own_perspective"
+msgstr "La liste de vos publications a changé"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/page.tsx:758
+msgid "documents_page_refresh_list_alert_other_perspective"
+msgstr "La liste des publications de {name} a changé"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Keywords/components/KeywordSearchAutocomplete.tsx:253
@@ -157,11 +167,6 @@ msgid "document_details_page_keywords_input_fetch_error_label"
 msgstr "Erreur lors du chargement des données"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Domains/Domains.tsx:30
-msgid "document_details_page_domains_tab_card_title"
-msgstr "Domaines"
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Sources/Sources.tsx:398
 msgid "document_details_page_source_tab_card_title"
 msgstr "Références bibliographiques sources"
@@ -183,14 +188,9 @@ msgid "document_details_page_source_tab_select_action_unmerge_label"
 msgstr "Dissocier"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/page.tsx:755
-msgid "documents_page_refresh_list_alert_own_perspective"
-msgstr "La liste de vos publications a changé"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/page.tsx:758
-msgid "documents_page_refresh_list_alert_other_perspective"
-msgstr "La liste des publications de {name} a changé"
+#: src/app/[lang]/documents/[uid]/components/Domains/Domains.tsx:30
+msgid "document_details_page_domains_tab_card_title"
+msgstr "Domaines"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Sources.test.tsx:183
@@ -203,33 +203,8 @@ msgid "keywords_concept_added_success"
 msgstr "Mot-clé ajouté à la publication."
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:128
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:58
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:102
-msgid "document_details_page_titles_row_label"
-msgstr "Titre"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:59
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:80
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:125
-msgid "document_details_page_no_title_available"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:131
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:79
-msgid "document_details_page_type_row_label"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/PublicationDate.test.tsx:68
 msgid "documents_page_publication_date_column_no_date_available"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Authors.test.tsx:114
-msgid "document_details_page_authors_row_update_author"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -237,6 +212,19 @@ msgstr ""
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.tsx:151
 msgid "document_details_page_card_title"
 msgstr "Informations bibliographiques"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:128
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:58
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:102
+msgid "document_details_page_titles_row_label"
+msgstr "Titre"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:131
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:79
+msgid "document_details_page_type_row_label"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:134
@@ -267,6 +255,18 @@ msgstr ""
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:151
 msgid "document_details_page_sources_row_label"
 msgstr "Sources"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:59
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:80
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:125
+msgid "document_details_page_no_title_available"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Authors.test.tsx:114
+msgid "document_details_page_authors_row_update_author"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/components/HalStatusCell.test.tsx:144
@@ -329,6 +329,31 @@ msgstr "Mes affiliations"
 #: src/app/[lang]/account/components/myProfile/components/Identifiers.tsx:31
 msgid "profile_identifiers_card_title"
 msgstr "Mes identifiants chercheurs"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:49
+msgid "orcid_permission_read_limited"
+msgstr "Lire vos informations avec une visibilitée fixée sur «Organisations de confiance»"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:50
+msgid "orcid_permission_activities_update"
+msgstr "Créer ou mettre à jour vos activités scientifiques (publications, etc.)"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:51
+msgid "orcid_permission_person_update"
+msgstr "Mettre à jour vos informations biographiques (nom, affiliation, etc.)"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:164
+msgid "orcid_permissions_intro"
+msgstr "Voici les autorisations que vous accordez à {institutionName} sur votre profil ORCID :"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:180
+msgid "orcid_permissions_none"
+msgstr "Vous n’accordez aucune autorisation à {institutionName}."
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.test.tsx:59
@@ -401,29 +426,16 @@ msgid "hal_button_provide_identifier"
 msgstr "Fournir mon identifiant Hal"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:49
-msgid "orcid_permission_read_limited"
-msgstr "Lire vos informations avec une visibilitée fixée sur «Organisations de confiance»"
+#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.test.tsx:89
+#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.tsx:44
+msgid "profile_affiliations_signature_label"
+msgstr "Ma signature"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:50
-msgid "orcid_permission_activities_update"
-msgstr "Créer ou mettre à jour vos activités scientifiques (publications, etc.)"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:51
-msgid "orcid_permission_person_update"
-msgstr "Mettre à jour vos informations biographiques (nom, affiliation, etc.)"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:164
-msgid "orcid_permissions_intro"
-msgstr "Voici les autorisations que vous accordez à {institutionName} sur votre profil ORCID :"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:180
-msgid "orcid_permissions_none"
-msgstr "Vous n’accordez aucune autorisation à {institutionName}."
+#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.test.tsx:110
+#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.tsx:56
+msgid "profile_affiliations_signature_copied_message_confirmation"
+msgstr "Signature ajoutée au presse-papier."
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:168
@@ -492,18 +504,6 @@ msgstr "Votre compte SoVisu+ est lié à votre compte Hal"
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:234
 msgid "hal_control_helper"
 msgstr "En liant votre compte Hal à votre compte Sovisu+, vous fiabilisez votre identifiant Hal et vous pourrez aisément déposer sur Hal les publications manquantes."
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.test.tsx:89
-#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.tsx:44
-msgid "profile_affiliations_signature_label"
-msgstr "Ma signature"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.test.tsx:110
-#: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.tsx:56
-msgid "profile_affiliations_signature_copied_message_confirmation"
-msgstr "Signature ajoutée au presse-papier."
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/affiliations/LaboratoriesControl.test.tsx:82
@@ -588,11 +588,282 @@ msgstr ""
 msgid "side_bar_researchers"
 msgstr "Chercheurs"
 
+#: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:70
+msgid "dashboard_books_empty"
+msgstr "Aucun ouvrage (chapitre, monographie) sur la période."
+
+#: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:75
+msgid "dashboard_books_types_title"
+msgstr "Types d'ouvrage"
+
+#: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:80
+msgid "dashboard_books_yearly_title"
+msgstr "Évolution annuelle des ouvrages"
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:95
+msgid "dashboard_impact_fwci_dist_subtitle"
+msgstr "Field-Weighted Citation Impact ; la longue traîne est repliée au-delà de 8"
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:94
+msgid "dashboard_impact_fwci_dist_title"
+msgstr "Distribution du FWCI"
+
+#: src/app/[lang]/dashboard/components/charts/FwciHistogramChart.tsx:35
+msgid "dashboard_impact_fwci_world_mean"
+msgstr "Moyenne mondiale (1.0)"
+
+#: src/app/[lang]/dashboard/components/charts/ImpactKpiCards.tsx:8
+msgid "dashboard_impact_kpi_fwci_known"
+msgstr "Avec FWCI renseigné"
+
+#: src/app/[lang]/dashboard/components/charts/ImpactKpiCards.tsx:23
+msgid "dashboard_impact_kpi_fwci_mean"
+msgstr "FWCI moyen"
+
+#: src/app/[lang]/dashboard/components/charts/ImpactKpiCards.tsx:25
+msgid "dashboard_impact_kpi_fwci_ref"
+msgstr "Référence mondiale : 1,00"
+
+#: src/app/[lang]/dashboard/components/charts/ImpactKpiCards.tsx:18
+msgid "dashboard_impact_kpi_top1"
+msgstr "Top 1 %"
+
+#: src/app/[lang]/dashboard/components/charts/ImpactKpiCards.tsx:13
+msgid "dashboard_impact_kpi_top10"
+msgstr "Top 10 %"
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:82
+msgid "dashboard_impact_quartiles_empty"
+msgstr "Aucune publication appariée à un quartile Scimago."
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:76
+msgid "dashboard_impact_quartiles_subtitle"
+msgstr "Publications dans des revues classées (hors revues non indexées)"
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:75
+msgid "dashboard_impact_quartiles_title"
+msgstr "Répartition par quartile Scimago (SJR)"
+
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:88
+msgid "dashboard_impact_top_by_year_title"
+msgstr "Publications très citées par année (Top 1 % / 10 %)"
+
+#: src/app/[lang]/dashboard/components/charts/TopByYearChart.tsx:10
+msgid "dashboard_impact_top1"
+msgstr "Top 1 %"
+
+#: src/app/[lang]/dashboard/components/charts/TopByYearChart.tsx:11
+msgid "dashboard_impact_top10_excl"
+msgstr "Top 10 % (hors top 1 %)"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:147
+msgid "dashboard_intl_eu_evolution_title"
+msgstr "Évolution UE / hors-UE"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:142
+msgid "dashboard_intl_eu_zone_title"
+msgstr "Collaborations UE / hors-UE"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:124
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:181
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:196
+msgid "dashboard_intl_flow_empty"
+msgstr "Pas assez de collaborations identifiées par équipe sur la période."
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:172
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:190
+msgid "dashboard_intl_flow_subtitle"
+msgstr "Top organismes partenaires étrangers, par équipe et pays"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:118
+msgid "dashboard_intl_flowmap_subtitle"
+msgstr "Flux du laboratoire vers les villes des organismes partenaires étrangers"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:117
+msgid "dashboard_intl_flowmap_title"
+msgstr "Carte des collaborations"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:136
+msgid "dashboard_intl_heatmap_title"
+msgstr "Collaborations par pays et par année"
+
+#: src/app/[lang]/dashboard/components/charts/WorldChoroplethChart.tsx:55
+msgid "dashboard_intl_map_less"
+msgstr "Moins"
+
+#: src/app/[lang]/dashboard/components/charts/WorldChoroplethChart.tsx:55
+msgid "dashboard_intl_map_more"
+msgstr "Plus"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:109
+msgid "dashboard_intl_map_subtitle"
+msgstr "Nombre de publications par pays partenaire (France exclue)"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:108
+msgid "dashboard_intl_map_title"
+msgstr "Répartition géographique des co-auteurs"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:161
+msgid "dashboard_intl_partners_empty"
+msgstr "Aucun organisme partenaire étranger sur la période."
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:155
+msgid "dashboard_intl_partners_subtitle"
+msgstr "Nombre de publications co-signées (hors établissements français)"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:154
+msgid "dashboard_intl_partners_title"
+msgstr "Top 20 organismes partenaires étrangers"
+
+#: src/app/[lang]/dashboard/components/charts/IntlPercentChart.tsx:20
+msgid "dashboard_intl_pct_series"
+msgstr "% internationales"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:101
+msgid "dashboard_intl_pct_title"
+msgstr "Évolution des collaborations internationales (%)"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:171
+msgid "dashboard_intl_sankey_title"
+msgstr "Flux équipe → pays → organisme"
+
+#: src/app/[lang]/dashboard/components/charts/IntlVsNationalChart.tsx:7
+msgid "dashboard_intl_series_international"
+msgstr "Internationales"
+
+#: src/app/[lang]/dashboard/components/charts/IntlVsNationalChart.tsx:8
+msgid "dashboard_intl_series_national"
+msgstr "Nationales"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:189
+msgid "dashboard_intl_sunburst_title"
+msgstr "Répartition équipe / pays / organisme"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:131
+msgid "dashboard_intl_top_countries_title"
+msgstr "Top 20 pays co-auteurs"
+
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:96
+msgid "dashboard_intl_vs_national_title"
+msgstr "Publications internationales vs nationales"
+
+#: src/app/[lang]/dashboard/components/charts/EuByYearChart.tsx:10
+#: src/app/[lang]/dashboard/components/charts/EuZoneChart.tsx:6
+msgid "dashboard_intl_zone_eu"
+msgstr "UE"
+
+#: src/app/[lang]/dashboard/components/charts/EuByYearChart.tsx:11
+#: src/app/[lang]/dashboard/components/charts/EuZoneChart.tsx:7
+msgid "dashboard_intl_zone_non_eu"
+msgstr "Hors-UE"
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:62
+msgid "dashboard_network_empty"
+msgstr "Aucun auteur au-dessus du seuil sélectionné."
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:46
+msgid "dashboard_network_min_pubs"
+msgstr "Publications min. par auteur"
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:37
+msgid "dashboard_network_subtitle"
+msgstr "Auteurs pseudonymisés ; lien = co-publication, taille = nombre de publications"
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:36
+msgid "dashboard_network_title"
+msgstr "Réseau de co-signatures internes"
+
+#: src/app/[lang]/dashboard/components/charts/ApcYearlyChart.tsx:7
+msgid "dashboard_overview_apc_count_label"
+msgstr "publi(s)"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:387
+msgid "dashboard_overview_apc_empty"
+msgstr "Aucune publication avec APC sur la période sélectionnée."
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:382
+msgid "dashboard_overview_apc_title"
+msgstr "Coût des APC par année"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:30
+msgid "dashboard_overview_kpi_apc"
+msgstr "Avec APC déclarés"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:25
+msgid "dashboard_overview_kpi_foreign_language"
+msgstr "En langue étrangère"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:38
+msgid "dashboard_overview_kpi_french"
+msgstr "En français"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:20
+msgid "dashboard_overview_kpi_international"
+msgstr "Collaborations internationales"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:10
+msgid "dashboard_overview_kpi_intl_unknown_suffix"
+msgstr "(hors inconnus)"
+
+#: src/app/[lang]/dashboard/components/charts/OverviewKpiCards.tsx:16
+msgid "dashboard_overview_kpi_total"
+msgstr "Publications totales"
+
+#: src/app/[lang]/dashboard/components/charts/LabTabHeader.tsx:36
+#: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:58
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:60
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:84
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:308
+msgid "dashboard_overview_lab_demo_caption"
+msgstr "Jeu de démonstration"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:305
+msgid "dashboard_overview_lab_synthesis_title"
+msgstr "Synthèse du laboratoire"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:366
+msgid "dashboard_overview_language_title"
+msgstr "Répartition par langue"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:200
+msgid "dashboard_overview_no_perspective"
+msgstr "Aucun acteur sélectionné."
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:377
+msgid "dashboard_overview_oa_title"
+msgstr "Accès ouvert"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:304
+msgid "dashboard_overview_researcher_synthesis_title"
+msgstr "Synthèse de mes publications"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:372
+msgid "dashboard_overview_types_title"
+msgstr "Types de publication"
+
+#: src/app/[lang]/dashboard/components/charts/YearRangeSelector.tsx:13
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:314
+msgid "dashboard_overview_year_from"
+msgstr "De"
+
+#: src/app/[lang]/dashboard/components/charts/YearRangeSelector.tsx:30
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:333
+msgid "dashboard_overview_year_to"
+msgstr "à"
+
+#: src/app/[lang]/dashboard/components/charts/YearlyEvolutionChart.tsx:20
+msgid "dashboard_overview_yearly_series"
+msgstr "Publications"
+
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:359
+msgid "dashboard_overview_yearly_title"
+msgstr "Évolution annuelle"
+
 #: src/app/[lang]/dashboard/components/AgentIdentityCard.tsx:30
 msgid "dashboard_page_agent_identity_card_no_agent_selected"
 msgstr "Aucun acteur sélectionné"
 
-#: src/app/[lang]/dashboard/page.tsx:114
+#: src/app/[lang]/dashboard/page.tsx:33
 msgid "dashboard_page_main_title"
 msgstr "Tableau de bord"
 
@@ -647,41 +918,160 @@ msgstr "Année"
 msgid "dashboard_page_publication_by_year_no_publication_found"
 msgstr "Aucune publication trouvée"
 
-#: src/app/[lang]/dashboard/page.tsx:133
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:163
 msgid "dashboard_page_publication_by_year_title"
 msgstr "Publications scientifiques"
 
-#: src/app/[lang]/dashboard/page.tsx:234
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:250
 msgid "dashboard_page_wordstream_font_range_a11y"
 msgstr "Police min ↔ max"
 
-#: src/app/[lang]/dashboard/page.tsx:223
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:239
 msgid "dashboard_page_wordstream_font_range_label"
 msgstr "Police min ↔ max"
 
-#: src/app/[lang]/dashboard/page.tsx:155
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:178
 msgid "dashboard_page_wordstream_title"
 msgstr "Mots-clés et collaborations"
 
-#: src/app/[lang]/dashboard/page.tsx:214
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:233
 msgid "dashboard_page_wordstream_topN_a11y"
 msgstr "Max. occurrences / an"
 
-#: src/app/[lang]/dashboard/page.tsx:205
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:224
 msgid "dashboard_page_wordstream_topN_label"
 msgstr "Max. occurrences / an"
 
-#: src/app/[lang]/dashboard/page.tsx:265
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:278
 msgid "dashboard_page_wordstream_validate_button_label"
 msgstr "Mettre à jour"
 
-#: src/app/[lang]/dashboard/page.tsx:255
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:268
 msgid "dashboard_page_wordstream_year_range_a11y"
 msgstr "Années début ↔ fin"
 
-#: src/app/[lang]/dashboard/page.tsx:243
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:256
 msgid "dashboard_page_wordstream_year_range_label"
 msgstr "Années début ↔ fin"
+
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:61
+msgid "dashboard_phd_by_doctorant_title"
+msgstr "Publications par doctorant"
+
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:45
+msgid "dashboard_phd_by_team_subtitle"
+msgstr "Publications impliquant au moins un doctorant"
+
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:44
+msgid "dashboard_phd_by_team_title"
+msgstr "Publications de doctorants par équipe"
+
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:38
+msgid "dashboard_phd_empty"
+msgstr "Aucune publication impliquant un doctorant sur la période."
+
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:56
+msgid "dashboard_phd_evolution_title"
+msgstr "Évolution annuelle (doctorants)"
+
+#: src/app/[lang]/dashboard/components/tabs/ResearchersTab.tsx:36
+msgid "dashboard_researchers_top_subtitle"
+msgstr "Auteurs internes pseudonymisés"
+
+#: src/app/[lang]/dashboard/components/tabs/ResearchersTab.tsx:35
+msgid "dashboard_researchers_top_title"
+msgstr "Publications par chercheur (top 25)"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:78
+msgid "dashboard_tab_axes"
+msgstr "Axes stratégiques"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:77
+#: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:55
+msgid "dashboard_tab_books"
+msgstr "Chapitres & monographies"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:72
+#: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:57
+msgid "dashboard_tab_impact"
+msgstr "Impact & citations"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:71
+#: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:81
+msgid "dashboard_tab_international"
+msgstr "Collaborations internationales"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:76
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:30
+msgid "dashboard_tab_network"
+msgstr "Réseau de co-signatures"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:70
+msgid "dashboard_tab_overview"
+msgstr "Vue d'ensemble"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:75
+#: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:31
+msgid "dashboard_tab_phd"
+msgstr "Doctorants"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:74
+#: src/app/[lang]/dashboard/components/tabs/ResearchersTab.tsx:29
+msgid "dashboard_tab_researchers"
+msgstr "Par chercheur"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:73
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:39
+msgid "dashboard_tab_teams"
+msgstr "Répartition par équipe"
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:48
+msgid "dashboard_tabs_coming_soon"
+msgstr "Cet onglet sera bientôt disponible."
+
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:52
+msgid "dashboard_tabs_phase"
+msgstr "Phase"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:48
+msgid "dashboard_teams_distribution_subtitle"
+msgstr "Une publication compte dans chaque équipe de ses auteurs"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:47
+msgid "dashboard_teams_distribution_title"
+msgstr "Répartition par équipe"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:59
+msgid "dashboard_teams_evolution_title"
+msgstr "Évolution annuelle par équipe"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:77
+msgid "dashboard_teams_radar_empty"
+msgstr "Pas de sous-domaine disponible sur la période."
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:71
+msgid "dashboard_teams_radar_subtitle"
+msgstr "Part des publications de l’équipe dans les principaux sous-domaines (%)"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:70
+msgid "dashboard_teams_radar_title"
+msgstr "Profil disciplinaire par équipe"
+
+#: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:64
+msgid "dashboard_teams_types_title"
+msgstr "Types de publication par équipe"
+
+#: src/app/[lang]/dashboard/page.tsx:48
+msgid "dashboard_view_lab"
+msgstr "Laboratoire"
+
+#: src/app/[lang]/dashboard/page.tsx:44
+msgid "dashboard_view_researcher"
+msgstr "Chercheur"
+
+#: src/app/[lang]/dashboard/page.tsx:40
+msgid "dashboard_view_switch_aria"
+msgstr "Changer de perspective"
 
 #: src/app/[lang]/documents/[uid]/page.tsx:73
 msgid "document_details_authors_tab"
@@ -848,11 +1238,11 @@ msgstr "Auteurs"
 msgid "documents_page_document_icon_label"
 msgstr "Document"
 
-#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:113
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:109
 msgid "documents_page_hal_status_in_collection"
 msgstr "Dans la collection"
 
-#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:93
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:89
 msgid "documents_page_hal_status_out_of_collection"
 msgstr "Dans HAL"
 
@@ -868,11 +1258,11 @@ msgstr "Déposée avec un fichier PDF."
 msgid "documents_page_hal_status_submit_type_notice"
 msgstr "Notice HAL seule."
 
-#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:103
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:99
 msgid "documents_page_hal_status_tooltip_in_collection"
 msgstr "Cette publication est dans HAL et dans la collection HAL du laboratoire du chercheur."
 
-#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:85
+#: src/app/[lang]/documents/components/HalStatusCellBadge.tsx:82
 msgid "documents_page_hal_status_tooltip_out_of_collection {formattedAcronyms}"
 msgstr "Cette publication est dans HAL mais hors de la collection {formattedAcronyms}."
 
