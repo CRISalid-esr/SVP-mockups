@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Box, Slider, Stack, Typography } from '@mui/material'
 import { t } from '@lingui/core/macro'
 import { useDashboardData } from '@/app/[lang]/dashboard/components/DashboardViewContext'
@@ -9,14 +9,31 @@ import DashboardSectionCard from '@/app/[lang]/dashboard/components/charts/Dashb
 import NetworkChart from '@/app/[lang]/dashboard/components/charts/NetworkChart'
 
 const NetworkTab = () => {
-  const { publications, authors } = useDashboardData()
+  const { publications, authors, isResearcher, researcherId } =
+    useDashboardData()
   const bounds = useMemo(() => getYearBounds(publications), [publications])
   const [range, setRange] = useState({ start: bounds.min, end: bounds.max })
-  const [minPubs, setMinPubs] = useState(2)
+  // En vue chercheur (ego-réseau), on garde tous les collaborateurs directs (seuil 1).
+  const [minPubs, setMinPubs] = useState(isResearcher ? 1 : 2)
+
+  useEffect(() => {
+    setRange({ start: bounds.min, end: bounds.max })
+  }, [bounds.min, bounds.max])
+
+  useEffect(() => {
+    setMinPubs(isResearcher ? 1 : 2)
+  }, [isResearcher])
 
   const data = useMemo(
-    () => aggregateNetwork(publications, authors, range, minPubs),
-    [publications, authors, range, minPubs],
+    () =>
+      aggregateNetwork(
+        publications,
+        authors,
+        range,
+        minPubs,
+        isResearcher ? researcherId : null,
+      ),
+    [publications, authors, range, minPubs, isResearcher, researcherId],
   )
   const yearOptions = useMemo(
     () =>
@@ -33,8 +50,16 @@ const NetworkTab = () => {
         onRangeChange={setRange}
       />
       <DashboardSectionCard
-        title={t`dashboard_network_title`}
-        subtitle={t`dashboard_network_subtitle`}
+        title={
+          isResearcher
+            ? t`dashboard_network_researcher_title`
+            : t`dashboard_network_title`
+        }
+        subtitle={
+          isResearcher
+            ? t`dashboard_network_researcher_subtitle`
+            : t`dashboard_network_subtitle`
+        }
       >
         <Stack
           direction='row'

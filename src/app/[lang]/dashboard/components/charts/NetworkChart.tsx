@@ -31,7 +31,14 @@ const NetworkChart = ({ data }: { data: NetworkData }) => {
           name: n.name,
           value: n.value,
           category: n.category,
-          symbolSize: 8 + (n.value / maxVal) * 32,
+          symbol: n.isCenter ? 'diamond' : 'circle',
+          symbolSize: n.isCenter ? 46 : 8 + (n.value / maxVal) * 32,
+          itemStyle: n.isCenter
+            ? { borderColor: '#222', borderWidth: 2 }
+            : undefined,
+          label: n.isCenter
+            ? { show: true, fontSize: 11, fontWeight: 'bold' }
+            : undefined,
         })),
         links: data.links.map((l) => ({
           source: l.source,

@@ -59,6 +59,7 @@ const RESEARCHER_TABS = new Set<DashboardTabKey>([
   'overview',
   'international',
   'impact',
+  'network',
   'books',
 ])
 

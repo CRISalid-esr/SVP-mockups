@@ -74,14 +74,29 @@ msgid "document_details_keywords_tab"
 msgstr ""
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/DocumentDetailsHeader.test.tsx:54
+msgid "document_details_page_back_to_my_publications"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/page.tsx:162
 msgid "documents_page_refresh_document_alert"
 msgstr "Data concerning this publication has changed"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/DocumentDetailsHeader.test.tsx:54
-msgid "document_details_page_back_to_my_publications"
-msgstr ""
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:101
+msgid "document_details_page_keywords_tab_card_title"
+msgstr "Keywords"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:120
+msgid "document_details_page_keywords_tab_card_empty_content"
+msgstr "No keywords"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:134
+msgid "document_details_page_keywords_search_field_title"
+msgstr "Select one or more controlled vocabulary"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Keywords/ConceptChip.test.tsx:60
@@ -107,31 +122,6 @@ msgstr "Other variations"
 #: src/app/[lang]/documents/[uid]/components/Keywords/ConceptChip.tsx:343
 msgid "concept_chip_action_delete"
 msgstr "Delete"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:101
-msgid "document_details_page_keywords_tab_card_title"
-msgstr "Keywords"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:120
-msgid "document_details_page_keywords_tab_card_empty_content"
-msgstr "No keywords"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/Keywords.tsx:134
-msgid "document_details_page_keywords_search_field_title"
-msgstr "Select one or more controlled vocabulary"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/page.tsx:755
-msgid "documents_page_refresh_list_alert_own_perspective"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/page.tsx:758
-msgid "documents_page_refresh_list_alert_other_perspective"
-msgstr ""
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Keywords/components/KeywordSearchAutocomplete.tsx:253
@@ -167,6 +157,26 @@ msgid "document_details_page_keywords_input_fetch_error_label"
 msgstr "Error loading suggestions"
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Domains/Domains.tsx:30
+msgid "document_details_page_domains_tab_card_title"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/page.tsx:755
+msgid "documents_page_refresh_list_alert_own_perspective"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/page.tsx:758
+msgid "documents_page_refresh_list_alert_other_perspective"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/Keywords/components/KeywordSearchAutocomplete.test.tsx:366
+msgid "keywords_concept_added_success"
+msgstr "Keyword successfully added."
+
+#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/Sources/Sources.tsx:398
 msgid "document_details_page_source_tab_card_title"
 msgstr "Sources"
@@ -188,30 +198,14 @@ msgid "document_details_page_source_tab_select_action_unmerge_label"
 msgstr "Dissociate"
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Domains/Domains.tsx:30
-msgid "document_details_page_domains_tab_card_title"
-msgstr ""
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Sources.test.tsx:183
 msgid "document_details_page_sources_row_update_source"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/Keywords/components/KeywordSearchAutocomplete.test.tsx:366
-msgid "keywords_concept_added_success"
-msgstr "Keyword successfully added."
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/PublicationDate.test.tsx:68
 msgid "documents_page_publication_date_column_no_date_available"
 msgstr ""
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:120
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.tsx:151
-msgid "document_details_page_card_title"
-msgstr "Bibliographic information"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:128
@@ -221,10 +215,23 @@ msgid "document_details_page_titles_row_label"
 msgstr "Title"
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:59
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:80
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:125
+msgid "document_details_page_no_title_available"
+msgstr ""
+
+#. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:131
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:79
 msgid "document_details_page_type_row_label"
 msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:120
+#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.tsx:151
+msgid "document_details_page_card_title"
+msgstr "Bibliographic information"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:134
@@ -255,13 +262,6 @@ msgstr ""
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/BibliographicInformation.test.tsx:151
 msgid "document_details_page_sources_row_label"
 msgstr "Sources"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:59
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:80
-#: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Row.test.tsx:125
-msgid "document_details_page_no_title_available"
-msgstr ""
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/documents/[uid]/components/BibliographicInformation/Authors.test.tsx:114
@@ -300,6 +300,17 @@ msgid "internal_server_page_description"
 msgstr "The server detected an internal error and was unable to process your request. Please try again later!"
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/Affiliations.test.tsx:101
+#: src/app/[lang]/account/components/myProfile/components/Affiliations.tsx:31
+msgid "profile_affiliations_card_title"
+msgstr "My affiliations"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/Identifiers.tsx:31
+msgid "profile_identifiers_card_title"
+msgstr "My researchers identifiers"
+
+#. js-lingui-explicit-id
 #: src/app/[lang]/account/components/notification/index.tsx:27
 msgid "notification_page_notification_title"
 msgstr "Nofications"
@@ -318,17 +329,6 @@ msgstr "A new publication has been referenced"
 #: src/app/[lang]/account/components/notification/index.tsx:58
 msgid "notification_page_new_expertise_awaiting_validation"
 msgstr "A new expertise is awaiting validation"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/Affiliations.test.tsx:101
-#: src/app/[lang]/account/components/myProfile/components/Affiliations.tsx:31
-msgid "profile_affiliations_card_title"
-msgstr "My affiliations"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/Identifiers.tsx:31
-msgid "profile_identifiers_card_title"
-msgstr "My researchers identifiers"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:49
@@ -367,6 +367,18 @@ msgstr "Update ORCID authorizations"
 #: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:218
 msgid "orcid_button_provide_identifier"
 msgstr "Sign-in to ORCID"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.test.tsx:34
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.tsx:64
+msgid "hal_button_update_identifier"
+msgstr "Link my Hal identifier"
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.test.tsx:44
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.tsx:66
+msgid "hal_button_provide_identifier"
+msgstr "Provide my Hal identifier"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidControl.tsx:68
@@ -414,18 +426,6 @@ msgid "orcid_control_helper"
 msgstr "ORCID is a free, unique, persistent identifier (PID) for individuals to use as they engage in research, scholarship, and innovation activities. It can also help you save time when you use your ORCID to sign into systems like this one. Link your ORCID iD to uniquely identify your research outputs and improve metadata quality. Learn more about how ORCID helps you spend more time conducting your research and less time managing it at <0>orcid.org</0>."
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.test.tsx:34
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.tsx:64
-msgid "hal_button_update_identifier"
-msgstr "Link my Hal identifier"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.test.tsx:44
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalLoginButton.tsx:66
-msgid "hal_button_provide_identifier"
-msgstr "Provide my Hal identifier"
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.test.tsx:89
 #: src/app/[lang]/account/components/myProfile/components/affiliations/SignatureControl.tsx:44
 msgid "profile_affiliations_signature_label"
@@ -438,10 +438,22 @@ msgid "profile_affiliations_signature_copied_message_confirmation"
 msgstr "Signature added to clipboard."
 
 #. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:89
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:234
+msgid "hal_control_helper"
+msgstr "By linking your Hal account to your Sovisu+ account, you will make your Hal ID more reliable and you will be able to easily submit missing publications to Hal."
+
+#. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:168
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:77
 msgid "hal_authentication_success"
 msgstr ""
+
+#. js-lingui-explicit-id
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:183
+#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:97
+msgid "hal_authentication_failure_wrong_protocol"
+msgstr "To link your SoVisu+ account, do not use the ORCID option when authenticating on HAL"
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:79
@@ -489,21 +501,9 @@ msgid "hal_identifier_insert_failure"
 msgstr ""
 
 #. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:183
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:97
-msgid "hal_authentication_failure_wrong_protocol"
-msgstr "To link your SoVisu+ account, do not use the ORCID option when authenticating on HAL"
-
-#. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:145
 msgid "hal_account_linked_tooltip"
 msgstr "Your SoVisu+ account is linked to your HAL account"
-
-#. js-lingui-explicit-id
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.test.tsx:89
-#: src/app/[lang]/account/components/myProfile/components/identifiers/HalControl.tsx:234
-msgid "hal_control_helper"
-msgstr "By linking your Hal account to your Sovisu+ account, you will make your Hal ID more reliable and you will be able to easily submit missing publications to Hal."
 
 #. js-lingui-explicit-id
 #: src/app/[lang]/account/components/myProfile/components/affiliations/LaboratoriesControl.test.tsx:82
@@ -757,19 +757,27 @@ msgstr "EU"
 msgid "dashboard_intl_zone_non_eu"
 msgstr "Non-EU"
 
-#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:62
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:87
 msgid "dashboard_network_empty"
 msgstr "No author above the selected threshold."
 
-#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:46
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:71
 msgid "dashboard_network_min_pubs"
 msgstr "Min. publications per author"
 
-#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:37
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:60
+msgid "dashboard_network_researcher_subtitle"
+msgstr "My internal co-authors; edge = co-publication, size = number of publications"
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:55
+msgid "dashboard_network_researcher_title"
+msgstr "My co-authorship network"
+
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:61
 msgid "dashboard_network_subtitle"
 msgstr "Pseudonymized authors; edge = co-publication, size = number of publications"
 
-#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:36
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:56
 msgid "dashboard_network_title"
 msgstr "Internal co-authorship network"
 
@@ -777,11 +785,11 @@ msgstr "Internal co-authorship network"
 msgid "dashboard_overview_apc_count_label"
 msgstr "pub(s)"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:387
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:183
 msgid "dashboard_overview_apc_empty"
 msgstr "No publication with APC over the selected period."
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:382
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:178
 msgid "dashboard_overview_apc_title"
 msgstr "APC cost per year"
 
@@ -813,41 +821,37 @@ msgstr "Total publications"
 #: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:58
 #: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:60
 #: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:84
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:308
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:108
 msgid "dashboard_overview_lab_demo_caption"
 msgstr "Demo dataset"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:305
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:105
 msgid "dashboard_overview_lab_synthesis_title"
 msgstr "Laboratory overview"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:366
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:163
 msgid "dashboard_overview_language_title"
 msgstr "Breakdown by language"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:200
-msgid "dashboard_overview_no_perspective"
-msgstr "No actor selected."
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:377
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:173
 msgid "dashboard_overview_oa_title"
 msgstr "Open access"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:304
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:104
 msgid "dashboard_overview_researcher_synthesis_title"
 msgstr "My publications summary"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:372
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:168
 msgid "dashboard_overview_types_title"
 msgstr "Publication types"
 
 #: src/app/[lang]/dashboard/components/charts/YearRangeSelector.tsx:13
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:314
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:114
 msgid "dashboard_overview_year_from"
 msgstr "From"
 
 #: src/app/[lang]/dashboard/components/charts/YearRangeSelector.tsx:30
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:333
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:133
 msgid "dashboard_overview_year_to"
 msgstr "to"
 
@@ -855,7 +859,7 @@ msgstr "to"
 msgid "dashboard_overview_yearly_series"
 msgstr "Publications"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:359
+#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:158
 msgid "dashboard_overview_yearly_title"
 msgstr "Yearly trend"
 
@@ -918,42 +922,6 @@ msgstr "Year"
 msgid "dashboard_page_publication_by_year_no_publication_found"
 msgstr "No publication found"
 
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:163
-msgid "dashboard_page_publication_by_year_title"
-msgstr "Scholarly publication"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:250
-msgid "dashboard_page_wordstream_font_range_a11y"
-msgstr "Font min ↔ max"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:239
-msgid "dashboard_page_wordstream_font_range_label"
-msgstr "Font min ↔ max"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:178
-msgid "dashboard_page_wordstream_title"
-msgstr "Concepts and collaborations"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:233
-msgid "dashboard_page_wordstream_topN_a11y"
-msgstr "Max. occurrences / year"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:224
-msgid "dashboard_page_wordstream_topN_label"
-msgstr "Max. occurrences / year"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:278
-msgid "dashboard_page_wordstream_validate_button_label"
-msgstr "Update"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:268
-msgid "dashboard_page_wordstream_year_range_a11y"
-msgstr "Years start ↔ end"
-
-#: src/app/[lang]/dashboard/components/tabs/OverviewTab.tsx:256
-msgid "dashboard_page_wordstream_year_range_label"
-msgstr "Years start ↔ end"
-
 #: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:61
 msgid "dashboard_phd_by_doctorant_title"
 msgstr "Publications per PhD student"
@@ -982,45 +950,45 @@ msgstr "Pseudonymized internal authors"
 msgid "dashboard_researchers_top_title"
 msgstr "Publications per researcher (top 25)"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:78
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:79
 msgid "dashboard_tab_axes"
 msgstr "Strategic axes"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:77
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:78
 #: src/app/[lang]/dashboard/components/tabs/BooksTab.tsx:55
 msgid "dashboard_tab_books"
 msgstr "Chapters & monographs"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:72
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:73
 #: src/app/[lang]/dashboard/components/tabs/ImpactTab.tsx:57
 msgid "dashboard_tab_impact"
 msgstr "Impact & citations"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:71
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:72
 #: src/app/[lang]/dashboard/components/tabs/InternationalTab.tsx:81
 msgid "dashboard_tab_international"
 msgstr "International collaborations"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:76
-#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:30
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:77
+#: src/app/[lang]/dashboard/components/tabs/NetworkTab.tsx:47
 msgid "dashboard_tab_network"
 msgstr "Co-authorship network"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:70
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:71
 msgid "dashboard_tab_overview"
 msgstr "Overview"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:75
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:76
 #: src/app/[lang]/dashboard/components/tabs/PhdTab.tsx:31
 msgid "dashboard_tab_phd"
 msgstr "PhD students"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:74
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:75
 #: src/app/[lang]/dashboard/components/tabs/ResearchersTab.tsx:29
 msgid "dashboard_tab_researchers"
 msgstr "By researcher"
 
-#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:73
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:74
 #: src/app/[lang]/dashboard/components/tabs/TeamsTab.tsx:39
 msgid "dashboard_tab_teams"
 msgstr "Breakdown by team"

@@ -6,6 +6,7 @@ export interface NetworkNode {
   name: string
   value: number // nombre de publications
   category: number
+  isCenter?: boolean // auteur central (ego-réseau en vue chercheur)
 }
 
 export interface NetworkLink {
@@ -30,6 +31,7 @@ export function aggregateNetwork(
   authors: AuthorMeta[],
   range: YearRange,
   minPubs = 2,
+  centerId: number | null = null,
 ): NetworkData {
   const inRange = pubs.filter(
     (p) =>
@@ -50,6 +52,8 @@ export function aggregateNetwork(
       .filter(([, c]) => c >= minPubs)
       .map(([id]) => id),
   )
+  // L'auteur central de l'ego-réseau est toujours conservé.
+  if (centerId != null && pubCount.has(centerId)) kept.add(centerId)
 
   const edge = new Map<string, number>()
   for (const p of inRange) {
@@ -76,6 +80,7 @@ export function aggregateNetwork(
     name: meta.get(id)?.label ?? `#${id}`,
     value: pubCount.get(id) ?? 0,
     category: catIndex.get(teamOf(id)) ?? 0,
+    isCenter: centerId != null && id === centerId,
   }))
 
   const links: NetworkLink[] = Array.from(edge.entries()).map(([k, v]) => {

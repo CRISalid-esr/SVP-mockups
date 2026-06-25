@@ -13,6 +13,8 @@ interface DashboardData {
   /** Publications du périmètre courant (toutes en vue labo, celles du chercheur en vue chercheur). */
   publications: DashboardPublication[]
   authors: AuthorMeta[]
+  /** Id de l'auteur central en vue chercheur (null en vue labo). */
+  researcherId: number | null
 }
 
 const Ctx = createContext<DashboardData | null>(null)
@@ -45,11 +47,17 @@ export const DashboardDataProvider = ({
     const allPubs = dashboardMockService.getPublications()
     const authors = dashboardMockService.getAuthors()
     if (view === 'lab') {
-      return { view, isResearcher: false, publications: allPubs, authors }
+      return {
+        view,
+        isResearcher: false,
+        publications: allPubs,
+        authors,
+        researcherId: null,
+      }
     }
     const id = pickResearcherId(allPubs)
     const publications = allPubs.filter((p) => p.authorIds.includes(id))
-    return { view, isResearcher: true, publications, authors }
+    return { view, isResearcher: true, publications, authors, researcherId: id }
   }, [view])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
