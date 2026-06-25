@@ -52,7 +52,7 @@ Dans l'en-tête, à droite du titre `Tableau de bord : {nom}`, un `ToggleButtonG
 
 | Perspective | Périmètre de données | Titre | Onglets visibles |
 |---|---|---|---|
-| **Chercheur** (défaut) | Publications du chercheur sélectionné (profil de démo) | Nom de la perspective connectée | Vue d'ensemble · Collaborations internationales · Impact & citations · Chapitres & monographies |
+| **Chercheur** (défaut) | Publications du chercheur sélectionné (profil de démo) | Nom de la perspective connectée | Vue d'ensemble · Collaborations internationales · Impact & citations · Réseau de co-signatures · Chapitres & monographies |
 | **Laboratoire** | Toutes les publications du jeu | Nom du laboratoire | Les 9 onglets |
 
 - `useDashboardData()` fournit `{ view, isResearcher, publications, authors }`. **Tous les onglets lisent leurs données via ce hook** (pas d'accès direct au service mock).
@@ -129,8 +129,11 @@ Agrégat : `aggregatePhd`. Publications « impliquant au moins un doctorant ».
 | Évolution annuelle | `StackedAreaChart` | aires empilées |
 | Publications par doctorant | `RankBarChart` | barres H |
 
-### 7. Réseau de co-signatures — `tabs/NetworkTab.tsx` *(labo uniquement)*
+### 7. Réseau de co-signatures — `tabs/NetworkTab.tsx`
 Agrégat : `aggregateNetwork`. `NetworkChart` — graphe `graph` ECharts en layout `force` : nœuds = auteurs internes (taille ∝ nb publications, couleur = équipe), arêtes = co-publications. Curseur **« publications min. par auteur »** pour filtrer la densité.
+
+- **Vue laboratoire** : réseau global du labo (seuil par défaut 2).
+- **Vue chercheur** : **ego-réseau** centré sur le chercheur — son périmètre de publications, seuil par défaut 1 (tous les collaborateurs directs). Le nœud central (`centerId` = `researcherId` du contexte) est toujours conservé et mis en valeur (losange plus grand, libellé en gras, bordure). Titre « Mon réseau de co-signatures ».
 
 ### 8. Chapitres & monographies — `tabs/BooksTab.tsx`
 Agrégat : `aggregateBooks` (`booksAggregates.ts`). Filtre les types « ouvrage » (chapitre, monographie, direction/coordination).
