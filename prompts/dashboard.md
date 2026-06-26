@@ -69,18 +69,21 @@ Dans l'en-tête, à droite du titre `Tableau de bord : {nom}`, un `ToggleButtonG
 ## Barre d'outils & intégration (iframe)
 
 Tous les graphiques sont rendus via le wrapper **`charts/EChart.tsx`** (qui remplace
-l'usage direct de `ReactEcharts`). Il fusionne dans l'`EChartsOption` une **barre d'outils
-ECharts** (`toolbox`, en haut à droite) et gère le plein écran et le dialogue de partage.
+l'usage direct de `ReactEcharts`). La barre d'outils est rendue en **HTML (MUI `IconButton`)**,
+et non dans le canvas ECharts, pour ne pas empiéter sur le graphique : elle est positionnée
+en **absolu en haut à droite** et s'ancre sur la `CustomCard` (passée en `position: relative`),
+donc elle apparaît dans le **bandeau de titre** de la carte.
 
-| Outil | `toolbox.feature` | Effet |
+| Outil | Icône | Effet |
 |---|---|---|
-| Voir les données | `dataView` (lecture seule) | aperçu tabulaire des données |
-| Télécharger (PNG) | `saveAsImage` (`pixelRatio: 2`) | export image, nom de fichier = `chartId` |
-| Réinitialiser | `restore` | annule zoom / sélections |
-| Plein écran | `myFullscreen` *(custom)* | API Fullscreen du navigateur sur le conteneur + `resize()` |
-| Partager / Intégrer | `myShare` *(custom)* | ouvre le dialogue d'intégration |
+| Télécharger (PNG) | `Download` | `instance.getDataURL({ pixelRatio: 2, backgroundColor: '#fff' })` → `<a download>` ; nom de fichier = `chartId`/`exportName` |
+| Réinitialiser | `RestartAlt` | `instance.dispatchAction({ type: 'restore' })` |
+| Plein écran | `Fullscreen`/`FullscreenExit` | API Fullscreen sur le conteneur + `resize()` |
+| Partager / Intégrer | `Share` | ouvre le dialogue d'intégration |
 
-> Un graphique qui définit déjà son propre `toolbox` reste prioritaire (`option.toolbox ?? …`).
+> L'ancrage repose sur le fait qu'aucun élément entre `EChart` et la `Card` n'est positionné
+> (le conteneur `EChart` reste `static` hors plein écran). En **plein écran**, le conteneur
+> passe en `position: relative` et la barre d'outils s'ancre alors sur le graphique lui-même.
 
 ### Identité des graphiques (`chartId`)
 
