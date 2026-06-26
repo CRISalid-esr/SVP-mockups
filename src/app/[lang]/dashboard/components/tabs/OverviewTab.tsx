@@ -6,6 +6,7 @@ import {
   Grid2 as Grid,
   MenuItem,
   Select,
+  Slider,
   Stack,
   Typography,
 } from '@mui/material'
@@ -18,33 +19,54 @@ import {
   aggregateOverview,
   getYearBounds,
 } from '@/app/[lang]/dashboard/components/charts/overviewAggregates'
+import { aggregateNetwork } from '@/app/[lang]/dashboard/components/charts/networkAggregates'
 import OverviewKpiCards from '@/app/[lang]/dashboard/components/charts/OverviewKpiCards'
 import YearlyEvolutionChart from '@/app/[lang]/dashboard/components/charts/YearlyEvolutionChart'
 import LanguagePieChart from '@/app/[lang]/dashboard/components/charts/LanguagePieChart'
 import PublicationTypesChart from '@/app/[lang]/dashboard/components/charts/PublicationTypesChart'
 import OpenAccessPieChart from '@/app/[lang]/dashboard/components/charts/OpenAccessPieChart'
-import ApcYearlyChart from '@/app/[lang]/dashboard/components/charts/ApcYearlyChart'
+import NetworkChart from '@/app/[lang]/dashboard/components/charts/NetworkChart'
+import DashboardSectionCard from '@/app/[lang]/dashboard/components/charts/DashboardSectionCard'
 
 const OverviewTab = () => {
   const theme = useTheme()
   const { _ } = useLingui()
 
-  const { publications, isResearcher } = useDashboardData()
+  const { publications, authors, isResearcher, researcherId } =
+    useDashboardData()
   const bounds = useMemo(() => getYearBounds(publications), [publications])
 
   const [overviewRange, setOverviewRange] = useState({
     start: bounds.min,
     end: bounds.max,
   })
+  // En vue chercheur (ego-réseau), on garde tous les collaborateurs directs (seuil 1).
+  const [minPubs, setMinPubs] = useState(isResearcher ? 1 : 2)
 
   // Recadrer la plage d'années si la perspective change le périmètre.
   useEffect(() => {
     setOverviewRange({ start: bounds.min, end: bounds.max })
   }, [bounds.min, bounds.max])
 
+  useEffect(() => {
+    setMinPubs(isResearcher ? 1 : 2)
+  }, [isResearcher])
+
   const aggregates = useMemo(
     () => aggregateOverview(publications, overviewRange),
     [publications, overviewRange],
+  )
+
+  const network = useMemo(
+    () =>
+      aggregateNetwork(
+        publications,
+        authors,
+        overviewRange,
+        minPubs,
+        isResearcher ? researcherId : null,
+      ),
+    [publications, authors, overviewRange, minPubs, isResearcher, researcherId],
   )
 
   const yearOptions = useMemo(
@@ -175,15 +197,45 @@ const OverviewTab = () => {
           </SectionCard>
         </Grid>
         <Grid size={{ xs: 12 }}>
-          <SectionCard title={defineMessage`dashboard_overview_apc_title`}>
-            {aggregates.apcByYear.length > 0 ? (
-              <ApcYearlyChart data={aggregates.apcByYear} />
+          <DashboardSectionCard
+            title={
+              isResearcher
+                ? t`dashboard_network_researcher_title`
+                : t`dashboard_network_title`
+            }
+            subtitle={
+              isResearcher
+                ? t`dashboard_network_researcher_subtitle`
+                : t`dashboard_network_subtitle`
+            }
+          >
+            <Stack
+              direction='row'
+              spacing={2}
+              alignItems='center'
+              sx={{ mb: 1, maxWidth: 360 }}
+            >
+              <Typography variant='caption' sx={{ whiteSpace: 'nowrap' }}>
+                {t`dashboard_network_min_pubs`}
+              </Typography>
+              <Slider
+                value={minPubs}
+                onChange={(_e, v) => setMinPubs(v as number)}
+                min={1}
+                max={6}
+                step={1}
+                marks
+                valueLabelDisplay='auto'
+              />
+            </Stack>
+            {network.nodes.length > 0 ? (
+              <NetworkChart data={network} />
             ) : (
               <Typography color='text.secondary'>
-                {t`dashboard_overview_apc_empty`}
+                {t`dashboard_network_empty`}
               </Typography>
             )}
-          </SectionCard>
+          </DashboardSectionCard>
         </Grid>
       </Grid>
     </Box>

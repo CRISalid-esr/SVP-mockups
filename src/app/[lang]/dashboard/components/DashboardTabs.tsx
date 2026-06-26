@@ -11,7 +11,7 @@ import BooksTab from '@/app/[lang]/dashboard/components/tabs/BooksTab'
 import TeamsTab from '@/app/[lang]/dashboard/components/tabs/TeamsTab'
 import ResearchersTab from '@/app/[lang]/dashboard/components/tabs/ResearchersTab'
 import PhdTab from '@/app/[lang]/dashboard/components/tabs/PhdTab'
-import NetworkTab from '@/app/[lang]/dashboard/components/tabs/NetworkTab'
+import ApcTab from '@/app/[lang]/dashboard/components/tabs/ApcTab'
 
 type DashboardTabKey =
   | 'overview'
@@ -19,8 +19,8 @@ type DashboardTabKey =
   | 'axes'
   | 'international'
   | 'impact'
+  | 'apc'
   | 'researchers'
-  | 'network'
   | 'phd'
   | 'books'
 
@@ -59,7 +59,7 @@ const RESEARCHER_TABS = new Set<DashboardTabKey>([
   'overview',
   'international',
   'impact',
-  'network',
+  'apc',
   'books',
 ])
 
@@ -71,10 +71,10 @@ const DashboardTabs = () => {
     { value: 'overview', label: t`dashboard_tab_overview`, phase: 1 },
     { value: 'international', label: t`dashboard_tab_international`, phase: 2 },
     { value: 'impact', label: t`dashboard_tab_impact`, phase: 2 },
+    { value: 'apc', label: t`dashboard_tab_apc`, phase: 1 },
     { value: 'teams', label: t`dashboard_tab_teams`, phase: 3 },
     { value: 'researchers', label: t`dashboard_tab_researchers`, phase: 3 },
     { value: 'phd', label: t`dashboard_tab_phd`, phase: 3 },
-    { value: 'network', label: t`dashboard_tab_network`, phase: 3 },
     { value: 'books', label: t`dashboard_tab_books`, phase: 3 },
     { value: 'axes', label: t`dashboard_tab_axes`, phase: 3 },
   ]
@@ -105,8 +105,8 @@ const DashboardTabs = () => {
         return <ResearchersTab />
       case 'phd':
         return <PhdTab />
-      case 'network':
-        return <NetworkTab />
+      case 'apc':
+        return <ApcTab />
       default:
         return (
           <ComingSoon label={active?.label ?? ''} phase={active?.phase ?? 3} />

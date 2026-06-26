@@ -950,6 +950,11 @@ msgstr "Pseudonymized internal authors"
 msgid "dashboard_researchers_top_title"
 msgstr "Publications per researcher (top 25)"
 
+#: src/app/[lang]/dashboard/components/tabs/ApcTab.tsx:38
+#: src/app/[lang]/dashboard/components/DashboardTabs.tsx:74
+msgid "dashboard_tab_apc"
+msgstr "APC tracking"
+
 #: src/app/[lang]/dashboard/components/DashboardTabs.tsx:79
 msgid "dashboard_tab_axes"
 msgstr "Strategic axes"
