@@ -1,8 +1,14 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountItem } from './overviewAggregates'
 
-const PublicationTypesChart = ({ data }: { data: CountItem[] }) => {
+const PublicationTypesChart = ({
+  data,
+  chartId,
+}: {
+  data: CountItem[]
+  chartId?: string
+}) => {
   // Barres horizontales : la plus grande valeur en haut.
   const sorted = [...data].sort((a, b) => a.count - b.count)
 
@@ -26,7 +32,7 @@ const PublicationTypesChart = ({ data }: { data: CountItem[] }) => {
   }
 
   return (
-    <ReactEcharts
+    <EChart exportName="types-publications" chartId={chartId}
       option={option}
       notMerge
       lazyUpdate

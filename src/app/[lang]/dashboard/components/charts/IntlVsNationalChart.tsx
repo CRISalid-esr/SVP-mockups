@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { IntlYearItem } from './internationalAggregates'
@@ -30,7 +30,7 @@ const IntlVsNationalChart = ({ data }: { data: IntlYearItem[] }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 320 }} />
+    <EChart exportName="international-vs-national" option={option} notMerge lazyUpdate style={{ height: 320 }} />
   )
 }
 

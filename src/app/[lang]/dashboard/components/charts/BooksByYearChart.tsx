@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 
 interface Props {
@@ -22,7 +22,7 @@ const BooksByYearChart = ({ years, series }: Props) => {
     })),
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 320 }} />
+    <EChart exportName="ouvrages-par-annee" option={option} notMerge lazyUpdate style={{ height: 320 }} />
   )
 }
 

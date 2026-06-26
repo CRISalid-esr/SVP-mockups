@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { StackedByCategory, TEAM_PALETTE } from './structureAggregates'
 
@@ -28,7 +28,7 @@ const StackedBarHChart = ({
     })),
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height }} />
+    <EChart exportName="repartition-empilee" option={option} notMerge lazyUpdate style={{ height }} />
   )
 }
 

@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 
 const QuartileChart = ({
@@ -24,7 +24,7 @@ const QuartileChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 300 }} />
+    <EChart exportName="quartiles-scimago" option={option} notMerge lazyUpdate style={{ height: 300 }} />
   )
 }
 

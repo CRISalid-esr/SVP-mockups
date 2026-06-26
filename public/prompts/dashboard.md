@@ -8,33 +8,38 @@
 - **Emplacement** : `src/app/[lang]/dashboard/`
 - **Stack** : Next.js 15 (App Router) · Material-UI v6 · **ECharts** (`echarts` + `echarts-for-react`) · Lingui (i18n)
 - **Données** : jeu de démonstration **statique et anonymisé** chargé depuis `src/mocks/data/` (aucun appel réseau). Voir [Modèle de données](#modèle-de-données).
-- La page est entièrement **client-side** (`'use client'`). Chaque graphique est un wrapper `ReactEcharts` typé `EChartsOption`.
+- La page est entièrement **client-side** (`'use client'`). Chaque graphique construit une `EChartsOption` typée et la rend via le wrapper commun **`EChart`** (`charts/EChart.tsx`), qui encapsule `echarts-for-react` et ajoute la barre d'outils + le partage iframe (voir [Barre d'outils & intégration](#barre-doutils--intégration-iframe)).
 
 ### Arborescence
 
 ```
-src/app/[lang]/dashboard/
-├── page.tsx                      # Shell : en-tête + switcher de perspective + provider + onglets
-└── components/
-    ├── DashboardViewContext.tsx  # Contexte de perspective (chercheur / labo) + données filtrées
-    ├── DashboardTabs.tsx         # Barre d'onglets + routage de l'onglet actif
-    ├── tabs/                     # Un composant par écran (onglet)
-    │   ├── OverviewTab.tsx
-    │   ├── InternationalTab.tsx
-    │   ├── ImpactTab.tsx
-    │   ├── TeamsTab.tsx
-    │   ├── ResearchersTab.tsx
-    │   ├── PhdTab.tsx
-    │   ├── NetworkTab.tsx
-    │   └── BooksTab.tsx
-    └── charts/                   # Composants graphiques + fonctions d'agrégation
-        ├── *Chart.tsx            # Wrappers ECharts réutilisables
-        ├── overviewAggregates.ts · internationalAggregates.ts
-        ├── impactAggregates.ts · structureAggregates.ts
-        ├── networkAggregates.ts · booksAggregates.ts
-        ├── KpiCard.tsx · DashboardSectionCard.tsx
-        ├── LabTabHeader.tsx · YearRangeSelector.tsx
-        └── overviewLabels.ts
+src/app/[lang]/
+├── dashboard/
+│   ├── page.tsx                      # Shell : en-tête + switcher de perspective + provider + onglets
+│   └── components/
+│       ├── DashboardViewContext.tsx  # Contexte de perspective (chercheur / labo) + données filtrées
+│       ├── DashboardTabs.tsx         # Barre d'onglets + routage de l'onglet actif
+│       ├── tabs/                     # Un composant par écran (onglet)
+│       │   ├── OverviewTab.tsx
+│       │   ├── InternationalTab.tsx
+│       │   ├── ImpactTab.tsx
+│       │   ├── TeamsTab.tsx
+│       │   ├── ResearchersTab.tsx
+│       │   ├── PhdTab.tsx
+│       │   ├── NetworkTab.tsx
+│       │   └── BooksTab.tsx
+│       └── charts/                   # Composants graphiques + fonctions d'agrégation
+│           ├── EChart.tsx            # Wrapper commun : toolbox (PNG/données/reset/plein écran/partage)
+│           ├── embedRegistry.tsx     # chartId → composant autonome (page d'intégration)
+│           ├── *Chart.tsx            # Graphiques réutilisables (rendus via EChart)
+│           ├── overviewAggregates.ts · internationalAggregates.ts
+│           ├── impactAggregates.ts · structureAggregates.ts
+│           ├── networkAggregates.ts · booksAggregates.ts
+│           ├── KpiCard.tsx · DashboardSectionCard.tsx
+│           ├── LabTabHeader.tsx · YearRangeSelector.tsx
+│           └── overviewLabels.ts
+└── embed/
+    └── page.tsx                      # Page d'intégration iframe (1 graphique, sans menu latéral)
 ```
 
 ### Conventions communes
@@ -58,6 +63,58 @@ Dans l'en-tête, à droite du titre `Tableau de bord : {nom}`, un `ToggleButtonG
 - `useDashboardData()` fournit `{ view, isResearcher, publications, authors }`. **Tous les onglets lisent leurs données via ce hook** (pas d'accès direct au service mock).
 - En vue chercheur, le périmètre est filtré sur l'auteur interne le plus prolifique du jeu (profil représentatif).
 - En vue chercheur, certains graphiques propres au laboratoire sont masqués (Sankey, Sunburst — voir onglet International).
+
+---
+
+## Barre d'outils & intégration (iframe)
+
+Tous les graphiques sont rendus via le wrapper **`charts/EChart.tsx`** (qui remplace
+l'usage direct de `ReactEcharts`). Il fusionne dans l'`EChartsOption` une **barre d'outils
+ECharts** (`toolbox`, en haut à droite) et gère le plein écran et le dialogue de partage.
+
+| Outil | `toolbox.feature` | Effet |
+|---|---|---|
+| Voir les données | `dataView` (lecture seule) | aperçu tabulaire des données |
+| Télécharger (PNG) | `saveAsImage` (`pixelRatio: 2`) | export image, nom de fichier = `chartId` |
+| Réinitialiser | `restore` | annule zoom / sélections |
+| Plein écran | `myFullscreen` *(custom)* | API Fullscreen du navigateur sur le conteneur + `resize()` |
+| Partager / Intégrer | `myShare` *(custom)* | ouvre le dialogue d'intégration |
+
+> Un graphique qui définit déjà son propre `toolbox` reste prioritaire (`option.toolbox ?? …`).
+
+### Identité des graphiques (`chartId`)
+
+Le partage nécessite un **identifiant unique par instance**. Comme certains composants sont
+réutilisés dans plusieurs onglets avec des données différentes (`DonutChart`,
+`StackedAreaChart`, `RankBarChart`, `PublicationTypesChart`), ils acceptent une prop
+**`chartId?`** transmise à `EChart` ; les onglets passent des identifiants distincts
+(`equipes-repartition` vs `doctorants-repartition`, `ouvrages-types`, `top-chercheurs`
+vs `doctorants-classement`…). Les composants à usage unique utilisent leur `exportName`
+comme identifiant par défaut. `EChart` retient `shareId = chartId ?? exportName`.
+
+### Dialogue de partage
+
+Ouvert via le bouton 🔗, il propose : un **sélecteur de perspective** (défaut **Laboratoire**,
+jeu le plus complet), le **lien direct** et le **code `<iframe>`**, chacun copiable. L'URL est
+construite par `EChart` en remplaçant `/dashboard/` par `/embed/` dans le chemin courant :
+
+```
+…/{lang}/embed/?chart={chartId}&perspective={lab|researcher}
+```
+
+### Page d'intégration — `src/app/[lang]/embed/page.tsx`
+
+Volontairement **hors de `dashboard/`** : elle n'hérite donc pas de `MainLayout` (pas de menu
+latéral), seulement du thème / i18n de `[lang]/layout.tsx`. Elle lit `?chart=&perspective=`
+via `useSearchParams` (sous **`<Suspense>`**, requis par l'export statique), puis rend le
+graphique seul dans `DashboardDataProvider view={perspective}` + `EmbedModeContext=true`
+(ce dernier masque le bouton « Partager » pour éviter une intégration récursive).
+
+Le **registre `charts/embedRegistry.tsx`** mappe chaque `chartId` → un petit composant qui
+**recalcule** les données du graphique (`useDashboardData()` + l'agrégat correspondant,
+plage d'années = bornes pleines du périmètre). ~30 graphiques sont enregistrés ; un `chartId`
+inconnu affiche « Graphique introuvable ». **Tout nouveau graphique partageable doit être
+ajouté à `EMBED_CHARTS`** avec la même clé que son `chartId`/`exportName`.
 
 ---
 
@@ -192,5 +249,6 @@ Le jeu est anonymisé pour un déploiement public : **aucun nom d'auteur réel**
 
 - **Cartes** : ne pas oublier `publicPath()` pour `world.json` (le `basePath` n'est appliqué qu'au build de production ; en `next dev` les assets sont servis à la racine).
 - **Apostrophes JSX** : toujours via `{`…l'…`}` ou Lingui, jamais d'apostrophe nue.
-- **ECharts** : `notMerge` + `lazyUpdate` sur les `ReactEcharts` ; pour les callbacks de tooltip dont le type est une union, caster via `as unknown as { … }`.
+- **ECharts** : rendre tout graphique via le wrapper **`EChart`** (jamais `ReactEcharts` en direct) pour bénéficier de la barre d'outils et du partage. `notMerge` + `lazyUpdate` sont appliqués par défaut ; pour les callbacks de tooltip dont le type est une union, caster via `as unknown as { … }`.
+- **Partage iframe** : un nouveau graphique partageable doit (1) recevoir un `chartId` unique si son composant est réutilisé, et (2) être enregistré dans `embedRegistry.tsx` sous la même clé.
 - Toute nouvelle clé i18n doit être ajoutée aux catalogues puis recompilée (`npm run i18n:extract` / `i18n:compile`).

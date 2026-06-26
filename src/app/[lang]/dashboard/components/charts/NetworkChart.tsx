@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { NetworkData } from './networkAggregates'
 import { TEAM_PALETTE as PALETTE } from './structureAggregates'
@@ -50,7 +50,7 @@ const NetworkChart = ({ data }: { data: NetworkData }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 560 }} />
+    <EChart exportName="reseau-cosignatures" option={option} notMerge lazyUpdate style={{ height: 560 }} />
   )
 }
 

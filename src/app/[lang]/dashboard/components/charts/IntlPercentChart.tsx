@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 
@@ -28,7 +28,7 @@ const IntlPercentChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 300 }} />
+    <EChart exportName="pourcentage-international" option={option} notMerge lazyUpdate style={{ height: 300 }} />
   )
 }
 

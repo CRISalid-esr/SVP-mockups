@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 
@@ -27,7 +27,7 @@ const YearlyEvolutionChart = ({ data }: Props) => {
   }
 
   return (
-    <ReactEcharts
+    <EChart exportName="publications-par-annee"
       option={option}
       notMerge
       lazyUpdate

@@ -35,7 +35,7 @@ const ResearchersTab = () => {
         title={t`dashboard_researchers_top_title`}
         subtitle={t`dashboard_researchers_top_subtitle`}
       >
-        <RankBarChart data={researchers} color='#4C78A8' height={560} />
+        <RankBarChart data={researchers} color='#4C78A8' height={560} chartId='top-chercheurs' />
       </DashboardSectionCard>
     </Box>
   )

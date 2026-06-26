@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { FWCI_REFERENCE, FWCI_BIN_WIDTH } from './impactAggregates'
@@ -41,7 +41,7 @@ const FwciHistogramChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 320 }} />
+    <EChart exportName="distribution-fwci" option={option} notMerge lazyUpdate style={{ height: 320 }} />
   )
 }
 

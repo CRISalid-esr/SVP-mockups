@@ -1,13 +1,14 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { TEAM_PALETTE } from './structureAggregates'
 
 interface Props {
   data: { name: string; value: number; color?: string }[]
   height?: number
+  chartId?: string
 }
 
-const DonutChart = ({ data, height = 300 }: Props) => {
+const DonutChart = ({ data, height = 300, chartId }: Props) => {
   const option: EChartsOption = {
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { type: 'scroll', bottom: 0 },
@@ -29,7 +30,7 @@ const DonutChart = ({ data, height = 300 }: Props) => {
     ],
   }
   return (
-    <ReactEcharts
+    <EChart exportName="repartition" chartId={chartId}
       option={option}
       notMerge
       lazyUpdate

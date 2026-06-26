@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { RadarAggregates, TEAM_PALETTE } from './structureAggregates'
 
@@ -28,7 +28,7 @@ const RadarChart = ({ data }: { data: RadarAggregates }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 420 }} />
+    <EChart exportName="radar-disciplinaire" option={option} notMerge lazyUpdate style={{ height: 420 }} />
   )
 }
 

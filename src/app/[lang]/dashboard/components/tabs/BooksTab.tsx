@@ -73,7 +73,7 @@ const BooksTab = () => {
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
             <DashboardSectionCard title={t`dashboard_books_types_title`}>
-              <PublicationTypesChart data={agg.byType} />
+              <PublicationTypesChart data={agg.byType} chartId='ouvrages-types' />
             </DashboardSectionCard>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>

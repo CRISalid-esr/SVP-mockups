@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as echarts from 'echarts'
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { Box, CircularProgress } from '@mui/material'
 import { publicPath } from '@/utils/publicPath'
@@ -127,7 +127,7 @@ const FlowMapChart = ({ data }: { data: FlowMapAggregates }) => {
   }
 
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 460 }} />
+    <EChart exportName="carte-flux" option={option} notMerge lazyUpdate style={{ height: 460 }} />
   )
 }
 

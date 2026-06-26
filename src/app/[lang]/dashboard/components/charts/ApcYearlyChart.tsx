@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { ApcYearItem } from './overviewAggregates'
@@ -33,7 +33,7 @@ const ApcYearlyChart = ({ data }: { data: ApcYearItem[] }) => {
   }
 
   return (
-    <ReactEcharts
+    <EChart exportName="apc-par-annee"
       option={option}
       notMerge
       lazyUpdate

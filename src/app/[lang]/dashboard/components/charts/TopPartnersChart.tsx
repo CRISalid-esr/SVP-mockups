@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { PartnerItem } from './internationalAggregates'
 
@@ -32,7 +32,7 @@ const TopPartnersChart = ({ data }: { data: PartnerItem[] }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 520 }} />
+    <EChart exportName="top-partenaires" option={option} notMerge lazyUpdate style={{ height: 520 }} />
   )
 }
 

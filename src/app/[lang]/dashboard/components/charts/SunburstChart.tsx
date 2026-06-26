@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { SunburstNode } from './internationalAggregates'
 import { TEAM_PALETTE } from './structureAggregates'
@@ -35,7 +35,7 @@ const SunburstChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height }} />
+    <EChart exportName="sunburst" option={option} notMerge lazyUpdate style={{ height }} />
   )
 }
 

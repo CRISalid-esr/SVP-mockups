@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 
@@ -33,7 +33,7 @@ const TopByYearChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 300 }} />
+    <EChart exportName="top-par-annee" option={option} notMerge lazyUpdate style={{ height: 300 }} />
   )
 }
 

@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountItem } from './overviewAggregates'
 import { languageLabel } from './overviewLabels'
@@ -37,7 +37,7 @@ const LanguagePieChart = ({ data }: { data: CountItem[] }) => {
   }
 
   return (
-    <ReactEcharts
+    <EChart exportName="langues"
       option={option}
       notMerge
       lazyUpdate

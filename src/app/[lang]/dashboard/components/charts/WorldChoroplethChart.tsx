@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as echarts from 'echarts'
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { Box, CircularProgress } from '@mui/material'
 import { t } from '@lingui/core/macro'
@@ -82,7 +82,7 @@ const WorldChoroplethChart = ({ data }: { data: CountryItem[] }) => {
   }
 
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 440 }} />
+    <EChart exportName="carte-monde" option={option} notMerge lazyUpdate style={{ height: 440 }} />
   )
 }
 

@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountryItem } from './internationalAggregates'
 
@@ -36,7 +36,7 @@ const TopCountriesChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 460 }} />
+    <EChart exportName="top-pays" option={option} notMerge lazyUpdate style={{ height: 460 }} />
   )
 }
 

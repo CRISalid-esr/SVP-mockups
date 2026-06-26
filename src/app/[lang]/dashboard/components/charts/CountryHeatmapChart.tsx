@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountryHeatmap } from './internationalAggregates'
 
@@ -46,7 +46,7 @@ const CountryHeatmapChart = ({ data }: { data: CountryHeatmap }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 420 }} />
+    <EChart exportName="pays-annees" option={option} notMerge lazyUpdate style={{ height: 420 }} />
   )
 }
 

@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 
@@ -23,7 +23,7 @@ const EuZoneChart = ({ data }: { data: { ue: number; horsUe: number } }) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 300 }} />
+    <EChart exportName="zone-ue" option={option} notMerge lazyUpdate style={{ height: 300 }} />
   )
 }
 

@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { OaItem } from './overviewAggregates'
 import { oaLabel } from './overviewLabels'
@@ -25,7 +25,7 @@ const OpenAccessPieChart = ({ data }: { data: OaItem[] }) => {
   }
 
   return (
-    <ReactEcharts
+    <EChart exportName="acces-ouvert"
       option={option}
       notMerge
       lazyUpdate

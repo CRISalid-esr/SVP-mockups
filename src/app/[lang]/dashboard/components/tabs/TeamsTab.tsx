@@ -48,6 +48,7 @@ const TeamsTab = () => {
             subtitle={t`dashboard_teams_distribution_subtitle`}
           >
             <DonutChart
+              chartId='equipes-repartition'
               data={agg.byTeam.map((tm) => ({
                 name: tm.key,
                 value: tm.count,
@@ -57,7 +58,7 @@ const TeamsTab = () => {
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>
           <DashboardSectionCard title={t`dashboard_teams_evolution_title`}>
-            <StackedAreaChart data={agg.byYear} />
+            <StackedAreaChart data={agg.byYear} chartId='equipes-evolution' />
           </DashboardSectionCard>
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>

@@ -1,13 +1,19 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 
 interface Props {
   data: { label: string; count: number; teams?: string[] }[]
   color?: string
   height?: number
+  chartId?: string
 }
 
-const RankBarChart = ({ data, color = '#4C78A8', height = 460 }: Props) => {
+const RankBarChart = ({
+  data,
+  color = '#4C78A8',
+  height = 460,
+  chartId,
+}: Props) => {
   const sorted = [...data].sort((a, b) => a.count - b.count)
   const option: EChartsOption = {
     tooltip: {
@@ -37,7 +43,7 @@ const RankBarChart = ({ data, color = '#4C78A8', height = 460 }: Props) => {
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height }} />
+    <EChart exportName="classement" chartId={chartId} option={option} notMerge lazyUpdate style={{ height }} />
   )
 }
 

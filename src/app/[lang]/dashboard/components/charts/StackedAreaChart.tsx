@@ -1,8 +1,14 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { StackedByYear, TEAM_PALETTE } from './structureAggregates'
 
-const StackedAreaChart = ({ data }: { data: StackedByYear }) => {
+const StackedAreaChart = ({
+  data,
+  chartId,
+}: {
+  data: StackedByYear
+  chartId?: string
+}) => {
   const option: EChartsOption = {
     tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
     legend: { type: 'scroll', bottom: 0, data: data.series.map((s) => s.name) },
@@ -24,7 +30,7 @@ const StackedAreaChart = ({ data }: { data: StackedByYear }) => {
     })),
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height: 320 }} />
+    <EChart exportName="evolution-empilee" chartId={chartId} option={option} notMerge lazyUpdate style={{ height: 320 }} />
   )
 }
 

@@ -45,6 +45,7 @@ const PhdTab = () => {
               subtitle={t`dashboard_phd_by_team_subtitle`}
             >
               <DonutChart
+                chartId='doctorants-repartition'
                 data={agg.byTeam.map((tm) => ({
                   name: tm.key,
                   value: tm.count,
@@ -54,12 +55,13 @@ const PhdTab = () => {
           </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
             <DashboardSectionCard title={t`dashboard_phd_evolution_title`}>
-              <StackedAreaChart data={agg.byYear} />
+              <StackedAreaChart data={agg.byYear} chartId='doctorants-evolution' />
             </DashboardSectionCard>
           </Grid>
           <Grid size={{ xs: 12 }}>
             <DashboardSectionCard title={t`dashboard_phd_by_doctorant_title`}>
               <RankBarChart
+                chartId='doctorants-classement'
                 data={agg.byDoctorant}
                 color='#B279A2'
                 height={Math.max(240, agg.byDoctorant.length * 26 + 60)}

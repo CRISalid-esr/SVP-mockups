@@ -1,4 +1,4 @@
-import ReactEcharts from 'echarts-for-react'
+import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { FlowNode, FlowLink } from './internationalAggregates'
 
@@ -26,7 +26,7 @@ const SankeyChart = ({
     ],
   }
   return (
-    <ReactEcharts option={option} notMerge lazyUpdate style={{ height }} />
+    <EChart exportName="flux-sankey" option={option} notMerge lazyUpdate style={{ height }} />
   )
 }
 
