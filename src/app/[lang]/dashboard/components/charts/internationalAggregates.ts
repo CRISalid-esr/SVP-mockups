@@ -311,7 +311,7 @@ export function aggregateFlows(
 }
 
 /**
- * Carte de flux : arcs depuis le laboratoire (IREENA, Nantes) vers les villes
+ * Carte de flux : arcs depuis le laboratoire (Labo X, Nantes) vers les villes
  * des organismes partenaires étrangers géolocalisés. Valeur = nb de publications
  * distinctes co-signées avec un organisme de cette ville.
  */
@@ -359,7 +359,7 @@ export function aggregateFlowMap(
     .sort((a, b) => b.value - a.value)
 
   return {
-    origin: { name: 'IREENA (Nantes)', coord: [-1.5536, 47.2184] },
+    origin: { name: 'Labo X (Nantes)', coord: [-1.5536, 47.2184] },
     points,
     maxValue: points.reduce((m, p) => Math.max(m, p.value), 0),
   }
