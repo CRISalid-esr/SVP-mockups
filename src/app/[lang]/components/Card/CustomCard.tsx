@@ -15,7 +15,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
 }) => {
   const theme = useTheme()
   return (
-    <Card sx={{ borderRadius: 1, boxShadow: 1 }}>
+    <Card sx={{ borderRadius: 1, boxShadow: 1, position: 'relative' }}>
       {header && (
         <Box
           sx={{

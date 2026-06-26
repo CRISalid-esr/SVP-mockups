@@ -31,7 +31,7 @@ const EmbedInner = () => {
   return (
     <EmbedModeContext.Provider value={true}>
       <DashboardDataProvider view={perspective}>
-        <Box sx={{ p: 1, bgcolor: 'background.paper' }}>
+        <Box sx={{ p: 1, bgcolor: 'background.paper', position: 'relative' }}>
           <Typography
             variant='subtitle2'
             sx={{ px: 1, pb: 0.5, color: 'primary.main' }}

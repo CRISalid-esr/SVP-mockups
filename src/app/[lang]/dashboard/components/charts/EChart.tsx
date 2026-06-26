@@ -25,8 +25,14 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
+import ShareIcon from '@mui/icons-material/Share'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CloseIcon from '@mui/icons-material/Close'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
@@ -48,13 +54,6 @@ interface Props {
   lazyUpdate?: boolean
 }
 
-// Icône « plein écran » (chevrons vers les 4 coins) au format path ECharts.
-const FULLSCREEN_ICON =
-  'path://M3 9V3h6v2H5v4H3zm12-6h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm18 0v6h-6v-2h4v-4h2z'
-// Icône « partager » (trois nœuds reliés) au format path ECharts.
-const SHARE_ICON =
-  'path://M18 16a3 3 0 0 0-2.4 1.2l-7-4a3 3 0 0 0 0-2.4l7-4A3 3 0 1 0 15 4l-7 4a3 3 0 1 0 0 8l7 4a3 3 0 1 0 3-4z'
-
 const buildEmbedUrl = (chartId: string, perspective: string): string => {
   const url = new URL(window.location.href)
   url.search = ''
@@ -72,9 +71,11 @@ const buildEmbedUrl = (chartId: string, perspective: string): string => {
 }
 
 /**
- * Wrapper commun à tous les graphiques du tableau de bord : ajoute une barre
- * d'outils ECharts (télécharger en PNG, voir les données, réinitialiser, plein
- * écran, partager) et gère plein écran + dialogue d'intégration iframe.
+ * Wrapper commun à tous les graphiques du tableau de bord. La barre d'outils
+ * (télécharger PNG, réinitialiser, plein écran, partager) est rendue en HTML et
+ * positionnée en absolu en haut à droite : elle se place dans le bandeau de titre
+ * de la `CustomCard` (qui est en `position: relative`) au lieu d'empiéter sur le
+ * graphique. Gère aussi le plein écran et le dialogue d'intégration iframe.
  */
 const EChart = ({
   option,
@@ -97,8 +98,27 @@ const EChart = ({
   // Identifiant pour le partage (clé de registre) ; le PNG préfère le chartId.
   const shareId = chartId ?? exportName
   const fileName = chartId ?? exportName ?? 'graphique'
-  const heightNum =
-    typeof style?.height === 'number' ? style.height : 360
+  const heightNum = typeof style?.height === 'number' ? style.height : 360
+
+  const getInstance = () => chartRef.current?.getEchartsInstance()
+
+  const downloadPng = () => {
+    const inst = getInstance()
+    if (!inst) return
+    const url = inst.getDataURL({
+      type: 'png',
+      pixelRatio: 2,
+      backgroundColor: '#fff',
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${fileName}.png`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
+  const restore = () => getInstance()?.dispatchAction({ type: 'restore' })
 
   const toggleFullscreen = useCallback(() => {
     const el = containerRef.current
@@ -113,7 +133,7 @@ const EChart = ({
   useEffect(() => {
     const onChange = () => {
       setIsFullscreen(document.fullscreenElement === containerRef.current)
-      setTimeout(() => chartRef.current?.getEchartsInstance()?.resize(), 80)
+      setTimeout(() => getInstance()?.resize(), 80)
     }
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
@@ -131,71 +151,75 @@ const EChart = ({
     navigator.clipboard?.writeText(text).then(() => setCopied(true))
   }
 
-  const feature: Record<string, unknown> = {
-    dataView: {
-      show: true,
-      readOnly: true,
-      title: 'Voir les données',
-      lang: ['Données', 'Fermer', 'Actualiser'],
-    },
-    saveAsImage: {
-      show: true,
-      title: 'Télécharger (PNG)',
-      name: fileName,
-      pixelRatio: 2,
-    },
-    restore: { show: true, title: 'Réinitialiser' },
-    myFullscreen: {
-      show: true,
-      title: isFullscreen ? 'Quitter le plein écran' : 'Plein écran',
-      icon: FULLSCREEN_ICON,
-      onclick: toggleFullscreen,
-    },
-  }
-  // Bouton « Partager » seulement hors iframe et si l'instance a un identifiant.
-  if (!isEmbed && shareId) {
-    feature.myShare = {
-      show: true,
-      title: 'Partager / Intégrer',
-      icon: SHARE_ICON,
-      onclick: () => {
-        setPerspective('lab')
-        setShareOpen(true)
-      },
-    }
-  }
-
-  const mergedOption = {
-    ...option,
-    // Une barre d'outils déjà définie par le graphique reste prioritaire.
-    toolbox: option.toolbox ?? {
-      show: true,
-      right: 8,
-      top: 0,
-      itemSize: 14,
-      itemGap: 10,
-      feature,
-    },
-  } as EChartsOption
-
   return (
     <Box
       ref={containerRef}
       sx={{
         width: '100%',
         height: '100%',
-        bgcolor: 'background.paper',
+        // En plein écran seulement, on ancre la barre d'outils sur le conteneur ;
+        // sinon elle s'ancre sur la CustomCard (bandeau de titre).
         '&:fullscreen': {
+          position: 'relative',
           p: 2,
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
+          bgcolor: 'background.paper',
         },
       }}
     >
+      {/* Barre d'outils HTML — placée dans le bandeau de titre de la carte. */}
+      <Stack
+        direction='row'
+        spacing={0.25}
+        sx={{
+          position: 'absolute',
+          top: 6,
+          right: 6,
+          zIndex: 3,
+          borderRadius: 1,
+          bgcolor: 'rgba(255,255,255,0.65)',
+          '& .MuiIconButton-root': { color: 'text.secondary', p: 0.5 },
+        }}
+      >
+        <Tooltip title='Télécharger (PNG)'>
+          <IconButton size='small' onClick={downloadPng}>
+            <DownloadIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='Réinitialiser'>
+          <IconButton size='small' onClick={restore}>
+            <RestartAltIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}>
+          <IconButton size='small' onClick={toggleFullscreen}>
+            {isFullscreen ? (
+              <FullscreenExitIcon fontSize='small' />
+            ) : (
+              <FullscreenIcon fontSize='small' />
+            )}
+          </IconButton>
+        </Tooltip>
+        {!isEmbed && shareId && (
+          <Tooltip title='Partager / Intégrer'>
+            <IconButton
+              size='small'
+              onClick={() => {
+                setPerspective('lab')
+                setShareOpen(true)
+              }}
+            >
+              <ShareIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Stack>
+
       <ReactEcharts
         ref={chartRef}
-        option={mergedOption}
+        option={option}
         notMerge={notMerge}
         lazyUpdate={lazyUpdate}
         style={{
