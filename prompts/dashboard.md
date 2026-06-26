@@ -26,7 +26,7 @@ src/app/[lang]/
 │       │   ├── TeamsTab.tsx
 │       │   ├── ResearchersTab.tsx
 │       │   ├── PhdTab.tsx
-│       │   ├── NetworkTab.tsx
+│       │   ├── ApcTab.tsx
 │       │   └── BooksTab.tsx
 │       └── charts/                   # Composants graphiques + fonctions d'agrégation
 │           ├── EChart.tsx            # Wrapper commun : toolbox (PNG/données/reset/plein écran/partage)
@@ -57,7 +57,7 @@ Dans l'en-tête, à droite du titre `Tableau de bord : {nom}`, un `ToggleButtonG
 
 | Perspective | Périmètre de données | Titre | Onglets visibles |
 |---|---|---|---|
-| **Chercheur** (défaut) | Publications du chercheur sélectionné (profil de démo) | Nom de la perspective connectée | Vue d'ensemble · Collaborations internationales · Impact & citations · Réseau de co-signatures · Chapitres & monographies |
+| **Chercheur** (défaut) | Publications du chercheur sélectionné (profil de démo) | Nom de la perspective connectée | Vue d'ensemble · Collaborations internationales · Impact & citations · Suivi des APC · Chapitres & monographies |
 | **Laboratoire** | Toutes les publications du jeu | Nom du laboratoire | Les 9 onglets |
 
 - `useDashboardData()` fournit `{ view, isResearcher, publications, authors }`. **Tous les onglets lisent leurs données via ce hook** (pas d'accès direct au service mock).
@@ -124,16 +124,22 @@ ajouté à `EMBED_CHARTS`** avec la même clé que son `chartId`/`exportName`.
 ## Écrans (onglets)
 
 ### 1. Vue d'ensemble — `tabs/OverviewTab.tsx`
-Agrégat : `aggregateOverview` (`overviewAggregates.ts`).
+Agrégats : `aggregateOverview` (`overviewAggregates.ts`) + `aggregateNetwork` (`networkAggregates.ts`).
 
 | Bloc | Composant | Type ECharts | Données |
 |---|---|---|---|
-| Chiffres-clés | `OverviewKpiCards` | cartes MUI | total, collaborations internationales, langue étrangère, APC (nb + coût €), publications en français |
+| Chiffres-clés | `OverviewKpiCards` | cartes MUI (icône + accent) | total, collaborations internationales, langue étrangère, APC (nb + coût €), publications en français |
 | Évolution annuelle | `YearlyEvolutionChart` | barres | nb publications / année |
 | Répartition par langue | `LanguagePieChart` | donut (`pie`) | langue |
 | Types de publication | `PublicationTypesChart` | barres horizontales | type de publication |
 | Accès ouvert | `OpenAccessPieChart` | donut | statut OA (couleurs alignées sur `OAStatusProperties` : gold/green/hybrid/bronze/diamond/closed/unknown) |
-| Coût des APC par année | `ApcYearlyChart` | barres + étiquette nb | montant APC / année |
+| Réseau de co-signatures | `NetworkChart` | graphe `force` | nœuds = auteurs internes (taille ∝ nb publications, couleur = équipe), arêtes = co-publications |
+
+> **Réseau** (déplacé de l'ancien onglet dédié vers la vue d'ensemble) : curseur
+> **« publications min. par auteur »** pour filtrer la densité. En **vue chercheur**, c'est
+> un **ego-réseau** centré sur le chercheur (`centerId = researcherId`, seuil 1, nœud central
+> mis en valeur) ; en **vue laboratoire**, le réseau global (seuil 2). Plage d'années partagée
+> avec le reste de l'onglet.
 
 ### 2. Collaborations internationales — `tabs/InternationalTab.tsx`
 Agrégats : `aggregateInternational`, `aggregateFlows`, `aggregateFlowMap` (`internationalAggregates.ts`). La France est exclue des décomptes de pays partenaires.
@@ -189,11 +195,8 @@ Agrégat : `aggregatePhd`. Publications « impliquant au moins un doctorant ».
 | Évolution annuelle | `StackedAreaChart` | aires empilées |
 | Publications par doctorant | `RankBarChart` | barres H |
 
-### 7. Réseau de co-signatures — `tabs/NetworkTab.tsx`
-Agrégat : `aggregateNetwork`. `NetworkChart` — graphe `graph` ECharts en layout `force` : nœuds = auteurs internes (taille ∝ nb publications, couleur = équipe), arêtes = co-publications. Curseur **« publications min. par auteur »** pour filtrer la densité.
-
-- **Vue laboratoire** : réseau global du labo (seuil par défaut 2).
-- **Vue chercheur** : **ego-réseau** centré sur le chercheur — son périmètre de publications, seuil par défaut 1 (tous les collaborateurs directs). Le nœud central (`centerId` = `researcherId` du contexte) est toujours conservé et mis en valeur (losange plus grand, libellé en gras, bordure). Titre « Mon réseau de co-signatures ».
+### 7. Suivi des APC — `tabs/ApcTab.tsx`
+Agrégat : `aggregateOverview` (champ `apcByYear`). En-tête `LabTabHeader` (plage d'années) + `ApcYearlyChart` (barres + étiquette nb) : montant des frais de publication (APC) par année. Onglet visible dans les deux perspectives. *(Le réseau de co-signatures, anciennement dans un onglet dédié, a été déplacé dans la Vue d'ensemble — voir §1.)*
 
 ### 8. Chapitres & monographies — `tabs/BooksTab.tsx`
 Agrégat : `aggregateBooks` (`booksAggregates.ts`). Filtre les types « ouvrage » (chapitre, monographie, direction/coordination).
