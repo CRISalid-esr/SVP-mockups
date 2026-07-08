@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Node, Edge } from '@xyflow/react'
 import {
-  Alert, Box, Button, Grid2 as Grid, Typography,
+  Alert, Box, Button, Grid2 as Grid, Snackbar, Typography,
 } from '@mui/material'
 import { AccountTree, Add, AutoAwesomeOutlined, CheckCircleOutlined } from '@mui/icons-material'
 import { Activity } from '@/types/Activity'
@@ -13,8 +13,9 @@ import {
   ExpertiseNodeData,
   INITIAL_GRAPH,
 } from '../../types'
-import { loadStoredGraph } from '../../storage'
+import { loadStoredGraph, saveStoredGraph } from '../../storage'
 import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
+import AddThemeDialog, { NewTheme } from './AddThemeDialog'
 
 const ACTIVITIES_KEY = 'expertise-activities-v1'
 const TEAL = '#006A61'
@@ -127,18 +128,47 @@ interface Props {
   onGoToExpertises?: () => void
   /** Vrai juste après une génération IA : affiche la bannière de revue. */
   justGenerated?: boolean
+  /** Appelé quand le graphe est modifié depuis la liste (ajout d'un thème). */
+  onGraphChanged?: () => void
 }
 
-export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerated }: Props) {
+export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerated, onGraphChanged }: Props) {
   const [graph, setGraph] = useState<ExpertiseGraph>(INITIAL_GRAPH)
   const [associations, setAssociations] = useState<Record<string, string[]>>(INITIAL_ASSOCIATIONS)
   const [mounted, setMounted] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [snackbar, setSnackbar] = useState('')
 
   useEffect(() => {
     setGraph(loadStoredGraph())
     setAssociations(loadAssociations())
     setMounted(true)
   }, [])
+
+  const handleAddTheme = (theme: NewTheme) => {
+    const count = graph.nodes.length
+    const newNode: Node<ExpertiseNodeData> = {
+      id: `n${Date.now()}`,
+      type: 'expertiseNode',
+      position: { x: 80 + (count % 3) * 320, y: 80 + Math.floor(count / 3) * 190 },
+      data: {
+        label: theme.label,
+        nodeType: 'expertise',
+        ...(theme.description ? { description: theme.description } : {}),
+        ...theme.attributes,
+      },
+    }
+    const next: ExpertiseGraph = {
+      ...graph,
+      nodes: [...graph.nodes, newNode],
+      meta: { ...graph.meta, lastUpdated: new Date().toISOString().split('T')[0] },
+    }
+    saveStoredGraph(next)
+    setGraph(next)
+    setAddOpen(false)
+    setSnackbar(`Thème « ${theme.label} » ajouté`)
+    onGraphChanged?.()
+  }
 
   const entries = buildEntries(
     graph.nodes as Node<ExpertiseNodeData>[],
@@ -191,9 +221,9 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
             {' '}thème{entries.length > 1 ? 's' : ''} défini{entries.length > 1 ? 's' : ''}
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<Add />} onClick={onGoToMindMap} size="small"
-          sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
-          Ajouter dans la carte
+        <Button variant="contained" startIcon={<Add />} onClick={() => setAddOpen(true)} size="small"
+          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
+          Ajouter un thème
         </Button>
       </Box>
 
@@ -250,6 +280,19 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
           )}
         </>
       )}
+
+      <AddThemeDialog open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddTheme} />
+
+      <Snackbar
+        open={Boolean(snackbar)}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSnackbar('')} sx={{ width: '100%' }}>
+          {snackbar}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

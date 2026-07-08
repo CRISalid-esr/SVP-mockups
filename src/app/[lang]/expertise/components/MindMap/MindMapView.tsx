@@ -1160,9 +1160,15 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
               />
               <Panel position="top-right">
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
-                  <Tooltip title="Enregistrer">
-                    <Button size="small" variant="contained" startIcon={<Save />} onClick={handleSave}
+                  <Tooltip title="Ajouter un thème de recherche à la carte">
+                    <Button size="small" variant="contained" startIcon={<Add />} onClick={handleOpenAddNode}
                       sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
+                      Ajouter un thème
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Enregistrer">
+                    <Button size="small" variant="outlined" startIcon={<Save />} onClick={handleSave}
+                      sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
                       Enregistrer
                     </Button>
                   </Tooltip>

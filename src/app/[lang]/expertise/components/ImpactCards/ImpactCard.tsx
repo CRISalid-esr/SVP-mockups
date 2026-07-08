@@ -2,10 +2,12 @@
 
 import {
   Box,
+  Button,
   Chip,
   IconButton,
   Menu,
   MenuItem,
+  Paper,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -49,192 +51,131 @@ export default function ImpactCardItem({ card, onClick, onDuplicate, onArchive, 
   const handleClose = () => setMenuAnchor(null)
 
   return (
-    <Box
+    <Paper
+      variant="outlined"
       onClick={onClick}
       sx={{
-        width: 260,
-        height: 390,
+        p: 2,
+        borderRadius: 2,
+        borderLeft: `4px solid ${cfg.border}`,
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 3,
-        border: `3px solid ${cfg.border}`,
-        overflow: 'hidden',
+        gap: 1,
+        height: '100%',
         cursor: 'pointer',
         bgcolor: 'background.paper',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         transition: 'box-shadow 0.2s, transform 0.15s',
         '&:hover': {
-          boxShadow: '0 6px 20px rgba(0,0,0,0.14)',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.10)',
           transform: 'translateY(-2px)',
         },
       }}
     >
-      {/* Header */}
-      <Box sx={{ bgcolor: cfg.bg, px: 2, pt: 1.5, pb: 1 }}>
+      {/* En-tête : public visé + statut + visibilité + menu */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
         <Chip
-          label={cfg.label}
           size="small"
+          icon={<cfg.Icon sx={{ fontSize: 14 }} />}
+          label={cfg.label}
           sx={{
-            bgcolor: cfg.border,
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: '0.65rem',
-            height: 20,
-            mb: 1,
+            height: 22, fontSize: '0.68rem', fontWeight: 700,
+            bgcolor: cfg.bg, color: cfg.color,
+            '& .MuiChip-icon': { color: cfg.border },
           }}
         />
-        <Typography
-          variant="body2"
+        <Chip
+          size="small"
+          icon={<statusCfg.Icon sx={{ fontSize: 13 }} />}
+          label={statusCfg.label}
           sx={{
-            fontWeight: 700,
-            color: cfg.color,
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
+            height: 22, fontSize: '0.68rem', fontWeight: 600,
+            bgcolor: statusCfg.bg, color: statusCfg.color,
+            '& .MuiChip-icon': { color: statusCfg.color },
           }}
-        >
-          {card.title}
-        </Typography>
-      </Box>
-
-      {/* Center: icon + pattern + status badge */}
-      <Box
-        sx={{
-          position: 'relative',
-          height: 90,
-          flexShrink: 0,
-          bgcolor: cfg.bg,
-          backgroundImage: cfg.pattern,
-          backgroundSize: '20px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box
-          sx={{
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            bgcolor: 'background.paper',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          }}
-        >
-          <cfg.Icon sx={{ fontSize: 28, color: cfg.border }} />
-        </Box>
-
-        {/* Status badge */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 8,
-            right: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            bgcolor: statusCfg.bg,
-            border: `1px solid ${statusCfg.color}`,
-            borderRadius: '10px',
-            px: 0.75,
-            py: 0.25,
-          }}
-        >
-          <statusCfg.Icon sx={{ fontSize: 11, color: statusCfg.color }} />
-          <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: statusCfg.color, lineHeight: 1 }}>
-            {statusCfg.label}
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Body: description + audiences */}
-      <Box sx={{ flex: 1, px: 2, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            fontSize: '0.75rem',
-            fontStyle: 'italic',
-            lineHeight: 1.4,
-            display: '-webkit-box',
-            WebkitLineClamp: 4,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            flex: 1,
-          }}
-        >
-          {card.description}
-        </Typography>
-
-        {/* Spécialisation */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', whiteSpace: 'nowrap' }}>
-            Spécialisation
-          </Typography>
-          <Box sx={{ flex: 1, height: 4, bgcolor: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-            <Box sx={{ height: '100%', width: `${card.specialization * 10}%`, bgcolor: cfg.border, borderRadius: 2 }} />
-          </Box>
-          <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', minWidth: 20 }}>
-            {card.specialization}/10
-          </Typography>
-        </Box>
-
-        {/* Audiences */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-          {card.targetAudiences.slice(0, 3).map((a) => (
-            <Chip
-              key={a}
-              label={a}
-              size="small"
-              sx={{
-                fontSize: '0.6rem',
-                height: 18,
-                bgcolor: cfg.bg,
-                color: cfg.color,
-                border: `1px solid ${cfg.border}40`,
-              }}
-            />
-          ))}
-          {card.targetAudiences.length > 3 && (
-            <Chip
-              label={`+${card.targetAudiences.length - 3}`}
-              size="small"
-              sx={{ fontSize: '0.6rem', height: 18 }}
-            />
-          )}
-        </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box
-        sx={{
-          bgcolor: cfg.bg,
-          px: 1.5,
-          py: 0.75,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Tooltip title={card.visibility === 'PUBLIC' ? 'Publique' : 'Privée'}>
+        />
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.25 }}>
+          <Tooltip title={card.visibility === 'PUBLIC' ? 'Visible sur votre profil public' : 'Privée — visible par vous seul·e'}>
             {card.visibility === 'PUBLIC'
-              ? <VisibilityOutlined sx={{ fontSize: 14, color: cfg.color }} />
-              : <VisibilityOffOutlined sx={{ fontSize: 14, color: cfg.color }} />
+              ? <VisibilityOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+              : <VisibilityOffOutlined sx={{ fontSize: 16, color: 'text.disabled' }} />
             }
           </Tooltip>
-          <Typography sx={{ fontSize: '0.65rem', color: cfg.color }}>
-            {card.lastUpdate}
-          </Typography>
+          <IconButton size="small" onClick={handleMenu} sx={{ p: 0.25 }}>
+            <MoreVertOutlined sx={{ fontSize: 18, color: 'text.secondary' }} />
+          </IconButton>
         </Box>
+      </Box>
 
-        <IconButton size="small" onClick={handleMenu} sx={{ p: 0.25 }}>
-          <MoreVertOutlined sx={{ fontSize: 16, color: cfg.color }} />
-        </IconButton>
+      {/* Titre + description */}
+      <Typography sx={{ fontWeight: 700, lineHeight: 1.35 }}>
+        {card.title}
+      </Typography>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {card.description}
+      </Typography>
+
+      {/* Audiences */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+        {card.targetAudiences.slice(0, 4).map((a) => (
+          <Chip
+            key={a}
+            label={a}
+            size="small"
+            sx={{ fontSize: '0.65rem', height: 20, bgcolor: cfg.bg, color: cfg.color }}
+          />
+        ))}
+        {card.targetAudiences.length > 4 && (
+          <Chip
+            label={`+${card.targetAudiences.length - 4}`}
+            size="small"
+            sx={{ fontSize: '0.65rem', height: 20 }}
+          />
+        )}
+      </Box>
+
+      {/* Pied : spécialisation + date + validation rapide */}
+      <Box sx={{
+        mt: 'auto', pt: 1, display: 'flex', alignItems: 'center', gap: 1,
+        borderTop: '1px solid', borderColor: 'divider',
+      }}>
+        <Tooltip title="Niveau de spécialisation : 1 (grand public) → 10 (très spécialisé)">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', whiteSpace: 'nowrap' }}>
+              Spécialisation
+            </Typography>
+            <Box sx={{ width: 64, height: 5, bgcolor: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ height: '100%', width: `${card.specialization * 10}%`, bgcolor: cfg.border, borderRadius: 2 }} />
+            </Box>
+            <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled' }}>
+              {card.specialization}/10
+            </Typography>
+          </Box>
+        </Tooltip>
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+          {onValidate ? (
+            <Button
+              size="small"
+              startIcon={<CheckCircleOutlined sx={{ fontSize: '15px !important' }} />}
+              onClick={(e) => { e.stopPropagation(); onValidate() }}
+              sx={{ textTransform: 'none', color: '#065F46', py: 0, minHeight: 24, fontSize: '0.72rem', fontWeight: 700 }}
+            >
+              Valider
+            </Button>
+          ) : (
+            <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled' }}>
+              {card.lastUpdate}
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleClose}>
@@ -261,6 +202,6 @@ export default function ImpactCardItem({ card, onClick, onDuplicate, onArchive, 
           Archiver
         </MenuItem>
       </Menu>
-    </Box>
+    </Paper>
   )
 }

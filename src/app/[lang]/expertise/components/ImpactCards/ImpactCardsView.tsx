@@ -378,48 +378,37 @@ function FamilySection({
   onArchive: (id: string) => void
   onValidate: (id: string) => void
 }) {
-  // Group by profile
-  const byProfile = (Object.keys(PROFILE_CONFIG) as ProfileType[]).map((p) => ({
-    profile: p,
-    cards: cards.filter((c) => c.profile === p),
-  })).filter((g) => g.cards.length > 0)
+  // Une grille par famille, cartes triées par public (le chip de chaque carte
+  // porte le public visé — plus besoin de sous-sections par profil).
+  const order = Object.keys(PROFILE_CONFIG) as ProfileType[]
+  const sorted = [...cards].sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile))
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{family.title}</Typography>
         {family.source && (
           <Chip label={family.source} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20 }} />
         )}
         <Divider sx={{ flex: 1 }} />
-        <Typography variant="caption" color="text.secondary">{cards.length} carte{cards.length > 1 ? 's' : ''}</Typography>
+        <Typography variant="caption" color="text.secondary">{cards.length} fiche{cards.length > 1 ? 's' : ''}</Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {byProfile.map(({ profile, cards: pCards }) => {
-          const cfg = PROFILE_CONFIG[profile]
-          return (
-            <Box key={profile}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <cfg.Icon sx={{ fontSize: 16, color: cfg.border }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, color: cfg.color }}>{cfg.label}</Typography>
-                <Typography variant="caption" color="text.secondary">— {cfg.desc}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {pCards.map((card) => (
-                  <ImpactCardItem
-                    key={card.id}
-                    card={card}
-                    onClick={() => onSelect(card)}
-                    onDuplicate={() => onDuplicate(card)}
-                    onArchive={() => onArchive(card.id)}
-                    onValidate={card.status === 'TO_VALIDATE' ? () => onValidate(card.id) : undefined}
-                  />
-                ))}
-              </Box>
-            </Box>
-          )
-        })}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+        gap: 2,
+      }}>
+        {sorted.map((card) => (
+          <ImpactCardItem
+            key={card.id}
+            card={card}
+            onClick={() => onSelect(card)}
+            onDuplicate={() => onDuplicate(card)}
+            onArchive={() => onArchive(card.id)}
+            onValidate={card.status === 'TO_VALIDATE' ? () => onValidate(card.id) : undefined}
+          />
+        ))}
       </Box>
     </Box>
   )

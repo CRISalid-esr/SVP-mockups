@@ -235,6 +235,7 @@ export default function ExpertisePage() {
                       onGoToMindMap={() => { setSujetView('carte'); setJustGenerated(false) }}
                       onGoToExpertises={() => goToTab(1)}
                       justGenerated={justGenerated}
+                      onGraphChanged={refreshStats}
                     />
                   )
             )}
