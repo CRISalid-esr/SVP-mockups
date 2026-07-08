@@ -9,18 +9,20 @@
 
 ## 1. Contexte
 
-La rubrique **Expertises** permet au chercheur de représenter, structurer et communiquer ses domaines d'expertise selon trois angles complémentaires. Elle n'a pas d'équivalent direct dans les SI Recherche existants.
+La rubrique **Expertises** distingue deux objets de nature différente :
 
-**Architecture retenue — Option A (source de vérité unique) :**
+- **Les thèmes de recherche** — la matière première que le chercheur saisit (à la main, par prompt ou depuis ses publications). Deux rendus du même contenu : une **liste** (défaut) et une **carte mentale** (structuration des relations).
+- **Les expertises** — le livrable : des fiches déclinées par public (Recherche, Innovation, Média, Vulgarisation), générées à partir des thèmes puis validées par le chercheur.
+
+**Architecture — le graphe reste la source de vérité unique :**
 
 ```
-Carte mentale (graphe React Flow — source de vérité)
+Graphe de thèmes (React Flow — source de vérité)
     │
-    ├── Profil structuré : chaque nœud expertise → fiche avec caractéristiques
-    └── Fiches publics   : chaque nœud expertise → carte déclinée par audience
+    ├── Vue liste (défaut)   : chaque nœud thème → fiche avec caractéristiques
+    ├── Vue carte mentale    : édition du graphe et des relations
+    └── Expertises           : chaque nœud thème → famille de fiches par public
 ```
-
-✅ La carte mentale est la source de vérité. Les deux autres vues sont des projections de ses nœuds.
 
 ---
 
@@ -28,15 +30,26 @@ Carte mentale (graphe React Flow — source de vérité)
 
 ```
 Sidebar
-  └── Expertises
-        ├── Mes domaines      ◄── Carte mentale (actif par défaut)
-        ├── Profil structuré  ◄── Vue à plat (chip "depuis vos domaines")
-        └── Fiches publics    ◄── Cartes impact (chip "depuis vos domaines")
+  └── Expertises                    [switcher Chercheur / Laboratoire dans l'en-tête]
+        ├── Thèmes de recherche     ◄── toggle Liste (défaut) / Carte mentale
+        └── Expertises              ◄── fiches par public (chip "générées depuis vos thèmes")
 ```
+
+✅ **Parcours en 3 étapes** matérialisé par un mini-stepper sous les onglets :
+`① Définir mes thèmes → ② Générer mes expertises → ③ Publier` — chaque étape affiche
+son compteur (N thèmes, N fiches, N publiques), coche verte quand l'étape est franchie,
+clic = navigation vers l'onglet correspondant.
+
+✅ **Après une génération depuis l'empty state**, la page bascule automatiquement sur la
+**vue liste** avec une bannière de revue (« passez vos thèmes en revue, puis générez vos
+fiches expertises ») ; un encart « Étape suivante » en bas de liste mène à l'onglet Expertises.
+
+✅ **Perspective Laboratoire** (voir § 6) : la même page, déclinée à l'échelle du labo,
+agrège en lecture seule les thèmes et les fiches publiées des membres.
 
 ---
 
-## 3. Mes domaines — Carte mentale
+## 3. Thèmes de recherche — Carte mentale
 
 ### 3.1 Principe
 
@@ -126,13 +139,19 @@ Chaque nœud porte, en plus de son intitulé et de sa description, des **caract�
 
 ---
 
-## 4. Profil structuré (vue à plat)
+## 4. Thèmes de recherche — Vue liste (défaut)
 
 ### 4.1 Principe
 
-✅ Chaque nœud du graphe devient une fiche structurée. Les caractéristiques portées par le nœud (temporal, geographic, persons, organizations, concepts) sont projetées en chips colorés.
+✅ Rendu par défaut de l'onglet Thèmes de recherche (le toggle Liste / Carte mentale est un
+segmented control en haut à droite : même contenu, deux affichages). Chaque nœud du graphe
+devient une fiche structurée. Les caractéristiques portées par le nœud (temporal, geographic,
+persons, organizations, concepts) sont projetées en chips colorés.
 
-✅ Bannière en haut : version du graphe, date de mise à jour, lien "Modifier le graphe →".
+✅ Bannière en haut : version du graphe, date de mise à jour, lien "Ouvrir la carte →".
+Après une génération IA, elle est remplacée par la bannière de revue (verte).
+
+✅ Encart « Étape suivante : vos expertises » en bas de liste → onglet Expertises.
 
 ### 4.2 Anatomie d'une fiche expertise
 
@@ -168,13 +187,13 @@ Chaque nœud porte, en plus de son intitulé et de sa description, des **caract�
 
 ---
 
-## 5. Fiches publics (cartes impact)
+## 5. Expertises (fiches par public)
 
 ### 5.1 Principe
 
-✅ Le chercheur décline chaque expertise en **cartes contextualisées selon le public** auquel il s'adresse. Un nœud d'expertise devient une "Famille" dont découlent N cartes pour différentes audiences.
+✅ Onglet **Expertises** : le chercheur décline chaque thème de recherche en **fiches contextualisées selon le public** auquel il s'adresse. Un nœud thème devient une "Famille" dont découlent N cartes pour différentes audiences.
 
-✅ Les cartes sont persistées en `localStorage` (clé `expertise-cards-v1`).
+✅ Les cartes sont persistées en `localStorage` (clé `expertise-cards-v1`) ; les familles générées le sont aussi (`expertise-families-v1`).
 
 ### 5.2 Profils d'audience
 
@@ -215,11 +234,19 @@ Chaque nœud porte, en plus de son intitulé et de sa description, des **caract�
 
 ✅ **Créer une carte** : wizard 3 étapes — (1) Profil + Famille, (2) Titre + Description + Spécialisation, (3) Audiences + Spécifiques.
 
-🟡 **Générer depuis le graphe** : bouton présent (désactivé). À terme, un LLM proposera automatiquement une carte par profil pour chaque nœud d'expertise.
+✅ **Générer les fiches** (bouton actif, simulation LLM 1,6 s — `mockCardsLlm.ts`) : pour chaque
+thème du graphe, une fiche par public est proposée (statut « À valider », visibilité privée).
+Seules les fiches manquantes sont créées — les fiches existantes ne sont jamais écrasées.
+Le contenu (titre, description, spécialisation, audiences, spécifiques) est adapté au profil
+et réutilise les caractéristiques du nœud (période → Période, lieux → Terrain).
+
+✅ **Flux de revue** : après génération, bascule automatique sur le sous-onglet « À valider »
+avec une barre d'action (« N fiches en attente » + bouton **Tout valider**) ; chaque carte
+propose « Valider cette fiche » dans son menu ⋮.
 
 ### 5.5 Questions ouvertes
 
-❓ **Génération LLM** : quel workflow de validation (modale de revue, diffing, acceptation en lot) ?
+❓ **Génération LLM** : faut-il un diffing quand un thème a changé depuis la dernière génération ?
 
 ❓ **Partage** : une carte peut-elle être partagée avec un collègue ou exportée (PDF, carte de visite numérique) ?
 
@@ -229,7 +256,46 @@ Chaque nœud porte, en plus de son intitulé et de sa description, des **caract�
 
 ---
 
-## 6. Questions transversales
+## 6. Perspective Laboratoire — « Expertises : Labo X »
+
+### 6.1 Principe
+
+✅ Un **switcher Chercheur / Laboratoire** dans l'en-tête de page (même pattern que le tableau
+de bord) bascule sur la vue agrégée du labo. Vue en **lecture seule** : les thèmes et les fiches
+sont renseignés par chaque membre depuis sa propre page Expertises.
+
+✅ **Regroupement des thèmes entre membres** : par identifiant quand le thème est aligné sur un
+vocabulaire contrôlé (RAMEAU, Wikidata), par rapprochement de libellés normalisés sinon.
+C'est l'argument donné aux chercheurs pour aligner leurs concepts sur un référentiel.
+
+### 6.2 Contenu
+
+✅ **Bandeau KPI** : membres · membres ayant renseigné leurs thèmes (taux de complétude avec
+barre de progression — levier d'adoption pour la direction) · thèmes distincts · fiches publiées.
+
+✅ **Onglet « Thèmes de recherche du labo »** : treemap ECharts (taille + couleur = nombre de
+membres par thème), filtre par équipe, clic sur un thème → dialog listant les membres concernés
+(avatar, nom, équipe). Chips des thèmes alignés sur un vocabulaire sous le treemap.
+
+✅ **Onglet « Annuaire des expertises »** : fiches publiées de tous les membres, recherche plein
+texte + filtres par public (chips colorés). Clic → dialog de détail (membre, description,
+spécialisation, audiences). Cible : cellules valorisation / communication (« qui peut parler
+de X à un journaliste ? »).
+
+✅ Données de démo : `components/Lab/labMock.ts` — 18 membres, 3 équipes, ~19 thèmes
+(chevauchements volontaires pour la démo d'agrégation), 14 fiches publiées.
+
+### 6.3 Questions ouvertes
+
+❓ **Agrégation multi-niveaux** : même vue à l'échelle d'une équipe, d'une fédération, d'un site ?
+
+❓ **Relance** : le directeur peut-il notifier les membres n'ayant pas renseigné leurs thèmes ?
+
+❓ **Carte mentale agrégée** : fusionner les graphes des membres (nœuds partagés) en une carte labo ?
+
+---
+
+## 7. Questions transversales
 
 | # | Thème | Question |
 |---|-------|----------|
