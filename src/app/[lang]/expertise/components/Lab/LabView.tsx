@@ -29,6 +29,16 @@ function tealShade(t: number): string {
   return `#${mix.map((v) => v.toString(16).padStart(2, '0')).join('')}`
 }
 
+// Couleur de libellé lisible sur la teinte de fond : texte sombre sur les
+// cases claires, blanc sur les cases foncées (contraste AA).
+function labelColorFor(bg: string): string {
+  const r = parseInt(bg.slice(1, 3), 16)
+  const g = parseInt(bg.slice(3, 5), 16)
+  const b = parseInt(bg.slice(5, 7), 16)
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+  return luminance > 140 ? '#0F3B36' : '#FFFFFF'
+}
+
 function initials(name: string): string {
   return name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
 }
@@ -95,11 +105,16 @@ export default function LabView({ labName }: { labName: string }) {
         lineHeight: 16,
       },
       itemStyle: { borderColor: '#fff', borderWidth: 2, gapWidth: 2, borderRadius: 4 },
-      data: sujets.map((s) => ({
-        name: s.label,
-        value: s.members.length,
-        itemStyle: { color: tealShade(maxCount === 1 ? 0.5 : (s.members.length - 1) / (maxCount - 1)) },
-      })),
+      data: sujets.map((s) => {
+        const t = maxCount === 1 ? 0.5 : (s.members.length - 1) / (maxCount - 1)
+        const bg = tealShade(t)
+        return {
+          name: s.label,
+          value: s.members.length,
+          itemStyle: { color: bg },
+          label: { color: labelColorFor(bg) },
+        }
+      }),
     }],
   }), [sujets, maxCount])
 
