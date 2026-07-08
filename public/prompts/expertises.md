@@ -157,6 +157,11 @@ Après une génération IA, elle est remplacée par la bannière de revue (verte
 caractéristiques avec les mêmes widgets d'affinage que la carte : slider / périodes nommées,
 GeoNames, IdRef, vocabulaires — composant partagé `AttributesEditor`).
 
+✅ **Expertises liées** : chaque carte de thème liste les fiches expertises qui en dérivent
+(icône + chip du public + titre, mention « à valider » le cas échéant) — symétrique du lien
+fiche → thème affiché dans l'onglet Expertises. Clic sur une fiche ou « Voir l'onglet → » →
+onglet Expertises. Si aucune fiche : CTA « Générer mes expertises → ».
+
 ### 4.2 Anatomie d'une fiche expertise
 
 ```

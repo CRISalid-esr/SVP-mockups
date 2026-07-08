@@ -13,7 +13,10 @@ import {
   ExpertiseNodeData,
   INITIAL_GRAPH,
 } from '../../types'
-import { loadStoredGraph, saveStoredGraph } from '../../storage'
+import { CARDS_KEY, FAMILIES_KEY, loadStoredGraph, saveStoredGraph } from '../../storage'
+import {
+  ImpactCard, ImpactFamily, INITIAL_CARDS, INITIAL_FAMILIES, PROFILE_CONFIG, ProfileType,
+} from '../ImpactCards/impactCardsTypes'
 import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
 import AddThemeDialog, { NewTheme } from './AddThemeDialog'
 
@@ -73,6 +76,28 @@ const MOCK_ACTIVITIES: Activity[] = [
 ]
 
 const INITIAL_ASSOCIATIONS: Record<string, string[]> = { n1: ['1', '2'], n3: ['5', '7'] }
+
+// Fiches expertises et familles (thème → fiches par public), pour afficher
+// les expertises liées sur chaque carte de thème.
+function loadCards(): ImpactCard[] {
+  if (typeof window === 'undefined') return INITIAL_CARDS
+  try {
+    const raw = localStorage.getItem(CARDS_KEY)
+    if (raw) return JSON.parse(raw) as ImpactCard[]
+  } catch (_e) { /* ignore */ }
+  return INITIAL_CARDS
+}
+
+function loadFamilies(): ImpactFamily[] {
+  if (typeof window === 'undefined') return INITIAL_FAMILIES
+  try {
+    const raw = localStorage.getItem(FAMILIES_KEY)
+    if (raw) return JSON.parse(raw) as ImpactFamily[]
+  } catch (_e) { /* ignore */ }
+  return INITIAL_FAMILIES
+}
+
+const PROFILE_ORDER = Object.keys(PROFILE_CONFIG) as ProfileType[]
 
 function loadAssociations(): Record<string, string[]> {
   if (typeof window === 'undefined') return INITIAL_ASSOCIATIONS
@@ -135,6 +160,8 @@ interface Props {
 export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerated, onGraphChanged }: Props) {
   const [graph, setGraph] = useState<ExpertiseGraph>(INITIAL_GRAPH)
   const [associations, setAssociations] = useState<Record<string, string[]>>(INITIAL_ASSOCIATIONS)
+  const [cards, setCards] = useState<ImpactCard[]>([])
+  const [families, setFamilies] = useState<ImpactFamily[]>([])
   const [mounted, setMounted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [snackbar, setSnackbar] = useState('')
@@ -142,8 +169,20 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
   useEffect(() => {
     setGraph(loadStoredGraph())
     setAssociations(loadAssociations())
+    setCards(loadCards())
+    setFamilies(loadFamilies())
     setMounted(true)
   }, [])
+
+  const linkedCardsFor = (node: Node<ExpertiseNodeData>): ImpactCard[] => {
+    const family = families.find(
+      (f) => f.nodeId === node.id || f.title === (node.data as ExpertiseNodeData).label,
+    )
+    if (!family) return []
+    return cards
+      .filter((c) => c.familyId === family.id)
+      .sort((a, b) => PROFILE_ORDER.indexOf(a.profile) - PROFILE_ORDER.indexOf(b.profile))
+  }
 
   const handleAddTheme = (theme: NewTheme) => {
     const count = graph.nodes.length
@@ -250,8 +289,10 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
                   entry={entry}
                   activities={MOCK_ACTIVITIES}
                   associatedIds={associations[entry.node.id] ?? []}
+                  linkedCards={linkedCardsFor(entry.node as Node<ExpertiseNodeData>)}
                   onUpdateAssociations={handleUpdateAssociations}
                   onGoToMindMap={onGoToMindMap}
+                  onGoToExpertises={onGoToExpertises}
                 />
               </Grid>
             ))}

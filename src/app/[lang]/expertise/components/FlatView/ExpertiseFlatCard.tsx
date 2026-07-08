@@ -21,6 +21,7 @@ import {
   ExpertiseNodeData,
   NODE_TYPE_CONFIG,
 } from '../../types'
+import { ImpactCard, PROFILE_CONFIG } from '../ImpactCards/impactCardsTypes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,8 +40,12 @@ interface Props {
   entry: ExpertiseEntry
   activities: Activity[]
   associatedIds: string[]
+  /** Fiches expertises dérivées de ce thème (onglet Expertises). */
+  linkedCards?: ImpactCard[]
   onUpdateAssociations: (nodeId: string, ids: string[]) => void
   onGoToMindMap: () => void
+  /** Navigue vers l'onglet Expertises. */
+  onGoToExpertises?: () => void
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -75,8 +80,10 @@ export default function ExpertiseFlatCard({
   entry,
   activities,
   associatedIds,
+  linkedCards = [],
   onUpdateAssociations,
   onGoToMindMap,
+  onGoToExpertises,
 }: Props) {
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
   const [pendingIds, setPendingIds] = useState<string[]>([])
@@ -247,6 +254,69 @@ export default function ExpertiseFlatCard({
           </Box>
         </>
       )}
+
+      {/* Expertises liées — fiches par public dérivées de ce thème */}
+      <Divider />
+      <Box sx={{ px: 2.5, py: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Expertises liées{linkedCards.length > 0 ? ` (${linkedCards.length})` : ''}
+          </Typography>
+          {onGoToExpertises && linkedCards.length > 0 && (
+            <Button size="small" onClick={onGoToExpertises}
+              sx={{ textTransform: 'none', fontSize: '0.72rem', color: cfg.color, minWidth: 0, py: 0.25 }}>
+              Voir l&apos;onglet →
+            </Button>
+          )}
+        </Box>
+        {linkedCards.length === 0 ? (
+          <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            Aucune fiche expertise pour ce thème.{' '}
+            {onGoToExpertises && (
+              <Box component="span" onClick={onGoToExpertises}
+                sx={{ color: cfg.color, cursor: 'pointer', fontStyle: 'normal', '&:hover': { textDecoration: 'underline' } }}>
+                Générer mes expertises →
+              </Box>
+            )}
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}>
+            {linkedCards.map((card) => {
+              const pCfg = PROFILE_CONFIG[card.profile]
+              return (
+                <Box
+                  key={card.id}
+                  onClick={onGoToExpertises}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 0.75,
+                    cursor: onGoToExpertises ? 'pointer' : 'default',
+                    '&:hover .linked-card-title': onGoToExpertises ? { textDecoration: 'underline' } : {},
+                  }}
+                >
+                  <pCfg.Icon sx={{ fontSize: 14, color: pCfg.border, flexShrink: 0 }} />
+                  <Chip label={pCfg.label} size="small"
+                    sx={{ fontSize: '0.6rem', height: 17, flexShrink: 0, bgcolor: pCfg.bg, color: pCfg.color, fontWeight: 700 }} />
+                  <Typography
+                    className="linked-card-title"
+                    variant="caption"
+                    sx={{
+                      fontWeight: 600, minWidth: 0,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {card.title}
+                  </Typography>
+                  {card.status === 'TO_VALIDATE' && (
+                    <Typography variant="caption" sx={{ color: '#92400E', flexShrink: 0, fontSize: '0.62rem' }}>
+                      · à valider
+                    </Typography>
+                  )}
+                </Box>
+              )
+            })}
+          </Box>
+        )}
+      </Box>
 
       {/* Activités associées */}
       <Divider />
