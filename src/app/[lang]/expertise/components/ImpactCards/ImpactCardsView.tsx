@@ -20,7 +20,6 @@ import {
   CheckCircleOutlined,
   DoneAllOutlined,
   ScheduleOutlined,
-  TuneOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material'
 import {
@@ -31,9 +30,9 @@ import {
   PROFILE_CONFIG,
   ProfileType,
 } from './impactCardsTypes'
-import { ExpertiseNodeData } from '../../types'
+import { ExpertiseAttributes, ExpertiseNodeData } from '../../types'
 import { CARDS_KEY, FAMILIES_KEY, loadStoredGraph } from '../../storage'
-import { generateCardsFromGraph } from './mockCardsLlm'
+import { generateCardsFromGraph, pickAttributes } from './mockCardsLlm'
 import ImpactCardItem from './ImpactCard'
 import CardDetailDialog from './CardDetailDialog'
 import CreateCardWizard from './CreateCardWizard'
@@ -71,18 +70,16 @@ function nextId(cards: ImpactCard[]) {
   return `c${Math.max(0, ...nums) + 1}`
 }
 
-type TabKey = 'all' | 'to_validate' | 'custom' | 'private'
+type TabKey = 'all' | 'to_validate' | 'private'
 
 const TAB_DEF: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'all', label: 'Toutes', icon: <VisibilityOutlined fontSize="small" /> },
   { key: 'to_validate', label: 'À valider', icon: <ScheduleOutlined fontSize="small" /> },
-  { key: 'custom', label: 'Personnalisées', icon: <TuneOutlined fontSize="small" /> },
   { key: 'private', label: 'Privées', icon: <VisibilityOutlined fontSize="small" /> },
 ]
 
 function filterCards(cards: ImpactCard[], tab: TabKey): ImpactCard[] {
   if (tab === 'to_validate') return cards.filter((c) => c.status === 'TO_VALIDATE')
-  if (tab === 'custom') return cards.filter((c) => c.status === 'CUSTOM')
   if (tab === 'private') return cards.filter((c) => c.visibility === 'PRIVATE')
   return cards
 }
@@ -294,11 +291,11 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
       {visible.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            Aucune carte dans cette vue
+            Aucune fiche dans cette vue
           </Typography>
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setWizardOpen(true)}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', mt: 1 }}>
-            Créer une carte
+            Créer une fiche
           </Button>
         </Box>
       ) : (
@@ -336,6 +333,12 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
       <CreateCardWizard
         open={wizardOpen}
         families={families}
+        familyAttributes={Object.fromEntries(
+          families.map((f) => {
+            const node = graphNodes.find((n) => n.id === f.nodeId || (n.data as ExpertiseNodeData).label === f.title)
+            return [f.id, node ? pickAttributes(node.data as ExpertiseNodeData) : undefined]
+          }),
+        ) as Record<string, ExpertiseAttributes | undefined>}
         onClose={() => setWizardOpen(false)}
         onCreate={handleCreate}
       />

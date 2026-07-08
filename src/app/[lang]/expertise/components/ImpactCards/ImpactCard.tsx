@@ -16,7 +16,6 @@ import {
   ContentCopyOutlined,
   MoreVertOutlined,
   ScheduleOutlined,
-  TuneOutlined,
   VisibilityOffOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material'
@@ -26,7 +25,6 @@ import { ImpactCard, PROFILE_CONFIG } from './impactCardsTypes'
 const STATUS_CONFIG = {
   VALIDATED: { label: 'Validée', Icon: CheckCircleOutlined, color: '#065F46', bg: '#D1FAE5' },
   TO_VALIDATE: { label: 'À valider', Icon: ScheduleOutlined, color: '#92400E', bg: '#FEF3C7' },
-  CUSTOM: { label: 'Personnalisée', Icon: TuneOutlined, color: '#1E40AF', bg: '#DBEAFE' },
 }
 
 interface Props {

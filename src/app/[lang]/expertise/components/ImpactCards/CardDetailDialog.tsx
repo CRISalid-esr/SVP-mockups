@@ -9,7 +9,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   FormControl,
   IconButton,
   InputLabel,
@@ -26,9 +25,10 @@ import {
   VisibilityOffOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material'
-import { ImpactCard, ImpactFamily, PROFILE_CONFIG, SPECIFIC_SUGGESTIONS, TARGET_AUDIENCE_OPTIONS } from './impactCardsTypes'
+import { ImpactCard, ImpactFamily, PROFILE_CONFIG, TARGET_AUDIENCE_OPTIONS } from './impactCardsTypes'
+import AttributesEditor from '../AttributesEditor'
 
-const STATUS_LABELS = { VALIDATED: 'Validée', TO_VALIDATE: 'À valider', CUSTOM: 'Personnalisée' }
+const STATUS_LABELS = { VALIDATED: 'Validée', TO_VALIDATE: 'À valider' }
 
 interface Props {
   card: ImpactCard
@@ -43,26 +43,11 @@ interface Props {
 export default function CardDetailDialog({ card, family, open, onClose, onSave, onDuplicate, onArchive }: Props) {
   const [tab, setTab] = useState(0)
   const [draft, setDraft] = useState<ImpactCard>(card)
-  const [newSpecKey, setNewSpecKey] = useState('')
-  const [newSpecVal, setNewSpecVal] = useState('')
   const cfg = PROFILE_CONFIG[draft.profile]
 
   const handleSave = () => {
     onSave({ ...draft, lastUpdate: new Date().toLocaleDateString('fr-FR') })
     onClose()
-  }
-
-  const addSpecific = () => {
-    if (!newSpecKey.trim()) return
-    setDraft((d) => ({ ...d, specifics: { ...(d.specifics ?? {}), [newSpecKey]: newSpecVal } }))
-    setNewSpecKey('')
-    setNewSpecVal('')
-  }
-
-  const removeSpecific = (key: string) => {
-    const next = { ...(draft.specifics ?? {}) }
-    delete next[key]
-    setDraft((d) => ({ ...d, specifics: next }))
   }
 
   const toggleAudience = (a: string) => {
@@ -97,7 +82,7 @@ export default function CardDetailDialog({ card, family, open, onClose, onSave, 
           </Typography>
           {family && (
             <Typography variant="caption" color="text.secondary">
-              Famille : {family.title}
+Thème de recherche : {family.title}
             </Typography>
           )}
         </Box>
@@ -107,7 +92,7 @@ export default function CardDetailDialog({ card, family, open, onClose, onSave, 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ '& .MuiTab-root': { textTransform: 'none', fontSize: '0.85rem' } }}>
           <Tab label="Contenu" value={0} />
-          <Tab label="Spécificités" value={1} />
+          <Tab label="Caractéristiques" value={1} />
           <Tab label="Métadonnées" value={2} />
         </Tabs>
       </Box>
@@ -175,50 +160,12 @@ export default function CardDetailDialog({ card, family, open, onClose, onSave, 
         {tab === 1 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Champs libres pour préciser le contexte de l&apos;expertise (terrain, langue, méthode…)
+              Caractéristiques héritées du thème de recherche — ajustez-les pour cette fiche si besoin.
             </Typography>
-            {Object.entries(draft.specifics ?? {}).map(([key, val]) => (
-              <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, minWidth: 110, color: 'text.secondary' }}>
-                  {key}
-                </Typography>
-                <TextField
-                  size="small"
-                  value={val}
-                  onChange={(e) => setDraft((d) => ({ ...d, specifics: { ...(d.specifics ?? {}), [key]: e.target.value } }))}
-                  sx={{ flex: 1 }}
-                />
-                <Button size="small" color="error" onClick={() => removeSpecific(key)} sx={{ minWidth: 0, px: 1 }}>
-                  ×
-                </Button>
-              </Box>
-            ))}
-            <Divider />
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
-              <FormControl size="small" sx={{ flex: 1 }}>
-                <InputLabel>Clé</InputLabel>
-                <Select
-                  value={newSpecKey}
-                  label="Clé"
-                  onChange={(e) => setNewSpecKey(e.target.value)}
-                  renderValue={(v) => v}
-                >
-                  {SPECIFIC_SUGGESTIONS.map((s) => (
-                    <MenuItem key={s} value={s}>{s}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Valeur"
-                size="small"
-                value={newSpecVal}
-                onChange={(e) => setNewSpecVal(e.target.value)}
-                sx={{ flex: 2 }}
-              />
-              <Button variant="outlined" size="small" onClick={addSpecific} sx={{ textTransform: 'none', mb: 0.25 }}>
-                Ajouter
-              </Button>
-            </Box>
+            <AttributesEditor
+              value={draft.attributes ?? {}}
+              onChange={(attributes) => setDraft((d) => ({ ...d, attributes }))}
+            />
           </Box>
         )}
 
@@ -259,7 +206,7 @@ export default function CardDetailDialog({ card, family, open, onClose, onSave, 
 
             {family && (
               <Box sx={{ bgcolor: 'grey.50', p: 1.5, borderRadius: 1 }}>
-                <Typography variant="caption" color="text.secondary">Famille (nœud source)</Typography>
+                <Typography variant="caption" color="text.secondary">Thème de recherche (nœud source)</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{family.title}</Typography>
                 <Typography variant="caption" color="text.secondary">Source : {family.source}</Typography>
               </Box>

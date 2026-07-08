@@ -26,15 +26,18 @@ import {
   ImpactFamily,
   PROFILE_CONFIG,
   ProfileType,
-  SPECIFIC_SUGGESTIONS,
   TARGET_AUDIENCE_OPTIONS,
 } from './impactCardsTypes'
+import { ExpertiseAttributes } from '../../types'
+import AttributesEditor from '../AttributesEditor'
 
-const STEPS = ['Profil & Famille', 'Titre & Description', 'Audiences & Spécifiques']
+const STEPS = ['Public & Thème', 'Titre & Description', 'Audiences & Caractéristiques']
 
 interface Props {
   open: boolean
   families: ImpactFamily[]
+  /** Caractéristiques du thème source, par id de famille (pré-remplissage). */
+  familyAttributes?: Record<string, ExpertiseAttributes | undefined>
   onClose: () => void
   onCreate: (card: Omit<ImpactCard, 'id'>) => void
 }
@@ -49,18 +52,16 @@ const EMPTY: Omit<ImpactCard, 'id'> = {
   visibility: 'PRIVATE',
   familyId: '',
   lastUpdate: new Date().toLocaleDateString('fr-FR'),
-  specifics: {},
+  attributes: {},
 }
 
-export default function CreateCardWizard({ open, families, onClose, onCreate }: Props) {
+export default function CreateCardWizard({ open, families, familyAttributes, onClose, onCreate }: Props) {
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState<Omit<ImpactCard, 'id'>>(EMPTY)
-  const [newSpecKey, setNewSpecKey] = useState('')
-  const [newSpecVal, setNewSpecVal] = useState('')
 
   const cfg = PROFILE_CONFIG[draft.profile]
 
-  const reset = () => { setStep(0); setDraft(EMPTY); setNewSpecKey(''); setNewSpecVal('') }
+  const reset = () => { setStep(0); setDraft(EMPTY) }
   const handleClose = () => { reset(); onClose() }
 
   const handleNext = () => setStep((s) => Math.min(s + 1, 2))
@@ -87,18 +88,11 @@ export default function CreateCardWizard({ open, families, onClose, onCreate }: 
     }))
   }
 
-  const addSpecific = () => {
-    if (!newSpecKey.trim()) return
-    setDraft((d) => ({ ...d, specifics: { ...(d.specifics ?? {}), [newSpecKey]: newSpecVal } }))
-    setNewSpecKey('')
-    setNewSpecVal('')
-  }
-
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', pr: 1 }}>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Nouvelle carte impact</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Nouvelle fiche expertise</Typography>
           <Typography variant="caption" color="text.secondary">
             Étape {step + 1} / {STEPS.length}
           </Typography>
@@ -152,11 +146,16 @@ export default function CreateCardWizard({ open, families, onClose, onCreate }: 
             </Box>
 
             <FormControl size="small" fullWidth>
-              <InputLabel>Famille (expertise source)</InputLabel>
+              <InputLabel>Thème de recherche</InputLabel>
               <Select
                 value={draft.familyId}
-                label="Famille (expertise source)"
-                onChange={(e) => setDraft((d) => ({ ...d, familyId: e.target.value }))}
+                label="Thème de recherche"
+                onChange={(e) => {
+                  const familyId = e.target.value
+                  // Pré-remplit les caractéristiques depuis le thème source.
+                  const inherited = familyAttributes?.[familyId]
+                  setDraft((d) => ({ ...d, familyId, attributes: inherited ? { ...inherited } : {} }))
+                }}
               >
                 {families.map((f) => (
                   <MenuItem key={f.id} value={f.id}>{f.title}</MenuItem>
@@ -175,7 +174,7 @@ export default function CreateCardWizard({ open, families, onClose, onCreate }: 
               </Typography>
             </Box>
             <TextField
-              label="Titre de la carte"
+              label="Titre de la fiche"
               value={draft.title}
               onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
               fullWidth
@@ -235,35 +234,16 @@ export default function CreateCardWizard({ open, families, onClose, onCreate }: 
             </Box>
 
             <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Informations spécifiques (facultatif)
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                Caractéristiques du thème de recherche
               </Typography>
-              {Object.entries(draft.specifics ?? {}).map(([key, val]) => (
-                <Box key={key} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, minWidth: 100, color: 'text.secondary' }}>
-                    {key}
-                  </Typography>
-                  <Typography variant="body2" sx={{ flex: 1 }}>{val}</Typography>
-                  <Button size="small" color="error" onClick={() => {
-                    const next = { ...(draft.specifics ?? {})} ; delete next[key]
-                    setDraft((d) => ({ ...d, specifics: next }))
-                  }} sx={{ minWidth: 0, px: 1 }}>×</Button>
-                </Box>
-              ))}
-              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                <FormControl size="small" sx={{ flex: 1 }}>
-                  <InputLabel>Clé</InputLabel>
-                  <Select value={newSpecKey} label="Clé" onChange={(e) => setNewSpecKey(e.target.value)} renderValue={(v) => v}>
-                    {SPECIFIC_SUGGESTIONS.map((s) => (
-                      <MenuItem key={s} value={s}>{s}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField label="Valeur" size="small" value={newSpecVal} onChange={(e) => setNewSpecVal(e.target.value)} sx={{ flex: 2 }} />
-                <Button variant="outlined" size="small" onClick={addSpecific} sx={{ textTransform: 'none' }}>
-                  +
-                </Button>
-              </Box>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 1.5 }}>
+                Héritées du thème sélectionné — ajustez-les pour cette fiche si besoin.
+              </Typography>
+              <AttributesEditor
+                value={draft.attributes ?? {}}
+                onChange={(attributes) => setDraft((d) => ({ ...d, attributes }))}
+              />
             </Box>
           </Box>
         )}
@@ -295,7 +275,7 @@ export default function CreateCardWizard({ open, families, onClose, onCreate }: 
             onClick={handleCreate}
             sx={{ textTransform: 'none', bgcolor: cfg.border, '&:hover': { bgcolor: cfg.border, filter: 'brightness(0.9)' } }}
           >
-            Créer la carte
+            Créer la fiche
           </Button>
         )}
       </DialogActions>

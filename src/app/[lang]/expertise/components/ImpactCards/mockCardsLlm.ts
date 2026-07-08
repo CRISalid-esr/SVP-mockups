@@ -1,10 +1,10 @@
 import { Node } from '@xyflow/react'
-import { ExpertiseNodeData } from '../../types'
+import { ExpertiseAttributes, ExpertiseNodeData } from '../../types'
 import { ImpactCard, ImpactFamily, ProfileType } from './impactCardsTypes'
 
 // Simulation LLM : décline chaque thème de recherche (nœud du graphe) en une
 // fiche expertise par public. Ne produit que les fiches manquantes — les
-// fiches existantes (validées ou personnalisées) ne sont jamais écrasées.
+// fiches existantes ne sont jamais écrasées.
 
 const PROFILES: ProfileType[] = ['RECHERCHE', 'INNOVATION', 'MEDIA', 'VULGARISATION']
 
@@ -14,11 +14,16 @@ function lowerFirst(label: string): string {
   return label.charAt(0).toLowerCase() + label.slice(1)
 }
 
-function baseSpecifics(d: ExpertiseNodeData): Record<string, string> {
-  const specifics: Record<string, string> = {}
-  if (d.temporal?.length) specifics['Période'] = d.temporal.map((t) => t.label).join(' · ')
-  if (d.geographic?.length) specifics['Terrain'] = d.geographic.map((g) => g.label).join(', ')
-  return specifics
+// Les fiches héritent des caractéristiques du thème source (couverture
+// temporelle, lieux, personnes, organisations, concepts).
+export function pickAttributes(d: ExpertiseNodeData): ExpertiseAttributes | undefined {
+  const attrs: ExpertiseAttributes = {}
+  if (d.temporal?.length) attrs.temporal = d.temporal
+  if (d.geographic?.length) attrs.geographic = d.geographic
+  if (d.persons?.length) attrs.persons = d.persons
+  if (d.organizations?.length) attrs.organizations = d.organizations
+  if (d.concepts?.length) attrs.concepts = d.concepts
+  return Object.keys(attrs).length > 0 ? attrs : undefined
 }
 
 interface CardDraft {
@@ -26,7 +31,6 @@ interface CardDraft {
   description: string
   specialization: number
   targetAudiences: string[]
-  specifics?: Record<string, string>
 }
 
 const TEMPLATES: Record<ProfileType, (d: ExpertiseNodeData) => CardDraft> = {
@@ -35,21 +39,18 @@ const TEMPLATES: Record<ProfileType, (d: ExpertiseNodeData) => CardDraft> = {
     description: `${d.description ? `${d.description}. ` : ''}Présentation académique du thème : état de l'art, approches méthodologiques et résultats récents, en vue de collaborations scientifiques.`,
     specialization: 9,
     targetAudiences: ['Chercheurs', 'Doctorants'],
-    specifics: baseSpecifics(d),
   }),
   INNOVATION: (d) => ({
     title: `Conseil et expertise — ${lowerFirst(d.label)}`,
     description: `Accompagnement des organisations sur ${lowerFirst(d.label)} : études, audits, formations et appui à la décision, adaptés aux enjeux opérationnels.`,
     specialization: 6,
     targetAudiences: ['Industriels', 'PME / Startups', 'Élus / Décideurs'],
-    specifics: { Format: 'Étude, audit ou formation' },
   }),
   MEDIA: (d) => ({
     title: `${d.label} : décryptage et mise en perspective`,
     description: `Interventions presse sur ${lowerFirst(d.label)} : contexte, chiffres clés et enjeux actuels, avec exemples concrets issus de la recherche.`,
     specialization: 4,
     targetAudiences: ['Journalistes', 'Documentaristes'],
-    specifics: { Format: 'Interview, plateau, citation' },
   }),
   VULGARISATION: (d) => ({
     title: `Comprendre ${lowerFirst(d.label)}`,
@@ -103,6 +104,7 @@ export async function generateCardsFromGraph(
         visibility: 'PRIVATE',
         lastUpdate: today,
         source: 'Proposée par IA',
+        attributes: pickAttributes(d),
         ...TEMPLATES[profile](d),
       })
     }

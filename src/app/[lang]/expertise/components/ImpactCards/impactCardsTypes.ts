@@ -5,8 +5,10 @@ import {
   ScienceOutlined,
 } from '@mui/icons-material'
 
+import { ExpertiseAttributes } from '../../types'
+
 export type ProfileType = 'RECHERCHE' | 'INNOVATION' | 'MEDIA' | 'VULGARISATION'
-export type CardStatus = 'VALIDATED' | 'TO_VALIDATE' | 'CUSTOM'
+export type CardStatus = 'VALIDATED' | 'TO_VALIDATE'
 export type CardVisibility = 'PUBLIC' | 'PRIVATE'
 
 export interface ImpactCard {
@@ -21,7 +23,8 @@ export interface ImpactCard {
   familyId: string
   lastUpdate: string
   source?: string
-  specifics?: Record<string, string>
+  /** Caractéristiques héritées du thème de recherche source (modifiables par fiche). */
+  attributes?: ExpertiseAttributes
 }
 
 export interface ImpactFamily {
@@ -86,11 +89,6 @@ export const TARGET_AUDIENCE_OPTIONS = [
   'DRH', 'Documentaristes', 'Associations',
 ]
 
-export const SPECIFIC_SUGGESTIONS = [
-  'Terrain', 'Langue', 'Zone géographique', 'Période',
-  'Méthode', 'Format', 'Molécule', 'Langage informatique', 'Framework',
-]
-
 export const INITIAL_FAMILIES: ImpactFamily[] = [
   { id: 'f1', title: 'Migration pour le travail', nodeId: 'n1', source: 'Carte mentale' },
   { id: 'f2', title: 'Politiques migratoires', nodeId: 'n2', source: 'Carte mentale' },
@@ -105,7 +103,11 @@ export const INITIAL_CARDS: ImpactCard[] = [
     description: "Analyse des trajectoires migratoires des travailleurs sri-lankais vers les pays du Golfe, avec focus sur les conditions d'emploi dans le cadre du système kafala et les stratégies d'adaptation.",
     targetAudiences: ['Chercheurs en sociologie', 'Géographes', 'Démographes'],
     lastUpdate: '12/03/2026',
-    specifics: { Terrain: 'Sri Lanka, EAU, Qatar', Période: '2005 — aujourd\'hui', Méthode: 'Ethnographie multi-sites' },
+    attributes: {
+      temporal: [{ label: '2005 — aujourd\'hui', yearFrom: 2005, yearTo: 2026 }],
+      geographic: [{ label: 'Sri Lanka' }, { label: 'Émirats arabes unis' }, { label: 'Qatar' }],
+      concepts: [{ label: 'ethnographie multi-sites', vocabulary: 'libre' }],
+    },
   },
   {
     id: 'c2', familyId: 'f1', profile: 'INNOVATION', status: 'VALIDATED', visibility: 'PUBLIC',
@@ -114,7 +116,9 @@ export const INITIAL_CARDS: ImpactCard[] = [
     description: "Expertise pour les entreprises gérant des équipes mobiles internationales : cadres légaux, risques psychosociaux et bonnes pratiques d'intégration des travailleurs migrants.",
     targetAudiences: ['DRH', 'Cabinets de conseil RH', 'PME exportatrices'],
     lastUpdate: '20/01/2026',
-    specifics: { Format: 'Audit + formation', Durée: '2 à 5 jours' },
+    attributes: {
+      concepts: [{ label: 'mobilité internationale', vocabulary: 'libre' }, { label: 'risques psychosociaux', vocabulary: 'libre' }],
+    },
   },
   {
     id: 'c3', familyId: 'f1', profile: 'MEDIA', status: 'VALIDATED', visibility: 'PUBLIC',
@@ -123,7 +127,9 @@ export const INITIAL_CARDS: ImpactCard[] = [
     description: "De Colombo à Dubaï, des millions de travailleurs construisent des tours qu'ils ne verront jamais de l'intérieur. Récit d'une migration invisible et de ses ressorts économiques et familiaux.",
     targetAudiences: ["Journalistes d'investigation", 'Documentaristes', 'Rédactions spécialisées'],
     lastUpdate: '05/02/2026',
-    specifics: { Angle: 'Récit humain', Format: 'Entretiens disponibles', Langues: 'Français, Anglais' },
+    attributes: {
+      geographic: [{ label: 'Golfe Persique' }, { label: 'Sri Lanka' }],
+    },
   },
   {
     id: 'c4', familyId: 'f1', profile: 'VULGARISATION', status: 'TO_VALIDATE', visibility: 'PRIVATE',
@@ -141,7 +147,10 @@ export const INITIAL_CARDS: ImpactCard[] = [
     description: "Étude comparative des régimes juridiques encadrant la migration de travail dans la région MENA : kafala, visa de travail temporaire, zones économiques spéciales.",
     targetAudiences: ['Juristes', 'Chercheurs en droit international', 'ONG'],
     lastUpdate: '18/03/2026',
-    specifics: { Pays: 'EAU, Qatar, Oman, Jordanie', Sources: 'Législation + entretiens' },
+    attributes: {
+      geographic: [{ label: 'Émirats arabes unis' }, { label: 'Qatar' }, { label: 'Oman' }, { label: 'Jordanie' }],
+      concepts: [{ label: 'kafala', vocabulary: 'libre' }, { label: 'droit international du travail', vocabulary: 'rameau' }],
+    },
   },
   {
     id: 'c6', familyId: 'f2', profile: 'INNOVATION', status: 'TO_VALIDATE', visibility: 'PRIVATE',
@@ -150,6 +159,9 @@ export const INITIAL_CARDS: ImpactCard[] = [
     description: "Accompagnement des entreprises dans l'audit de leurs chaînes d'approvisionnement pour détecter et prévenir les risques liés au travail précaire et à la migration forcée.",
     targetAudiences: ['Grands groupes', 'Acheteurs publics', 'Compliance officers'],
     lastUpdate: '02/05/2026',
-    specifics: { Format: 'Audit + rapport', Référentiel: 'Loi Devoir de Vigilance' },
+    attributes: {
+      organizations: [{ label: 'Organisation internationale du travail' }],
+      concepts: [{ label: 'devoir de vigilance', vocabulary: 'libre' }],
+    },
   },
 ]
