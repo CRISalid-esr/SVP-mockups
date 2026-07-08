@@ -92,9 +92,9 @@ Chaque nœud porte, en plus de son intitulé et de sa description, des **caract�
 
 ✅ **Empty state onboarding** : quand le graphe est vide, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils exemples, Ctrl+Entrée pour générer).
 
-✅ **Ajouter une expertise** : bouton dans le panneau gauche → dialog (intitulé, description).
+✅ **Ajouter un thème** : bouton mis en avant dans la barre d'outils du canvas (+ panneau gauche) → dialog (intitulé, description).
 
-✅ **Modifier une expertise** : sélection + "Modifier" → dialog pré-rempli.
+✅ **Modifier un thème** : sélection + "Modifier" → dialog pré-rempli.
 
 ✅ **Supprimer** : sélection + "Supprimer" (sélection multiple supportée).
 
@@ -152,6 +152,10 @@ persons, organizations, concepts) sont projetées en chips colorés.
 Après une génération IA, elle est remplacée par la bannière de revue (verte).
 
 ✅ Encart « Étape suivante : vos expertises » en bas de liste → onglet Expertises.
+
+✅ **Ajouter un thème** : bouton principal de la vue → modale complète (intitulé, description,
+caractéristiques avec les mêmes widgets d'affinage que la carte : slider / périodes nommées,
+GeoNames, IdRef, vocabulaires — composant partagé `AttributesEditor`).
 
 ### 4.2 Anatomie d'une fiche expertise
 
@@ -216,9 +220,9 @@ Après une génération IA, elle est remplacée par la bannière de revue (verte
 
 ✅ **Audiences cibles** : liste (Chercheurs, Industriels, Journalistes, Grand Public, Scolaires…)
 
-✅ **Spécifiques** : champs libres clé/valeur (Terrain, Langue, Méthode, Framework, TRL…)
+✅ **Caractéristiques** : héritées du thème de recherche source (couverture temporelle, lieux, personnes, organisations, concepts), modifiables fiche par fiche — mêmes widgets d'affinage que la carte mentale (composant partagé `AttributesEditor`)
 
-✅ **Statut** : Validée · À valider · Personnalisée
+✅ **Statut** : Validée · À valider
 
 ✅ **Visibilité** : Publique / Privée
 
@@ -226,13 +230,13 @@ Après une génération IA, elle est remplacée par la bannière de revue (verte
 
 ✅ **KPI** en haut : cartes validées / à valider / publiques.
 
-✅ **Sous-onglets** : Toutes · À valider · Personnalisées · Privées.
+✅ **Sous-onglets** : Toutes · À valider · Privées.
 
 ✅ **Organisation** : sections par Famille, puis par Profil.
 
-✅ **Cliquer sur une carte** → dialog en 3 onglets : Contenu · Spécificités · Métadonnées. Actions : Dupliquer, Archiver.
+✅ **Cliquer sur une carte** → dialog en 3 onglets : Contenu · Caractéristiques · Métadonnées. Actions : Dupliquer, Archiver. L'en-tête affiche « Thème de recherche : … ».
 
-✅ **Créer une carte** : wizard 3 étapes — (1) Profil + Famille, (2) Titre + Description + Spécialisation, (3) Audiences + Spécifiques.
+✅ **Créer une fiche** : wizard 3 étapes — (1) Public + Thème de recherche, (2) Titre + Description + Spécialisation, (3) Audiences + Caractéristiques (pré-remplies depuis le thème sélectionné, ajustables).
 
 ✅ **Générer les fiches** (bouton actif, simulation LLM 1,6 s — `mockCardsLlm.ts`) : pour chaque
 thème du graphe, une fiche par public est proposée (statut « À valider », visibilité privée).
