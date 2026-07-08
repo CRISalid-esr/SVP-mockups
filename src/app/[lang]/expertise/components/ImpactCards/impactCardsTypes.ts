@@ -93,7 +93,7 @@ export const SPECIFIC_SUGGESTIONS = [
 
 export const INITIAL_FAMILIES: ImpactFamily[] = [
   { id: 'f1', title: 'Migration pour le travail', nodeId: 'n1', source: 'Carte mentale' },
-  { id: 'f2', title: 'Politiques migratoires', nodeId: 'n3', source: 'Carte mentale' },
+  { id: 'f2', title: 'Politiques migratoires', nodeId: 'n2', source: 'Carte mentale' },
 ]
 
 export const INITIAL_CARDS: ImpactCard[] = [

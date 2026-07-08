@@ -1458,7 +1458,7 @@ msgstr "Publications"
 
 #: src/app/[lang]/components/Sidebar/Sidebar.tsx:512
 msgid "side_bar_expertise"
-msgstr "Expertise"
+msgstr "Research profile"
 
 #: src/app/[lang]/institutions/page.tsx:9
 msgid "side_bar_institutions"

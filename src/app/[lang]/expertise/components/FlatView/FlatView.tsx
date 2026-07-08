@@ -5,7 +5,7 @@ import { Node, Edge } from '@xyflow/react'
 import {
   Alert, Box, Button, Grid2 as Grid, Typography,
 } from '@mui/material'
-import { AccountTree, Add } from '@mui/icons-material'
+import { AccountTree, Add, AutoAwesomeOutlined, CheckCircleOutlined } from '@mui/icons-material'
 import { Activity } from '@/types/Activity'
 import {
   EdgeData,
@@ -13,9 +13,9 @@ import {
   ExpertiseNodeData,
   INITIAL_GRAPH,
 } from '../../types'
+import { loadStoredGraph } from '../../storage'
 import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
 
-const GRAPH_KEY = 'expertise-graph-v2'
 const ACTIVITIES_KEY = 'expertise-activities-v1'
 const TEAL = '#006A61'
 
@@ -73,15 +73,6 @@ const MOCK_ACTIVITIES: Activity[] = [
 
 const INITIAL_ASSOCIATIONS: Record<string, string[]> = { n1: ['1', '2'], n3: ['5', '7'] }
 
-function loadGraph(): ExpertiseGraph {
-  if (typeof window === 'undefined') return INITIAL_GRAPH
-  try {
-    const raw = localStorage.getItem(GRAPH_KEY)
-    if (raw) return JSON.parse(raw) as ExpertiseGraph
-  } catch (_e) { /* ignore */ }
-  return INITIAL_GRAPH
-}
-
 function loadAssociations(): Record<string, string[]> {
   if (typeof window === 'undefined') return INITIAL_ASSOCIATIONS
   try {
@@ -130,16 +121,21 @@ function buildEntries(nodes: Node<ExpertiseNodeData>[], edges: Edge[]): Expertis
 }
 
 interface Props {
+  /** Bascule sur la vue carte mentale (même onglet, autre rendu des thèmes). */
   onGoToMindMap: () => void
+  /** Navigue vers l'onglet Expertises (fiches par public). */
+  onGoToExpertises?: () => void
+  /** Vrai juste après une génération IA : affiche la bannière de revue. */
+  justGenerated?: boolean
 }
 
-export default function FlatView({ onGoToMindMap }: Props) {
+export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerated }: Props) {
   const [graph, setGraph] = useState<ExpertiseGraph>(INITIAL_GRAPH)
   const [associations, setAssociations] = useState<Record<string, string[]>>(INITIAL_ASSOCIATIONS)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setGraph(loadGraph())
+    setGraph(loadStoredGraph())
     setAssociations(loadAssociations())
     setMounted(true)
   }, [])
@@ -159,29 +155,40 @@ export default function FlatView({ onGoToMindMap }: Props) {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Alert
-        severity="info"
-        icon={<AccountTree fontSize="small" />}
-        action={
-          <Button size="small" onClick={onGoToMindMap}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}>
-            Modifier le graphe →
-          </Button>
-        }
-        sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
-      >
-        Cette vue est générée depuis votre carte mentale (v{graph.meta.version}, mise à jour le {graph.meta.lastUpdated}).
-        Modifiez le graphe pour enrichir cette liste.
-      </Alert>
+      {justGenerated ? (
+        <Alert
+          severity="success"
+          icon={<CheckCircleOutlined fontSize="small" />}
+          sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
+        >
+          Vos thèmes de recherche ont été générés — passez-les en revue : modifiez ou supprimez
+          ce qui ne vous ressemble pas, puis générez vos fiches expertises.
+        </Alert>
+      ) : (
+        <Alert
+          severity="info"
+          icon={<AccountTree fontSize="small" />}
+          action={
+            <Button size="small" onClick={onGoToMindMap}
+              sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}>
+              Ouvrir la carte →
+            </Button>
+          }
+          sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
+        >
+          La liste et la carte mentale présentent les mêmes thèmes (v{graph.meta.version}, mise à jour le {graph.meta.lastUpdated}).
+          La carte permet de structurer les relations entre thèmes.
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Mes expertises
+            Mes thèmes de recherche
           </Typography>
           <Typography variant="body2" color="text.secondary">
             <Box component="span" sx={{ fontWeight: 600, color: TEAL }}>{entries.length}</Box>
-            {' '}expertise{entries.length > 1 ? 's' : ''} définie{entries.length > 1 ? 's' : ''}
+            {' '}thème{entries.length > 1 ? 's' : ''} défini{entries.length > 1 ? 's' : ''}
           </Typography>
         </Box>
         <Button variant="outlined" startIcon={<Add />} onClick={onGoToMindMap} size="small"
@@ -194,30 +201,54 @@ export default function FlatView({ onGoToMindMap }: Props) {
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <AccountTree sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            Aucune expertise définie
+            Aucun thème défini
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Commencez par créer votre carte mentale pour alimenter cette vue.
+            Commencez par définir vos thèmes de recherche, depuis vos publications ou en quelques phrases.
           </Typography>
           <Button variant="contained" startIcon={<AccountTree />} onClick={onGoToMindMap}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
-            Créer ma carte
+            Définir mes thèmes
           </Button>
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {entries.map((entry) => (
-            <Grid key={entry.node.id} size={{ xs: 12, md: 6, lg: 4 }}>
-              <ExpertiseFlatCard
-                entry={entry}
-                activities={MOCK_ACTIVITIES}
-                associatedIds={associations[entry.node.id] ?? []}
-                onUpdateAssociations={handleUpdateAssociations}
-                onGoToMindMap={onGoToMindMap}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <>
+          <Grid container spacing={3}>
+            {entries.map((entry) => (
+              <Grid key={entry.node.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                <ExpertiseFlatCard
+                  entry={entry}
+                  activities={MOCK_ACTIVITIES}
+                  associatedIds={associations[entry.node.id] ?? []}
+                  onUpdateAssociations={handleUpdateAssociations}
+                  onGoToMindMap={onGoToMindMap}
+                />
+              </Grid>
+            ))}
+          </Grid>
+
+          {onGoToExpertises && (
+            <Box sx={{
+              mt: 4, p: 2.5, display: 'flex', alignItems: 'center', gap: 2,
+              bgcolor: `${TEAL}08`, border: `1px solid ${TEAL}30`, borderRadius: 2,
+            }}>
+              <AutoAwesomeOutlined sx={{ color: TEAL, fontSize: 28, flexShrink: 0 }} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: TEAL }}>
+                  Étape suivante : vos expertises
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Déclinez vos thèmes de recherche en fiches expertises adaptées à chaque public
+                  (chercheurs, industriels, journalistes, grand public).
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={onGoToExpertises}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0, bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
+                Générer mes expertises →
+              </Button>
+            </Box>
+          )}
+        </>
       )}
     </Box>
   )

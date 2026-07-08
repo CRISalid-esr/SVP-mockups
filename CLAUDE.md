@@ -133,14 +133,22 @@ Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publ
 ---
 
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
-Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défaut) · **Profil structuré** · **Fiches publics**
+**Réorganisation juillet 2026 — 2 onglets + switcher Chercheur/Laboratoire :**
+- Onglet **Thèmes de recherche** : toggle segmented control **Liste (défaut) / Carte mentale** — deux rendus du même graphe (les anciens onglets "Mes domaines" et "Profil structuré" fusionnés)
+- Onglet **Expertises** : les fiches par public (ex-"Fiches publics"), chip "générées depuis vos thèmes"
+- **Stepper de parcours** sous les onglets : ① Définir mes thèmes → ② Générer mes expertises → ③ Publier (compteurs + coches, cliquable)
+- **Switcher Chercheur / Laboratoire** dans l'en-tête (même pattern que le dashboard) → vue agrégée labo
 
-**Architecture (Option A) :** la carte mentale est la source de vérité. Les deux autres vues sont des projections des nœuds du graphe.
+**Architecture (Option A) :** le graphe reste la source de vérité. Vue liste et fiches expertises sont des projections des nœuds. Vocabulaire : "thème de recherche" (saisie) vs "expertise" (fiche par public) — ne plus dire "domaine".
+
+**Parcours de génération :** empty state (publications-first) → génération → bascule auto sur la **vue liste** en mode revue (prop `onGenerated` de `MindMapView`, bannière verte dans `FlatView`) → encart "Étape suivante" → onglet Expertises → bouton **"Générer les fiches"** (actif, `mockCardsLlm.ts`, 1,6 s) : une fiche par public et par thème manquant, statut À valider, bascule sur le sous-onglet "À valider" + barre "Tout valider" + action "Valider cette fiche" dans le menu ⋮ des cartes.
+
+**Vue Laboratoire (`components/Lab/`) :** lecture seule, données mock `labMock.ts` (18 membres, 3 équipes, 14 fiches). KPI (complétude 15/18…), treemap ECharts des thèmes agrégés (clic → dialog membres, filtre par équipe), annuaire des fiches (recherche + filtres par public, clic → dialog détail). Regroupement des thèmes par vocabulaire contrôlé (RAMEAU/Wikidata).
 
 **Isolation par perspective :**
-- Clés localStorage suffixées par `?perspective=` : `expertise-graph-v2-{p}`, `expertise-selected-publications-{p}`, `expertise-history-{p}`
-- `getPerspective()` lit `window.location.search` côté client — aucun hook nécessaire
-- Un profil sans graphe enregistré voit l'empty state (fallback `EMPTY_GRAPH`, plus `INITIAL_GRAPH`)
+- Helpers partagés dans `expertise/storage.ts` : `getPerspective()`, `loadStoredGraph()`, clés `CARDS_KEY`, `FAMILIES_KEY`
+- Clés localStorage suffixées par `?perspective=` : `expertise-graph-v2-{p}`, `expertise-selected-publications-{p}`, `expertise-history-{p}` ; fiches et familles non suffixées (`expertise-cards-v1`, `expertise-families-v1`)
+- Un profil sans graphe enregistré voit l'empty state (fallback `EMPTY_GRAPH` ; `INITIAL_GRAPH` réservé à la perspective `default`)
 
 **Flux de premier accès (publications-first) :**
 - Empty state : CTA "Sélectionner des publications →" (navigue vers `/documents?perspective=…`) + badge du nombre sélectionné + bouton "Générer mes expertises" (actif si ≥ 1 pub)
@@ -168,7 +176,12 @@ Page avec 3 onglets : **Mes domaines** (carte mentale, source de vérité, défa
 
 **Fichiers clés :**
 - `types.ts` — `ExpertiseNodeData`, `HistoryEntry`, `TemporalRef`, `GeoRef`, `PersonRef`, `OrgRef`
-- `MindMapView.tsx` — composant principal (~1 000 lignes)
+- `storage.ts` — helpers localStorage partagés (perspective, graphe, clés fiches/familles)
+- `MindMapView.tsx` — composant principal (~1 300 lignes), prop `onGenerated`
+- `FlatView/FlatView.tsx` — vue liste des thèmes (défaut), props `onGoToExpertises`/`justGenerated`
+- `ImpactCards/ImpactCardsView.tsx` — onglet Expertises (génération + revue)
+- `ImpactCards/mockCardsLlm.ts` — `generateCardsFromGraph(nodes, families, cards)`
+- `Lab/LabView.tsx` · `Lab/labMock.ts` — vue laboratoire agrégée
 - `mockLlm.ts` — `generateGraphFromPrompt()` + `generateGraphFromPublications(count)`
 - `mockIdRef.ts` — `searchIdRefPersons()`, `searchIdRefOrganizations()`, `GEONAMES_MOCK`, `NAMED_PERIODS`
 - `HistoryDialog.tsx` — dialog chronologique des versions

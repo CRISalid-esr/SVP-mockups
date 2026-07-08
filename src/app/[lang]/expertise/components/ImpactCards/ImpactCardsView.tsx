@@ -1,20 +1,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Node } from '@xyflow/react'
 import {
+  Alert,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
+  Snackbar,
   Tab,
   Tabs,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import {
   AddOutlined,
   AutoAwesomeOutlined,
   CheckCircleOutlined,
+  DoneAllOutlined,
   ScheduleOutlined,
   TuneOutlined,
   VisibilityOutlined,
@@ -27,11 +31,13 @@ import {
   PROFILE_CONFIG,
   ProfileType,
 } from './impactCardsTypes'
+import { ExpertiseNodeData } from '../../types'
+import { CARDS_KEY, FAMILIES_KEY, loadStoredGraph } from '../../storage'
+import { generateCardsFromGraph } from './mockCardsLlm'
 import ImpactCardItem from './ImpactCard'
 import CardDetailDialog from './CardDetailDialog'
 import CreateCardWizard from './CreateCardWizard'
 
-const CARDS_KEY = 'expertise-cards-v1'
 const TEAL = '#006A61'
 
 function loadCards(): ImpactCard[] {
@@ -45,6 +51,19 @@ function loadCards(): ImpactCard[] {
 
 function saveCards(cards: ImpactCard[]) {
   localStorage.setItem(CARDS_KEY, JSON.stringify(cards))
+}
+
+function loadFamilies(): ImpactFamily[] {
+  if (typeof window === 'undefined') return INITIAL_FAMILIES
+  try {
+    const raw = localStorage.getItem(FAMILIES_KEY)
+    if (raw) return JSON.parse(raw) as ImpactFamily[]
+  } catch (_e) { /* ignore parse errors */ }
+  return INITIAL_FAMILIES
+}
+
+function saveFamilies(families: ImpactFamily[]) {
+  localStorage.setItem(FAMILIES_KEY, JSON.stringify(families))
 }
 
 function nextId(cards: ImpactCard[]) {
@@ -74,28 +93,57 @@ interface Props {
 
 export default function ImpactCardsView({ onGoToMindMap }: Props) {
   const [cards, setCards] = useState<ImpactCard[]>(INITIAL_CARDS)
-  const [families] = useState<ImpactFamily[]>(INITIAL_FAMILIES)
+  const [families, setFamilies] = useState<ImpactFamily[]>(INITIAL_FAMILIES)
   const [mounted, setMounted] = useState(false)
   const [tab, setTab] = useState<TabKey>('all')
   const [selectedCard, setSelectedCard] = useState<ImpactCard | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
-  const [nodeCount, setNodeCount] = useState(0)
+  const [graphNodes, setGraphNodes] = useState<Node<ExpertiseNodeData>[]>([])
+  const [generating, setGenerating] = useState(false)
+  const [snackbar, setSnackbar] = useState<{ open: boolean; msg: string }>({ open: false, msg: '' })
 
   useEffect(() => {
     setCards(loadCards())
+    setFamilies(loadFamilies())
     setMounted(true)
-    try {
-      const graph = JSON.parse(localStorage.getItem('expertise-graph-v2') ?? '{}')
-      const domains = (graph.nodes ?? []).filter(
-        (n: { data?: { nodeType?: string } }) => n.data?.nodeType === 'expertise',
-      ).length
-      setNodeCount(domains)
-    } catch (_) { /* ignore localStorage parse errors */ }
+    const graph = loadStoredGraph()
+    setGraphNodes(
+      (graph.nodes ?? []).filter((n) => n.data?.nodeType === 'expertise') as Node<ExpertiseNodeData>[],
+    )
   }, [])
+
+  const nodeCount = graphNodes.length
 
   const updateCards = (next: ImpactCard[]) => {
     setCards(next)
     saveCards(next)
+  }
+
+  const handleGenerateCards = async () => {
+    setGenerating(true)
+    try {
+      const { families: nextFamilies, newCards } = await generateCardsFromGraph(graphNodes, families, cards)
+      if (newCards.length === 0) {
+        setSnackbar({ open: true, msg: 'Tous vos thèmes sont déjà déclinés en fiches pour chaque public' })
+        return
+      }
+      setFamilies(nextFamilies)
+      saveFamilies(nextFamilies)
+      updateCards([...cards, ...newCards])
+      setTab('to_validate')
+      setSnackbar({ open: true, msg: `${newCards.length} fiches proposées — passez-les en revue puis validez-les` })
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleValidate = (cardId: string) => {
+    updateCards(cards.map((c) => (c.id === cardId ? { ...c, status: 'VALIDATED' as const } : c)))
+  }
+
+  const handleValidateAll = () => {
+    updateCards(cards.map((c) => (c.status === 'TO_VALIDATE' ? { ...c, status: 'VALIDATED' as const } : c)))
+    setSnackbar({ open: true, msg: 'Toutes les fiches ont été validées' })
   }
 
   const handleSave = (updated: ImpactCard) => {
@@ -141,7 +189,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Bandeau CTA — génération depuis le graphe */}
+      {/* Bandeau CTA — génération depuis les thèmes de recherche */}
       <Box sx={{
         display: 'flex', alignItems: 'center', gap: 2,
         bgcolor: `${TEAL}08`, border: `1px solid ${TEAL}30`,
@@ -150,41 +198,39 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
         <AutoAwesomeOutlined sx={{ color: TEAL, fontSize: 28, flexShrink: 0 }} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: TEAL, mb: 0.25 }}>
-            Générer des fiches automatiquement
+            Générer mes fiches expertises
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {nodeCount > 0
               ? <>
-                  {nodeCount} domaine{nodeCount > 1 ? 's' : ''} détecté{nodeCount > 1 ? 's' : ''} dans votre carte · une fiche par public sera proposée pour chaque domaine.{' '}
+                  Vos expertises sont déclinées à partir de vos {nodeCount} thème{nodeCount > 1 ? 's' : ''} de recherche · une fiche par public sera proposée pour chaque thème.{' '}
                   <Box component="span" onClick={onGoToMindMap} sx={{ cursor: 'pointer', color: TEAL, textDecoration: 'underline', '&:hover': { opacity: 0.8 } }}>
-                    Modifier la carte
+                    Modifier mes thèmes
                   </Box>
                 </>
-              : <>Construisez d&apos;abord votre carte de domaines pour activer cette fonctionnalité.</>
+              : <>Définissez d&apos;abord vos thèmes de recherche pour activer cette fonctionnalité.</>
             }
           </Typography>
         </Box>
-        <Tooltip title="Disponible prochainement">
-          <span>
-            <Button
-              variant="contained" disabled
-              startIcon={<AutoAwesomeOutlined />}
-              sx={{
-                textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0,
-                bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' },
-                '&.Mui-disabled': { bgcolor: `${TEAL}50`, color: 'white' },
-              }}
-            >
-              Générer les fiches
-            </Button>
-          </span>
-        </Tooltip>
+        <Button
+          variant="contained"
+          disabled={nodeCount === 0 || generating}
+          startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeOutlined />}
+          onClick={handleGenerateCards}
+          sx={{
+            textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0,
+            bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' },
+            '&.Mui-disabled': { bgcolor: `${TEAL}50`, color: 'white' },
+          }}
+        >
+          {generating ? 'Génération en cours…' : 'Générer les fiches'}
+        </Button>
       </Box>
 
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 2 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Mes fiches publics</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Mes expertises par public</Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Stat icon={<CheckCircleOutlined sx={{ fontSize: 14, color: '#065F46' }} />} label={`${validatedCount} validée${validatedCount > 1 ? 's' : ''}`} color="#065F46" />
             <Stat icon={<ScheduleOutlined sx={{ fontSize: 14, color: '#92400E' }} />} label={`${toValidateCount} à valider`} color="#92400E" />
@@ -227,6 +273,24 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
         </Tabs>
       </Box>
 
+      {/* Barre de revue — visible quand des fiches attendent une validation */}
+      {tab === 'to_validate' && toValidateCount > 0 && (
+        <Alert
+          severity="warning"
+          icon={<ScheduleOutlined fontSize="small" />}
+          action={
+            <Button size="small" startIcon={<DoneAllOutlined />} onClick={handleValidateAll}
+              sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}>
+              Tout valider
+            </Button>
+          }
+          sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
+        >
+          {toValidateCount} fiche{toValidateCount > 1 ? 's' : ''} en attente de votre validation.
+          Ouvrez une fiche pour la retoucher, ou validez-la directement depuis son menu ⋮.
+        </Alert>
+      )}
+
       {visible.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 10 }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -240,7 +304,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {familiesWithCards.map(({ family, cards: fCards }) => (
-            <FamilySection key={family.id} family={family} cards={fCards} onSelect={setSelectedCard} onDuplicate={handleDuplicate} onArchive={(id) => handleArchive(id)} />
+            <FamilySection key={family.id} family={family} cards={fCards} onSelect={setSelectedCard} onDuplicate={handleDuplicate} onArchive={(id) => handleArchive(id)} onValidate={handleValidate} />
           ))}
           {orphanCards.length > 0 && (
             <FamilySection
@@ -249,6 +313,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
               onSelect={setSelectedCard}
               onDuplicate={handleDuplicate}
               onArchive={(id) => handleArchive(id)}
+              onValidate={handleValidate}
             />
           )}
         </Box>
@@ -274,6 +339,17 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
         onClose={() => setWizardOpen(false)}
         onCreate={handleCreate}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSnackbar((s) => ({ ...s, open: false }))} sx={{ width: '100%' }}>
+          {snackbar.msg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
@@ -293,12 +369,14 @@ function FamilySection({
   onSelect,
   onDuplicate,
   onArchive,
+  onValidate,
 }: {
   family: ImpactFamily
   cards: ImpactCard[]
   onSelect: (c: ImpactCard) => void
   onDuplicate: (c: ImpactCard) => void
   onArchive: (id: string) => void
+  onValidate: (id: string) => void
 }) {
   // Group by profile
   const byProfile = (Object.keys(PROFILE_CONFIG) as ProfileType[]).map((p) => ({
@@ -335,6 +413,7 @@ function FamilySection({
                     onClick={() => onSelect(card)}
                     onDuplicate={() => onDuplicate(card)}
                     onArchive={() => onArchive(card.id)}
+                    onValidate={card.status === 'TO_VALIDATE' ? () => onValidate(card.id) : undefined}
                   />
                 ))}
               </Box>

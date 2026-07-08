@@ -32,22 +32,13 @@ import {
   ExpertiseGraph, ExpertiseNodeData, ExpertiseNodeType, HistoryEntry,
   INITIAL_GRAPH, NODE_TYPE_CONFIG,
 } from '../../types'
+import { EMPTY_GRAPH, getPerspective } from '../../storage'
 
 const STORAGE_KEY_PREFIX = 'expertise-graph-v2'
 const PUBS_KEY_PREFIX = 'expertise-selected-publications'
 const HISTORY_KEY_PREFIX = 'expertise-history'
 const TEAL = '#006A61'
 
-function getPerspective(): string {
-  if (typeof window === 'undefined') return 'default'
-  return new URLSearchParams(window.location.search).get('perspective') || 'default'
-}
-
-const EMPTY_GRAPH: ExpertiseGraph = {
-  nodes: [],
-  edges: [],
-  meta: { version: 1, lastUpdated: new Date().toISOString().split('T')[0], promptHistory: [] },
-}
 const DRAWER_WIDTH = 320
 
 const ATTR_CONFIG: Array<{
@@ -86,7 +77,7 @@ function loadGraph(key: string): ExpertiseGraph {
     const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw) as ExpertiseGraph
   } catch (_e) { /* ignore */ }
-  return INITIAL_GRAPH
+  return getPerspective() === 'default' ? INITIAL_GRAPH : EMPTY_GRAPH
 }
 
 function saveGraph(key: string, graph: ExpertiseGraph) {
@@ -118,7 +109,13 @@ const DEFAULT_DIALOG: NodeDialogState = {
   open: false, mode: 'add', label: '', nodeType: 'expertise', description: '',
 }
 
-export default function MindMapView() {
+interface MindMapViewProps {
+  /** Appelé après une génération réussie depuis l'empty state (graphe vide) —
+   *  permet à la page de basculer sur la vue liste pour la revue des thèmes. */
+  onGenerated?: () => void
+}
+
+export default function MindMapView({ onGenerated }: MindMapViewProps) {
   const [perspective] = useState(() => getPerspective())
   const storageKey = `${STORAGE_KEY_PREFIX}-${perspective}`
   const pubsKey = `${PUBS_KEY_PREFIX}-${perspective}`
@@ -256,6 +253,7 @@ export default function MindMapView() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
+    const wasEmpty = nodes.length === 0
     setGenerating(true)
     try {
       const result = await generateGraphFromPrompt(prompt, meta)
@@ -266,12 +264,14 @@ export default function MindMapView() {
       addToHistory(`Généré par IA — "${prompt.slice(0, 50)}${prompt.length > 50 ? '…' : ''}"`, result)
       setPrompt('')
       setSnackbar({ open: true, msg: 'Graphe généré — vous pouvez le modifier', severity: 'info' })
+      if (wasEmpty) onGenerated?.()
     } finally {
       setGenerating(false)
     }
   }
 
   const handleGenerateFromPublications = async () => {
+    const wasEmpty = nodes.length === 0
     setGenerating(true)
     try {
       const result = await generateGraphFromPublications(selectedPubs.length, meta)
@@ -281,6 +281,7 @@ export default function MindMapView() {
       saveGraph(storageKey, result)
       addToHistory(`Généré depuis ${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''}`, result)
       setSnackbar({ open: true, msg: 'Carte générée depuis vos publications — affinez-la via le chatbot', severity: 'info' })
+      if (wasEmpty) onGenerated?.()
     } finally {
       setGenerating(false)
     }
@@ -425,13 +426,13 @@ export default function MindMapView() {
       variant="outlined" startIcon={<Add />} onClick={handleOpenAddNode} size="small" fullWidth
       sx={{ textTransform: 'none', justifyContent: 'flex-start', borderColor: TEAL, color: TEAL }}
     >
-      Ajouter une expertise
+      Ajouter un thème
     </Button>
   )
 
   const renderStats = () => (
     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-      <Chip size="small" label={`${nodes.length} expertise${nodes.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`${nodes.length} thème${nodes.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
       <Chip size="small" label={`${edges.length} lien${edges.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
       <Chip size="small" label={`v${meta.version}`} variant="outlined" />
     </Box>
@@ -458,7 +459,7 @@ export default function MindMapView() {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box sx={{ width: 12, height: 12, borderRadius: '3px', flexShrink: 0, border: `2px solid ${TEAL}`, bgcolor: NODE_TYPE_CONFIG.expertise.bg }} />
-            <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL }}>Expertise</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL }}>Thème de recherche</Typography>
           </Box>
         </Box>
         <Box>
@@ -835,7 +836,7 @@ export default function MindMapView() {
           ) : (
             <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                {selectedNodes.length} expertises sélectionnées
+                {selectedNodes.length} thèmes sélectionnés
               </Typography>
             </Box>
           )}
@@ -877,10 +878,10 @@ export default function MindMapView() {
       <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, color: TEAL }}>
-            Décrire mes expertises
+            Décrire mes thèmes de recherche
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-            Décrivez vos domaines en langage naturel. L&apos;IA génèrera un graphe que vous pourrez modifier.
+            Décrivez vos thèmes de recherche en langage naturel. L&apos;IA génèrera un graphe que vous pourrez modifier.
           </Typography>
           <TextField
             multiline rows={5} fullWidth size="small"
@@ -978,10 +979,10 @@ export default function MindMapView() {
             </Box>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-                Calculez vos expertises à partir de vos publications
+                Retrouvez vos thèmes de recherche à partir de vos publications
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Sélectionnez les publications à analyser, puis laissez l&apos;IA construire votre carte d&apos;expertise. Vous pourrez ensuite l&apos;affiner via le chatbot.
+                Sélectionnez les publications à analyser, puis laissez l&apos;IA identifier vos thèmes de recherche. Vous pourrez ensuite l&apos;affiner via le chatbot.
               </Typography>
             </Box>
 
@@ -1023,7 +1024,7 @@ export default function MindMapView() {
               disabled={selectedPubs.length === 0 || generating}
               sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
             >
-              {generating ? 'Construction de la carte…' : 'Générer mes expertises'}
+              {generating ? 'Construction de la carte…' : 'Générer mes thèmes de recherche'}
             </Button>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1037,7 +1038,7 @@ export default function MindMapView() {
               onClick={() => setShowManualInput(true)}
               sx={{ textTransform: 'none', color: 'text.secondary', alignSelf: 'center' }}
             >
-              Décrire mes domaines manuellement
+              Décrire mes thèmes manuellement
             </Button>
           </>
         ) : (
@@ -1051,10 +1052,10 @@ export default function MindMapView() {
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-                Décrivez vos domaines de recherche
+                Décrivez vos thèmes de recherche
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                En quelques phrases, l&apos;IA construira votre carte d&apos;expertise que vous pourrez ensuite modifier librement.
+                En quelques phrases, l&apos;IA construira votre carte de thèmes que vous pourrez ensuite modifier librement.
               </Typography>
             </Box>
             <TextField
@@ -1248,7 +1249,7 @@ export default function MindMapView() {
       {/* Dialog — add / edit expertise */}
       <Dialog open={nodeDialog.open} onClose={() => setNodeDialog(DEFAULT_DIALOG)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {nodeDialog.mode === 'add' ? 'Ajouter une expertise' : "Modifier l'expertise"}
+          {nodeDialog.mode === 'add' ? 'Ajouter un thème' : 'Modifier le thème'}
           <IconButton size="small" onClick={() => setNodeDialog(DEFAULT_DIALOG)}><Close fontSize="small" /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>

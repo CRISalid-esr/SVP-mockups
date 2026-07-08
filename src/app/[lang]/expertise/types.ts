@@ -82,10 +82,10 @@ export const NODE_TYPE_CONFIG: Record<
   { label: string; color: string; bg: string; description: string }
 > = {
   expertise: {
-    label: 'Expertise',
+    label: 'Thème de recherche',
     color: NODE_COLOR,
     bg: NODE_BG,
-    description: 'Domaine de recherche',
+    description: 'Thème ou domaine de recherche',
   },
 }
 

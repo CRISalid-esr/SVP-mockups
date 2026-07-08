@@ -224,7 +224,7 @@ export default function ExpertiseFlatCard({
           <Divider />
           <Box sx={{ px: 2.5, py: 1.5 }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 1 }}>
-              Relations avec d&apos;autres expertises
+              Relations avec d&apos;autres thèmes
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6 }}>
               {relations.map(({ node: other, edgeLabel, directionArrow }, i) => {

@@ -32,9 +32,11 @@ interface Props {
   onClick: () => void
   onDuplicate: () => void
   onArchive: () => void
+  /** Présent quand la fiche est en attente de validation : action rapide « Valider ». */
+  onValidate?: () => void
 }
 
-export default function ImpactCardItem({ card, onClick, onDuplicate, onArchive }: Props) {
+export default function ImpactCardItem({ card, onClick, onDuplicate, onArchive, onValidate }: Props) {
   const cfg = PROFILE_CONFIG[card.profile]
   const statusCfg = STATUS_CONFIG[card.status]
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
@@ -236,6 +238,15 @@ export default function ImpactCardItem({ card, onClick, onDuplicate, onArchive }
       </Box>
 
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleClose}>
+        {onValidate && (
+          <MenuItem
+            dense
+            onClick={(e) => { e.stopPropagation(); onValidate(); handleClose() }}
+            sx={{ color: '#065F46' }}
+          >
+            <CheckCircleOutlined fontSize="small" sx={{ mr: 1 }} /> Valider cette fiche
+          </MenuItem>
+        )}
         <MenuItem
           dense
           onClick={(e) => { e.stopPropagation(); onDuplicate(); handleClose() }}
