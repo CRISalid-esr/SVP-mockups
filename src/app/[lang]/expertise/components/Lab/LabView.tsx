@@ -123,7 +123,7 @@ export default function LabView({ labName }: { labName: string }) {
     <Box sx={{ p: 3 }}>
       <Alert severity="info" icon={<InfoOutlined fontSize="small" />} sx={{ mb: 3 }}>
         Vue agrégée en lecture seule : les thèmes de recherche et les fiches expertises sont
-        renseignés par chaque membre depuis sa propre page Expertises. Les thèmes alignés sur un
+        renseignés par chaque membre depuis son propre profil recherche. Les thèmes alignés sur un
         vocabulaire contrôlé (RAMEAU, Wikidata) sont regroupés automatiquement entre membres.
       </Alert>
 

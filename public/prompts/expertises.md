@@ -256,7 +256,7 @@ propose « Valider cette fiche » dans son menu ⋮.
 
 ---
 
-## 6. Perspective Laboratoire — « Expertises : Labo X »
+## 6. Perspective Laboratoire — « Profil recherche : Labo X »
 
 ### 6.1 Principe
 

@@ -131,7 +131,7 @@ export default function ExpertisePage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <DocumentHeader
         perspectiveName={view === 'researcher' ? researcherName : labName}
-        pageName={'Expertises'}
+        pageName={'Profil recherche'}
       >
         <ToggleButtonGroup
           size="small"
