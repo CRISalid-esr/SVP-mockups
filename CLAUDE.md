@@ -231,6 +231,19 @@ Widget flottant global (bouton en bas à droite, panneau dépliable) simulant le
 
 ---
 
+### ✅ Gestion des droits (`src/app/[lang]/rights/`)
+
+Maquette de la proposition CRISalid « groupes Keycloak = source unique des droits » : arborescence de groupes qui suit l'organigramme (établissement > composante > labo > équipe) avec des feuilles par rôle ; le full group path (`/UnivParis1/UFR08/LaboXYZ/account_editor`) est encodé dans le JWT ; les applis clientes (SoVisu+, chatbot, Projects, couche MCP) ne font que parser rôle + périmètre. Un droit s'applique aux sous-structures.
+
+**3 onglets** (`page.tsx`, entrée Sidebar « Gestion des droits ») :
+- **Utilisateurs** (`UsersTab` + `UserRightsDialog`) : droits en chips, fiche par utilisateur (ajout rôle × périmètre → aperçu du chemin de groupe, retrait, accordéon « JWT résultant » avec payload décodé + interprétation par appli)
+- **Groupes Keycloak** (`GroupsTab` + `GroupMembersDialog`) : TreeView (@mui/x-tree-view) de l'arborescence (2 établissements de démo : Nantes Université, Paris 1 — exemple du message d'origine), feuilles-rôles avec compteurs, dialogue membres, bouton « Resynchroniser depuis l'organigramme CRISalid » (simulé), encart fine-grained admin permissions (KC 26.2)
+- **Rôles** (`RolesTab`) : vocabulaire transverse (`admin`, `account_editor`, `document_viewer/editor`, `project_viewer/editor`) × applications qui l'interprètent
+
+**Données/état :** `mockRights.ts` (ORG_TREE, ROLES, MOCK_USERS, parse des group paths, `buildJwtPayload`) ; assignations persistées en localStorage `rights-assignments-v1`, partagées entre les onglets. Tests : `page.test.tsx`. Descriptif : `public/prompts/droits.md` (mappé dans PromptDrawer).
+
+---
+
 ## Fonctionnalités à développer (restant)
 
 ### 🔲 Activités de recherche

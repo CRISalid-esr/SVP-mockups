@@ -17,6 +17,7 @@ function getPromptKey(pathname: string, tab: string | null): string | null {
   if (withoutLang.startsWith('/documents/') && tab === 'authors') return 'author-tab'
   if (withoutLang.startsWith('/documents/') && tab === 'hal_deposit') return 'hal-deposit'
   if (withoutLang === '/expertise' || withoutLang.startsWith('/expertise/')) return 'expertises'
+  if (withoutLang === '/rights' || withoutLang.startsWith('/rights/')) return 'droits'
   return null
 }
 

@@ -674,6 +674,56 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                     />
                   )}
                 </ListItem>
+                <ListItem
+                  sx={{
+                    marginBottom: theme.utils.pxToRem(4),
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: theme.palette.primaryContainer,
+                    ...(pathname?.startsWith(`/${lang}/rights`)
+                      ? {
+                        backgroundColor: theme.palette.primaryContainer,
+                        borderRadius: theme.utils.pxToRem(8),
+                        color: theme.palette.onPrimaryContainer,
+                      }
+                      : {}),
+                    '&:hover': {
+                      backgroundColor: theme.palette.sidebarItemHover,
+                      borderRadius: theme.utils.pxToRem(8),
+                      color: theme.palette.primaryContainer,
+                    },
+                  }}
+                  component={Link}
+                  href={`/${lang}/rights?${searchParams.toString()}`}
+                  onClick={() => isMobile && handleToggleDrawerAction()}
+                >
+                  <ListItemIcon
+                    sx={{
+                      height: theme.utils.pxToRem(24),
+                      width: theme.utils.pxToRem(24),
+                      minWidth: 'unset',
+                      marginRight: open ? theme.utils.pxToRem(12) : 0,
+                      color: 'inherit',
+                    }}
+                  >
+                    <Settings />
+                  </ListItemIcon>
+                  {open && (
+                    <ListItemText
+                      sx={{
+                        '& .MuiTypography-root': {
+                          fontFamily: 'Inter, Roboto, sans-serif',
+                          fontSize: theme.utils.pxToRem(16),
+                          fontWeight: theme.typography.fontWeightMedium,
+                          lineHeight:
+                            theme.typography.lineHeight.lineHeight24px,
+                        },
+                      }}
+                      primary={'Gestion des droits'}
+                    />
+                  )}
+                </ListItem>
               </Box>
               {/* Third Box */}
               <Box>
