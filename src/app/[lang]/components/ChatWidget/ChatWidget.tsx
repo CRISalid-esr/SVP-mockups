@@ -13,6 +13,12 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import {
+  alpha,
+  ThemeProvider,
+  useTheme,
+  type Theme,
+} from '@mui/material/styles'
 import { ChatBox } from '@mui/x-chat'
 import type { ChatLocaleText, ChatMessage, ChatUser } from '@mui/x-chat-headless'
 import { useMemo, useState } from 'react'
@@ -28,6 +34,22 @@ import { createCrisalidMockAdapter } from './mockAgent'
  */
 
 const STORAGE_KEY = 'crisalid-chat-messages'
+
+/**
+ * @mui/x-chat (v9 alpha) appelle `theme.alpha()`, une méthode ajoutée au thème
+ * en MUI v7 et absente du thème v6 du projet. On étend le thème ambiant avec
+ * cette méthode, localement au widget (les autres composants ne la voient pas).
+ */
+const withChatThemeCompat = (outerTheme: Theme): Theme => {
+  const themed = outerTheme as Theme & {
+    alpha?: (color: string, opacity: number) => string
+  }
+  if (typeof themed.alpha === 'function') return outerTheme
+  return {
+    ...outerTheme,
+    alpha: (color: string, opacity: number) => alpha(color, opacity),
+  } as Theme
+}
 
 const SUGGESTIONS = [
   'Que sais-tu faire ?',
@@ -112,6 +134,11 @@ export default function ChatWidget() {
   const [initialMessages, setInitialMessages] =
     useState<ChatMessage[]>(loadMessages)
   const adapter = useMemo(() => createCrisalidMockAdapter(), [])
+  const outerTheme = useTheme()
+  const chatTheme = useMemo(
+    () => withChatThemeCompat(outerTheme),
+    [outerTheme],
+  )
 
   const handleReset = () => {
     try {
@@ -198,23 +225,25 @@ export default function ChatWidget() {
       </Box>
 
       {/* Conversation */}
-      <ChatBox
-        key={resetKey}
-        adapter={adapter}
-        members={MEMBERS}
-        initialMessages={initialMessages}
-        onMessagesChange={saveMessages}
-        suggestions={SUGGESTIONS}
-        suggestionsAutoSubmit
-        localeText={FR_LOCALE}
-        density='compact'
-        features={{
-          conversationHeader: false,
-          attachments: false,
-          helperText: false,
-        }}
-        sx={{ flex: 1, minHeight: 0, border: 'none', borderRadius: 0 }}
-      />
+      <ThemeProvider theme={chatTheme}>
+        <ChatBox
+          key={resetKey}
+          adapter={adapter}
+          members={MEMBERS}
+          initialMessages={initialMessages}
+          onMessagesChange={saveMessages}
+          suggestions={SUGGESTIONS}
+          suggestionsAutoSubmit
+          localeText={FR_LOCALE}
+          density='compact'
+          features={{
+            conversationHeader: false,
+            attachments: false,
+            helperText: false,
+          }}
+          sx={{ flex: 1, minHeight: 0, border: 'none', borderRadius: 0 }}
+        />
+      </ThemeProvider>
 
       {/* Bandeau maquette */}
       <Typography

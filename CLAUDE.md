@@ -221,6 +221,8 @@ Widget flottant global (bouton en bas à droite, panneau dépliable) simulant le
 
 **Composant :** `@mui/x-chat` (`ChatBox`, v9 alpha) — ⚠️ peer dep officielle = MUI v7.3+, mais fonctionne avec le MUI v6 du projet (il n'importe que `IconButton`, `Button`, `Tooltip`, `styled`, `useThemeProps`). Installé avec `--legacy-peer-deps` (le CI utilise déjà `npm ci --legacy-peer-deps`). Ne pas monter la version de `@mui/material` pour autant.
 
+⚠️ **Compat thème v6** : le paquet appelle `theme.alpha()` (méthode ajoutée au thème en MUI v7) dans le rendu des bulles d'outils et des erreurs → crash « 500 » (ErrorBoundary). Corrigé par `withChatThemeCompat` dans `ChatWidget.tsx` : un `ThemeProvider` local étend le thème ambiant avec `alpha()`. Test de régression : `ChatWidget.test.tsx` (déroule le scénario LPPL complet).
+
 **Fichiers :**
 - `src/app/[lang]/components/ChatWidget/ChatWidget.tsx` — Fab + panneau (Paper 400×640), entête (logo `crisalid.png`, titre "Assistant de Recherche CRISalid", reset, fermer), `ChatBox` avec `localeText` FR, bandeau "Maquette — réponses simulées"
 - `src/app/[lang]/components/ChatWidget/mockAgent.ts` — `createCrisalidMockAdapter()` : adapter `sendMessage` retournant un `ReadableStream<ChatMessageChunk>` (chunks `start` → `tool-input-*`/`tool-output-available` → `text-delta` mot à mot → `finish`)
