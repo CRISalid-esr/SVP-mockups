@@ -215,6 +215,20 @@ Tous les onglets lisent `publications`/`authors` via `useDashboardData()` (plus 
 
 ---
 
+### ✅ Assistant de Recherche CRISalid (widget de chat)
+
+Widget flottant global (bouton en bas à droite, panneau dépliable) simulant le **CRISalid Graph Agent** (https://github.com/CRISalid-esr/crisalid-agents). Monté dans `MainLayout.tsx`, visible sur toutes les pages authentifiées.
+
+**Composant :** `@mui/x-chat` (`ChatBox`, v9 alpha) — ⚠️ peer dep officielle = MUI v7.3+, mais fonctionne avec le MUI v6 du projet (il n'importe que `IconButton`, `Button`, `Tooltip`, `styled`, `useThemeProps`). Installé avec `--legacy-peer-deps` (le CI utilise déjà `npm ci --legacy-peer-deps`). Ne pas monter la version de `@mui/material` pour autant.
+
+**Fichiers :**
+- `src/app/[lang]/components/ChatWidget/ChatWidget.tsx` — Fab + panneau (Paper 400×640), entête (logo `crisalid.png`, titre "Assistant de Recherche CRISalid", reset, fermer), `ChatBox` avec `localeText` FR, bandeau "Maquette — réponses simulées"
+- `src/app/[lang]/components/ChatWidget/mockAgent.ts` — `createCrisalidMockAdapter()` : adapter `sendMessage` retournant un `ReadableStream<ChatMessageChunk>` (chunks `start` → `tool-input-*`/`tool-output-available` → `text-delta` mot à mot → `finish`)
+
+**Comportement mock :** 4 scénarios scriptés déclenchés par mots-clés (capacités de l'agent, domaines du LPPL, copublications CRCI2NA–Belgique, experts batteries) + fallback qui rappelle les questions de démo. Chaque scénario simule 1-2 appels d'outils sur le graphe (`search_structures`, `get_research_themes`, `find_copublications`, `search_experts`) rendus en accordéons natifs par ChatBox. Suggestions cliquables (`suggestionsAutoSubmit`) dans l'empty state. Conversation persistée en `sessionStorage` (`crisalid-chat-messages`, 40 derniers messages).
+
+---
+
 ## Fonctionnalités à développer (restant)
 
 ### 🔲 Activités de recherche

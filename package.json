@@ -62,6 +62,7 @@
     "@mui/material-nextjs": "^6.1.6",
     "@mui/styles": "^6.1.8",
     "@mui/system": "^6.1.7",
+    "@mui/x-chat": "^9.0.0-alpha.14",
     "@mui/x-date-pickers": "^7.26.0",
     "@mui/x-tree-view": "^8.14.1",
     "@prisma/client": "^6.16.2",
