@@ -90,8 +90,8 @@ export const TARGET_AUDIENCE_OPTIONS = [
 ]
 
 export const INITIAL_FAMILIES: ImpactFamily[] = [
-  { id: 'f1', title: 'Migration pour le travail', nodeId: 'n1', source: 'Carte mentale' },
-  { id: 'f2', title: 'Politiques migratoires', nodeId: 'n2', source: 'Carte mentale' },
+  { id: 'f1', title: 'Migration pour le travail', nodeId: 'n1', source: 'Thèmes de recherche' },
+  { id: 'f2', title: 'Politiques migratoires', nodeId: 'n2', source: 'Thèmes de recherche' },
 ]
 
 export const INITIAL_CARDS: ImpactCard[] = [

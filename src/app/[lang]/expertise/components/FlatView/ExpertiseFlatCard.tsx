@@ -4,14 +4,17 @@ import { useState } from 'react'
 import {
   Box, Button, Checkbox, Chip, Dialog, DialogActions,
   DialogContent, DialogTitle, Divider, FormControlLabel, IconButton,
-  List, ListItem, ListItemText, Typography,
+  List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Typography,
 } from '@mui/material'
 import {
   Add,
   Business as BusinessIcon,
   CalendarToday,
   Close as CloseIcon,
+  DeleteOutline,
+  EditOutlined,
   LocalOffer,
+  MoreVert,
   Person,
   Place,
 } from '@mui/icons-material'
@@ -46,6 +49,10 @@ interface Props {
   onGoToMindMap: () => void
   /** Navigue vers l'onglet Expertises. */
   onGoToExpertises?: () => void
+  /** Ouvre le dialog d'édition du thème. */
+  onEdit?: () => void
+  /** Demande la suppression du thème (confirmation gérée par le parent). */
+  onDelete?: () => void
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -84,9 +91,12 @@ export default function ExpertiseFlatCard({
   onUpdateAssociations,
   onGoToMindMap,
   onGoToExpertises,
+  onEdit,
+  onDelete,
 }: Props) {
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
   const [pendingIds, setPendingIds] = useState<string[]>([])
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
   const { node, relations } = entry
   const nodeData = node.data as ExpertiseNodeData
@@ -132,9 +142,37 @@ export default function ExpertiseFlatCard({
     }}>
       {/* En-tête */}
       <Box sx={{ p: 2.5, pb: isEmpty ? 2.5 : 1.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.3, mb: nodeData.description ? 0.5 : 0 }}>
-          {nodeData.label}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+          <Typography variant="h6" sx={{ flex: 1, minWidth: 0, fontWeight: 700, lineHeight: 1.3, mb: nodeData.description ? 0.5 : 0 }}>
+            {nodeData.label}
+          </Typography>
+          {(onEdit || onDelete) && (
+            <IconButton size="small" onClick={(e) => setMenuAnchor(e.currentTarget)}
+              aria-label="Actions sur le thème" sx={{ mt: -0.5, mr: -1, color: 'text.secondary' }}>
+              <MoreVert fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          {onEdit && (
+            <MenuItem onClick={() => { setMenuAnchor(null); onEdit() }}>
+              <ListItemIcon><EditOutlined fontSize="small" /></ListItemIcon>
+              Modifier le thème
+            </MenuItem>
+          )}
+          {onDelete && (
+            <MenuItem onClick={() => { setMenuAnchor(null); onDelete() }} sx={{ color: 'error.main' }}>
+              <ListItemIcon><DeleteOutline fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+              Supprimer le thème
+            </MenuItem>
+          )}
+        </Menu>
         {nodeData.description && (
           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
             {nodeData.description}
@@ -143,9 +181,16 @@ export default function ExpertiseFlatCard({
         {isEmpty && (
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', fontStyle: 'italic' }}>
             Aucun élément rattaché.{' '}
+            {onEdit && (
+              <Box component="span" onClick={onEdit}
+                sx={{ color: cfg.color, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+                Ajouter des caractéristiques →
+              </Box>
+            )}
+            {' · '}
             <Box component="span" onClick={onGoToMindMap}
-              sx={{ color: cfg.color, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
-              Enrichir dans la carte →
+              sx={{ color: 'text.secondary', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+              Relier à un autre thème (avancé)
             </Box>
           </Typography>
         )}

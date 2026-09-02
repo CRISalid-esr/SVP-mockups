@@ -17,7 +17,7 @@ import type { IdRefResult } from './MindMap/mockIdRef'
 const TEAL = '#006A61'
 
 // Éditeur des caractéristiques d'un thème de recherche — mêmes widgets que le
-// panneau de la carte mentale : slider / périodes nommées, GeoNames, IdRef,
+// panneau de la vue Relations : slider / périodes nommées, GeoNames, IdRef,
 // vocabulaires contrôlés. Réutilisé par la modale d'ajout de thème, le wizard
 // de création de fiche expertise et le dialog de détail.
 const CATEGORIES: Array<{

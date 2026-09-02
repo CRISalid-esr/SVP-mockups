@@ -26,7 +26,7 @@ const MindMapView = dynamic(
     ssr: false,
     loading: () => (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography color="text.secondary">Chargement de la carte…</Typography>
+        <Typography color="text.secondary">Chargement des thèmes de recherche…</Typography>
       </Box>
     ),
   },
@@ -114,8 +114,7 @@ export default function ExpertisePage() {
 
   const hasSujets = stats.sujets > 0
 
-  // Après une génération depuis l'empty state : on bascule sur la vue liste
-  // pour que le chercheur passe ses thèmes en revue.
+  // Après une génération IA depuis la vue Liste : bannière de revue + stats à jour.
   const handleGenerated = useCallback(() => {
     setJustGenerated(true)
     setSujetView('liste')
@@ -201,7 +200,7 @@ export default function ExpertisePage() {
                 </ToggleButton>
                 <ToggleButton value="carte" sx={{ textTransform: 'none', gap: 0.5, px: 1.5 }}>
                   <AccountTree fontSize="small" />
-                  Carte mentale
+                  Relations (avancé)
                 </ToggleButton>
               </ToggleButtonGroup>
             )}
@@ -228,14 +227,15 @@ export default function ExpertisePage() {
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             {tab === 0 && (
               !mounted ? null
-                : !hasSujets || sujetView === 'carte'
-                  ? <MindMapView onGenerated={handleGenerated} />
+                : hasSujets && sujetView === 'carte'
+                  ? <MindMapView onBackToList={() => setSujetView('liste')} />
                   : (
                     <FlatView
                       onGoToMindMap={() => { setSujetView('carte'); setJustGenerated(false) }}
                       onGoToExpertises={() => goToTab(1)}
                       justGenerated={justGenerated}
                       onGraphChanged={refreshStats}
+                      onThemesGenerated={handleGenerated}
                     />
                   )
             )}

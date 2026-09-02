@@ -133,30 +133,29 @@ Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publ
 ---
 
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
-**Réorganisation juillet 2026 — 2 onglets + switcher Chercheur/Laboratoire :**
-- Onglet **Thèmes de recherche** : toggle segmented control **Liste (défaut) / Carte mentale** — deux rendus du même graphe (les anciens onglets "Mes domaines" et "Profil structuré" fusionnés)
+**Réorganisation septembre 2026 — Liste = surface unique, Carte = vue avancée :**
+- Onglet **Thèmes de recherche** : toggle **Liste (défaut) / Relations (avancé)**. La vue Liste (`FlatView`) est l'unique point d'entrée du parcours (scope publications, prompt IA, thèmes, caractéristiques) ; la vue Relations (`MindMapView`) sert uniquement à dessiner des liens entre thèmes existants — elle ne propose plus de génération.
 - Onglet **Expertises** : les fiches par public (ex-"Fiches publics"), chip "générées depuis vos thèmes"
 - **Stepper de parcours** sous les onglets : ① Définir mes thèmes → ② Générer mes expertises → ③ Publier (compteurs + coches, cliquable)
 - **Switcher Chercheur / Laboratoire** dans l'en-tête (même pattern que le dashboard) → vue agrégée labo
 
 **Architecture (Option A) :** le graphe reste la source de vérité. Vue liste et fiches expertises sont des projections des nœuds. Vocabulaire : "thème de recherche" (saisie) vs "expertise" (fiche par public) — ne plus dire "domaine".
 
-**Parcours de génération :** empty state (publications-first) → génération → bascule auto sur la **vue liste** en mode revue (prop `onGenerated` de `MindMapView`, bannière verte dans `FlatView`) → encart "Étape suivante" → onglet Expertises → bouton **"Générer les fiches"** (actif, `mockCardsLlm.ts`, 1,6 s) : une fiche par public et par thème manquant, statut À valider, bascule sur le sous-onglet "À valider" + barre "Tout valider" + action "Valider cette fiche" dans le menu ⋮ des cartes.
+**Parcours de génération :** `GenerationPanel.tsx` (composant partagé) — bloc publications + bloc prompt IA affichés ensemble, sans étape intermédiaire. Rendu dans `FlatView` : en `variant="empty"` (carte centrée) quand `entries.length === 0`, en `variant="inline"` (dans un `Accordion` replié "Ajuster le périmètre ou régénérer des thèmes") une fois des thèmes définis. Après génération : bannière verte de revue dans `FlatView` (prop `onThemesGenerated` remontée jusqu'à `page.tsx`) → encart "Étape suivante" → onglet Expertises → bouton **"Générer les fiches"** (actif, `mockCardsLlm.ts`, 1,6 s) : une fiche par public et par thème manquant, statut À valider, bascule sur le sous-onglet "À valider" + barre "Tout valider" + action "Valider cette fiche" dans le menu ⋮ des cartes.
 
 **Vue Laboratoire (`components/Lab/`) :** lecture seule, données mock `labMock.ts` (18 membres, 3 équipes, 14 fiches). KPI (complétude 15/18…), treemap ECharts des thèmes agrégés (clic → dialog membres, filtre par équipe), annuaire des fiches (recherche + filtres par public, clic → dialog détail). Regroupement des thèmes par vocabulaire contrôlé (RAMEAU/Wikidata).
 
 **Isolation par perspective :**
-- Helpers partagés dans `expertise/storage.ts` : `getPerspective()`, `loadStoredGraph()`, clés `CARDS_KEY`, `FAMILIES_KEY`
+- Helpers partagés dans `expertise/storage.ts` : `getPerspective()`, `loadStoredGraph()`/`saveStoredGraph()`, `loadSelectedPublications()`, `loadHistory()`/`appendHistoryEntry()`, clés `CARDS_KEY`, `FAMILIES_KEY`
 - Clés localStorage suffixées par `?perspective=` : `expertise-graph-v2-{p}`, `expertise-selected-publications-{p}`, `expertise-history-{p}` ; fiches et familles non suffixées (`expertise-cards-v1`, `expertise-families-v1`)
 - Un profil sans graphe enregistré voit l'empty state (fallback `EMPTY_GRAPH` ; `INITIAL_GRAPH` réservé à la perspective `default`)
+- L'historique (`appendHistoryEntry`) est mutualisé : alimenté aussi bien par une génération IA depuis `FlatView` que par un Enregistrer manuel depuis `MindMapView`. `HistoryDialog` reste donc cohérent quelle que soit la vue d'origine.
 
-**Flux de premier accès (publications-first) :**
-- Empty state : CTA "Sélectionner des publications →" (navigue vers `/documents?perspective=…`) + badge du nombre sélectionné + bouton "Générer mes expertises" (actif si ≥ 1 pub)
-- Séparateur "ou" + lien "Décrire mes domaines manuellement" (bascule vers l'ancien textarea + chips profils)
+**Flux de premier accès et mise à jour — unifiés dans `GenerationPanel.tsx` :**
+- Bloc publications : badge du nombre sélectionné (lu via `loadSelectedPublications()`), bouton "Sélectionner des publications →" (navigue vers `/documents?perspective=…`), bouton "Générer mes thèmes de recherche" / "Recalculer à partir des publications" selon que des thèmes existent déjà
+- Séparateur "ou" + bloc prompt IA (textarea + chips d'exemples de profils en `variant="empty"`) → "Générer le graphe"
+- Les deux blocs sont toujours affichés ensemble (plus de bascule "ou → décrire manuellement")
 - La colonne "Expertises" dans la liste des publications (icône `Psychology` toggleable, teal = incluse) persiste en localStorage par perspective
-
-**Mise à jour (graphe existant) :**
-- Panneau gauche état 1 : section "Publications analysées" avec badge + "Modifier les publications →" + "Recalculer à partir des publications"
 
 **Versionnement du graphe :**
 - Max 10 snapshots dans `expertise-history-{perspective}` ; sauvegarde automatique à chaque Enregistrer / Générer
@@ -176,16 +175,17 @@ Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publ
 
 **Fichiers clés :**
 - `types.ts` — `ExpertiseNodeData`, `HistoryEntry`, `TemporalRef`, `GeoRef`, `PersonRef`, `OrgRef`
-- `storage.ts` — helpers localStorage partagés (perspective, graphe, clés fiches/familles)
-- `MindMapView.tsx` — composant principal (~1 300 lignes), prop `onGenerated`
-- `FlatView/FlatView.tsx` — vue liste des thèmes (défaut), props `onGoToExpertises`/`justGenerated`
+- `storage.ts` — helpers localStorage partagés (perspective, graphe, publications sélectionnées, historique, clés fiches/familles)
+- `ThemeGeneration/GenerationPanel.tsx` — composant partagé de génération (publications + prompt IA), `variant: 'empty' | 'inline'`, utilisé uniquement par `FlatView`
+- `FlatView/FlatView.tsx` — point d'entrée unique du step 1 (défaut, y compris à vide), props `onGoToMindMap`/`onGoToExpertises`/`justGenerated`/`onThemesGenerated`
+- `MindMap/MindMapView.tsx` — vue "Relations (avancé)" : édition des nœuds/liens du graphe existant uniquement (plus de génération), prop `onBackToList`
 - `ImpactCards/ImpactCardsView.tsx` — onglet Expertises (génération + revue)
 - `ImpactCards/mockCardsLlm.ts` — `generateCardsFromGraph(nodes, families, cards)`
 - `Lab/LabView.tsx` · `Lab/labMock.ts` — vue laboratoire agrégée
-- `mockLlm.ts` — `generateGraphFromPrompt()` + `generateGraphFromPublications(count)`
-- `mockIdRef.ts` — `searchIdRefPersons()`, `searchIdRefOrganizations()`, `GEONAMES_MOCK`, `NAMED_PERIODS`
-- `HistoryDialog.tsx` — dialog chronologique des versions
-- `ExpertiseNode.tsx` · `RelationEdge.tsx`
+- `MindMap/mockLlm.ts` — `generateGraphFromPrompt()` + `generateGraphFromPublications(count)`, appelés depuis `GenerationPanel.tsx`
+- `MindMap/mockIdRef.ts` — `searchIdRefPersons()`, `searchIdRefOrganizations()`, `GEONAMES_MOCK`, `NAMED_PERIODS`
+- `MindMap/HistoryDialog.tsx` — dialog chronologique des versions
+- `MindMap/ExpertiseNode.tsx` · `MindMap/RelationEdge.tsx`
 
 **Descriptif complet :** `public/prompts/expertises.md`
 

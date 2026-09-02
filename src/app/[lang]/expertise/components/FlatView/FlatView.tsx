@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react'
 import { Node, Edge } from '@xyflow/react'
 import {
-  Alert, Box, Button, Grid2 as Grid, Snackbar, Typography,
+  Accordion, AccordionDetails, AccordionSummary,
+  Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText,
+  DialogTitle, Grid2 as Grid, Snackbar, Typography,
 } from '@mui/material'
-import { AccountTree, Add, AutoAwesomeOutlined, CheckCircleOutlined } from '@mui/icons-material'
+import {
+  AccountTree, Add, AutoAwesomeOutlined, CheckCircleOutlined, DeleteOutline, ExpandMore, Tune,
+} from '@mui/icons-material'
 import { Activity } from '@/types/Activity'
 import {
   EdgeData,
@@ -13,10 +17,13 @@ import {
   ExpertiseNodeData,
   INITIAL_GRAPH,
 } from '../../types'
-import { CARDS_KEY, FAMILIES_KEY, loadStoredGraph, saveStoredGraph } from '../../storage'
+import {
+  appendHistoryEntry, CARDS_KEY, FAMILIES_KEY, loadStoredGraph, saveStoredGraph,
+} from '../../storage'
 import {
   ImpactCard, ImpactFamily, INITIAL_CARDS, INITIAL_FAMILIES, PROFILE_CONFIG, ProfileType,
 } from '../ImpactCards/impactCardsTypes'
+import GenerationPanel from '../ThemeGeneration/GenerationPanel'
 import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
 import AddThemeDialog, { NewTheme } from './AddThemeDialog'
 
@@ -147,7 +154,7 @@ function buildEntries(nodes: Node<ExpertiseNodeData>[], edges: Edge[]): Expertis
 }
 
 interface Props {
-  /** Bascule sur la vue carte mentale (même onglet, autre rendu des thèmes). */
+  /** Bascule sur la vue Relations (même onglet, autre rendu des thèmes). */
   onGoToMindMap: () => void
   /** Navigue vers l'onglet Expertises (fiches par public). */
   onGoToExpertises?: () => void
@@ -155,15 +162,21 @@ interface Props {
   justGenerated?: boolean
   /** Appelé quand le graphe est modifié depuis la liste (ajout d'un thème). */
   onGraphChanged?: () => void
+  /** Appelé après une génération IA réussie (met à jour le stepper de la page). */
+  onThemesGenerated?: () => void
 }
 
-export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerated, onGraphChanged }: Props) {
+export default function FlatView({
+  onGoToMindMap, onGoToExpertises, justGenerated, onGraphChanged, onThemesGenerated,
+}: Props) {
   const [graph, setGraph] = useState<ExpertiseGraph>(INITIAL_GRAPH)
   const [associations, setAssociations] = useState<Record<string, string[]>>(INITIAL_ASSOCIATIONS)
   const [cards, setCards] = useState<ImpactCard[]>([])
   const [families, setFamilies] = useState<ImpactFamily[]>([])
   const [mounted, setMounted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [editingNode, setEditingNode] = useState<Node<ExpertiseNodeData> | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Node<ExpertiseNodeData> | null>(null)
   const [snackbar, setSnackbar] = useState('')
 
   useEffect(() => {
@@ -182,6 +195,15 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
     return cards
       .filter((c) => c.familyId === family.id)
       .sort((a, b) => PROFILE_ORDER.indexOf(a.profile) - PROFILE_ORDER.indexOf(b.profile))
+  }
+
+  const handlePanelGenerated = (result: ExpertiseGraph, sourceLabel: string) => {
+    saveStoredGraph(result)
+    setGraph(result)
+    appendHistoryEntry(sourceLabel, result)
+    setSnackbar('Thèmes générés — passez-les en revue')
+    onGraphChanged?.()
+    onThemesGenerated?.()
   }
 
   const handleAddTheme = (theme: NewTheme) => {
@@ -206,6 +228,53 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
     setGraph(next)
     setAddOpen(false)
     setSnackbar(`Thème « ${theme.label} » ajouté`)
+    onGraphChanged?.()
+  }
+
+  const handleEditTheme = (theme: NewTheme) => {
+    if (!editingNode) return
+    const next: ExpertiseGraph = {
+      ...graph,
+      nodes: graph.nodes.map((n) => n.id !== editingNode.id ? n : {
+        ...n,
+        data: {
+          ...(n.data as ExpertiseNodeData),
+          label: theme.label,
+          description: theme.description || undefined,
+          temporal: theme.attributes.temporal,
+          geographic: theme.attributes.geographic,
+          persons: theme.attributes.persons,
+          organizations: theme.attributes.organizations,
+          concepts: theme.attributes.concepts,
+        },
+      }),
+      meta: { ...graph.meta, lastUpdated: new Date().toISOString().split('T')[0] },
+    }
+    saveStoredGraph(next)
+    setGraph(next)
+    setEditingNode(null)
+    setSnackbar(`Thème « ${theme.label} » modifié`)
+    onGraphChanged?.()
+  }
+
+  const handleDeleteTheme = () => {
+    if (!deleteTarget) return
+    const label = (deleteTarget.data as ExpertiseNodeData).label
+    const next: ExpertiseGraph = {
+      ...graph,
+      nodes: graph.nodes.filter((n) => n.id !== deleteTarget.id),
+      edges: graph.edges.filter((e) => e.source !== deleteTarget.id && e.target !== deleteTarget.id),
+      meta: { ...graph.meta, lastUpdated: new Date().toISOString().split('T')[0] },
+    }
+    saveStoredGraph(next)
+    setGraph(next)
+    if (associations[deleteTarget.id]) {
+      const { [deleteTarget.id]: _removed, ...rest } = associations
+      setAssociations(rest)
+      localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(rest))
+    }
+    setDeleteTarget(null)
+    setSnackbar(`Thème « ${label} » supprimé`)
     onGraphChanged?.()
   }
 
@@ -240,13 +309,13 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
           action={
             <Button size="small" onClick={onGoToMindMap}
               sx={{ textTransform: 'none', whiteSpace: 'nowrap', color: '#1976D2' }}>
-              Ouvrir la carte →
+              Voir les relations →
             </Button>
           }
           sx={{ mb: 3, '& .MuiAlert-message': { flex: 1 } }}
         >
-          La liste et la carte mentale présentent les mêmes thèmes (v{graph.meta.version}, mise à jour le {graph.meta.lastUpdated}).
-          La carte permet de structurer les relations entre thèmes.
+          Thèmes mis à jour le {graph.meta.lastUpdated} (v{graph.meta.version}).
+          Pour relier vos thèmes entre eux, utilisez la vue avancée « Relations ».
         </Alert>
       )}
 
@@ -267,21 +336,29 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
       </Box>
 
       {entries.length === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 10 }}>
-          <AccountTree sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Aucun thème défini
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Commencez par définir vos thèmes de recherche, depuis vos publications ou en quelques phrases.
-          </Typography>
-          <Button variant="contained" startIcon={<AccountTree />} onClick={onGoToMindMap}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
-            Définir mes thèmes
-          </Button>
-        </Box>
+        <GenerationPanel graph={graph} variant="empty" onGraphGenerated={handlePanelGenerated} />
       ) : (
         <>
+          <Accordion
+            disableGutters
+            sx={{
+              mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2,
+              '&:before': { display: 'none' }, boxShadow: 'none',
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Tune sx={{ fontSize: 18, color: 'text.secondary' }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  Ajuster le périmètre ou régénérer des thèmes
+                </Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <GenerationPanel graph={graph} variant="inline" onGraphGenerated={handlePanelGenerated} />
+            </AccordionDetails>
+          </Accordion>
+
           <Grid container spacing={3}>
             {entries.map((entry) => (
               <Grid key={entry.node.id} size={{ xs: 12, md: 6, lg: 4 }}>
@@ -293,6 +370,8 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
                   onUpdateAssociations={handleUpdateAssociations}
                   onGoToMindMap={onGoToMindMap}
                   onGoToExpertises={onGoToExpertises}
+                  onEdit={() => setEditingNode(entry.node as Node<ExpertiseNodeData>)}
+                  onDelete={() => setDeleteTarget(entry.node as Node<ExpertiseNodeData>)}
                 />
               </Grid>
             ))}
@@ -323,6 +402,41 @@ export default function FlatView({ onGoToMindMap, onGoToExpertises, justGenerate
       )}
 
       <AddThemeDialog open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddTheme} />
+
+      <AddThemeDialog
+        open={Boolean(editingNode)}
+        onClose={() => setEditingNode(null)}
+        onAdd={handleEditTheme}
+        initial={editingNode ? {
+          label: (editingNode.data as ExpertiseNodeData).label,
+          description: (editingNode.data as ExpertiseNodeData).description ?? '',
+          attributes: {
+            temporal: (editingNode.data as ExpertiseNodeData).temporal,
+            geographic: (editingNode.data as ExpertiseNodeData).geographic,
+            persons: (editingNode.data as ExpertiseNodeData).persons,
+            organizations: (editingNode.data as ExpertiseNodeData).organizations,
+            concepts: (editingNode.data as ExpertiseNodeData).concepts,
+          },
+        } : undefined}
+      />
+
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Supprimer ce thème ?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Le thème <strong>« {deleteTarget ? (deleteTarget.data as ExpertiseNodeData).label : ''} »</strong> sera
+            retiré de vos thèmes de recherche, ainsi que ses relations avec les autres thèmes.
+            Les fiches expertises déjà générées ne seront pas supprimées.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)} sx={{ textTransform: 'none' }}>Annuler</Button>
+          <Button variant="contained" color="error" startIcon={<DeleteOutline />} onClick={handleDeleteTheme}
+            sx={{ textTransform: 'none' }}>
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={Boolean(snackbar)}

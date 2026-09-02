@@ -86,7 +86,7 @@ export async function generateCardsFromGraph(
 
     let family = nextFamilies.find((f) => f.nodeId === node.id || f.title === d.label)
     if (!family) {
-      family = { id: `f${famNum++}`, title: d.label, nodeId: node.id, source: 'Carte mentale' }
+      family = { id: `f${famNum++}`, title: d.label, nodeId: node.id, source: 'Thèmes de recherche' }
       nextFamilies.push(family)
     }
 

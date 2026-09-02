@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
 import {
   ReactFlow, Background, Controls, MiniMap, addEdge,
   useNodesState, useEdgesState, Connection, BackgroundVariant, Panel, Edge,
@@ -9,19 +8,18 @@ import {
 import '@xyflow/react/dist/style.css'
 import {
   Accordion, AccordionDetails, AccordionSummary, Alert, Autocomplete, Box, Button,
-  Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+  Chip, Dialog, DialogActions, DialogContent, DialogTitle,
   Divider, Drawer, FormControl, IconButton, InputLabel, MenuItem,
   Select, Slider, Snackbar, TextField, ToggleButton, ToggleButtonGroup,
   Tooltip, Typography, useMediaQuery,
 } from '@mui/material'
 import {
-  AccountTree, Add, ArrowBack, AutoAwesome, AutoGraph, Business, ChevronLeft, ChevronRight,
+  AccountTree, Add, Business, ChevronLeft, ChevronRight,
   Close, Delete, DeleteSweep, Download, Edit, ExpandMore, History, LocalOffer, Map as MapIcon,
-  OpenInNew, Person, Place, RestartAlt, Restore, Save, Schedule,
+  OpenInNew, Person, Place, RestartAlt, Save, Schedule,
 } from '@mui/icons-material'
 import ExpertiseNode from './ExpertiseNode'
 import RelationEdge from './RelationEdge'
-import { generateGraphFromPrompt, generateGraphFromPublications } from './mockLlm'
 import { searchIdRefPersons, searchIdRefOrganizations, GEONAMES_MOCK, NAMED_PERIODS } from './mockIdRef'
 import type { IdRefResult } from './mockIdRef'
 import HistoryDialog from './HistoryDialog'
@@ -32,11 +30,10 @@ import {
   ExpertiseGraph, ExpertiseNodeData, ExpertiseNodeType, HistoryEntry,
   INITIAL_GRAPH, NODE_TYPE_CONFIG,
 } from '../../types'
-import { EMPTY_GRAPH, getPerspective } from '../../storage'
+import {
+  EMPTY_GRAPH, GRAPH_KEY_PREFIX, appendHistoryEntry, getPerspective, loadHistory,
+} from '../../storage'
 
-const STORAGE_KEY_PREFIX = 'expertise-graph-v2'
-const PUBS_KEY_PREFIX = 'expertise-selected-publications'
-const HISTORY_KEY_PREFIX = 'expertise-history'
 const TEAL = '#006A61'
 
 const DRAWER_WIDTH = 320
@@ -55,13 +52,6 @@ const ATTR_CONFIG: Array<{
   { key: 'organizations', label: 'Organisations', Icon: Business, color: '#E65100', placeholder: 'Ex : OIT, UNESCO, CNRS…' },
   { key: 'concepts', label: 'Concepts et mots-clés', Icon: LocalOffer, color: TEAL, placeholder: 'Ex : migration du travail, genre…', showVocab: true },
 ]
-
-const EXAMPLE_PROMPTS: Record<string, string> = {
-  Sociologue: "Je suis sociologue spécialisé·e dans les migrations de travail et les inégalités de genre. Mes recherches portent sur les dynamiques identitaires et les politiques migratoires entre l'Asie du Sud et le Moyen-Orient.",
-  Historien: "Je suis historien·ne médiéviste. Mes travaux portent sur les pratiques religieuses monastiques, les échanges culturels entre l'Europe occidentale et Byzance, et l'histoire des manuscrits enluminés.",
-  Physicien: "Je suis physicien·ne spécialisé·e en physique des matériaux. Mes recherches portent sur les propriétés optiques des matériaux bidimensionnels et leurs applications en optoélectronique.",
-  Juriste: "Je suis juriste spécialisé·e en droit européen et droits numériques. Mes travaux portent sur la régulation des plateformes, la protection des données personnelles et les libertés fondamentales en ligne.",
-}
 
 function formatYear(y: number): string {
   return y < 0 ? `${Math.abs(y)} av. J.-C.` : `${y}`
@@ -84,18 +74,6 @@ function saveGraph(key: string, graph: ExpertiseGraph) {
   localStorage.setItem(key, JSON.stringify(graph))
 }
 
-function loadHistory(key: string): HistoryEntry[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function saveHistory(key: string, history: HistoryEntry[]) {
-  localStorage.setItem(key, JSON.stringify(history))
-}
-
 interface NodeDialogState {
   open: boolean
   mode: 'add' | 'edit'
@@ -110,16 +88,13 @@ const DEFAULT_DIALOG: NodeDialogState = {
 }
 
 interface MindMapViewProps {
-  /** Appelé après une génération réussie depuis l'empty state (graphe vide) —
-   *  permet à la page de basculer sur la vue liste pour la revue des thèmes. */
-  onGenerated?: () => void
+  /** Renvoie vers la vue Liste (bouton "Modifier mes thèmes" / fallback à vide). */
+  onBackToList?: () => void
 }
 
-export default function MindMapView({ onGenerated }: MindMapViewProps) {
+export default function MindMapView({ onBackToList }: MindMapViewProps) {
   const [perspective] = useState(() => getPerspective())
-  const storageKey = `${STORAGE_KEY_PREFIX}-${perspective}`
-  const pubsKey = `${PUBS_KEY_PREFIX}-${perspective}`
-  const historyKey = `${HISTORY_KEY_PREFIX}-${perspective}`
+  const storageKey = `${GRAPH_KEY_PREFIX}-${perspective}`
 
   const [initialGraph] = useState(() => loadGraph(storageKey))
 
@@ -140,8 +115,6 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
     if (isMobile) setDrawerOpen(false)
   }, [isMobile])
 
-  const [prompt, setPrompt] = useState('')
-  const [generating, setGenerating] = useState(false)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const [nodeDialog, setNodeDialog] = useState<NodeDialogState>(DEFAULT_DIALOG)
   const [snackbar, setSnackbar] = useState<{ open: boolean; msg: string; severity: 'success' | 'info' }>({
@@ -149,26 +122,13 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
   })
   const [jsonOpen, setJsonOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory(historyKey))
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory())
   const [temporalMode, setTemporalMode] = useState<'range' | 'named'>('range')
   const [yearRange, setYearRange] = useState<[number, number]>([1990, new Date().getFullYear()])
   const [addingIdRefPpn, setAddingIdRefPpn] = useState<string | undefined>(undefined)
   const [addingGeonamesLabel, setAddingGeonamesLabel] = useState<string | undefined>(undefined)
   const [idrefOptions, setIdrefOptions] = useState<IdRefResult[]>([])
   const [geoDialog, setGeoDialog] = useState<{ open: boolean; label: string }>({ open: false, label: '' })
-
-  const params = useParams()
-  const router = useRouter()
-  const lang = (params?.lang as string) || 'fr'
-
-  const [selectedPubs, setSelectedPubs] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const raw = localStorage.getItem(pubsKey)
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
-  const [showManualInput, setShowManualInput] = useState(false)
 
   // Attribute inline-add state
   const [addingCat, setAddingCat] = useState<AttributeCategory | null>(null)
@@ -220,20 +180,8 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
   }, [selectedEdgeId, setEdges])
 
   const addToHistory = useCallback((entryLabel: string, graph: ExpertiseGraph) => {
-    const entry: HistoryEntry = {
-      id: `h${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      label: entryLabel,
-      nodeCount: graph.nodes.length,
-      edgeCount: graph.edges.length,
-      graph,
-    }
-    setHistory((prev) => {
-      const next = [entry, ...prev].slice(0, 10)
-      saveHistory(historyKey, next)
-      return next
-    })
-  }, [historyKey])
+    setHistory(appendHistoryEntry(entryLabel, graph))
+  }, [])
 
   const handleRestoreHistory = useCallback((entry: HistoryEntry) => {
     setNodes(entry.graph.nodes)
@@ -248,44 +196,8 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
     const graph = { nodes, edges, meta }
     saveGraph(storageKey, graph)
     addToHistory('Modification manuelle', graph)
-    setSnackbar({ open: true, msg: 'Carte enregistrée', severity: 'success' })
+    setSnackbar({ open: true, msg: 'Thèmes de recherche enregistrés', severity: 'success' })
   }, [storageKey, nodes, edges, meta, addToHistory])
-
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return
-    const wasEmpty = nodes.length === 0
-    setGenerating(true)
-    try {
-      const result = await generateGraphFromPrompt(prompt, meta)
-      setNodes(result.nodes)
-      setEdges(result.edges.map(applyEdgeStyle))
-      setMeta(result.meta)
-      saveGraph(storageKey, result)
-      addToHistory(`Généré par IA — "${prompt.slice(0, 50)}${prompt.length > 50 ? '…' : ''}"`, result)
-      setPrompt('')
-      setSnackbar({ open: true, msg: 'Graphe généré — vous pouvez le modifier', severity: 'info' })
-      if (wasEmpty) onGenerated?.()
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  const handleGenerateFromPublications = async () => {
-    const wasEmpty = nodes.length === 0
-    setGenerating(true)
-    try {
-      const result = await generateGraphFromPublications(selectedPubs.length, meta)
-      setNodes(result.nodes)
-      setEdges(result.edges.map(applyEdgeStyle))
-      setMeta(result.meta)
-      saveGraph(storageKey, result)
-      addToHistory(`Généré depuis ${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''}`, result)
-      setSnackbar({ open: true, msg: 'Carte générée depuis vos publications — affinez-la via le chatbot', severity: 'info' })
-      if (wasEmpty) onGenerated?.()
-    } finally {
-      setGenerating(false)
-    }
-  }
 
   const handleOpenAddNode = () => {
     setAddingCat(null)
@@ -873,78 +785,37 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
       )
     }
 
-    // État 1 : rien de sélectionné — prompt LLM en action principale
+    // État 1 : rien de sélectionné — vue "Relations" : pas de génération ici,
+    // seulement un rappel de la provenance et un renvoi vers la liste.
     return (
       <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75, color: TEAL }}>
-            Décrire mes thèmes de recherche
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
+            Relations entre thèmes
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-            Décrivez vos thèmes de recherche en langage naturel. L&apos;IA génèrera un graphe que vous pourrez modifier.
+            Vue avancée : dessinez ici les liens entre vos thèmes de recherche. Pour ajouter,
+            modifier ou générer des thèmes, utilisez la vue Liste.
           </Typography>
-          <TextField
-            multiline rows={5} fullWidth size="small"
-            placeholder="Ex : Je suis spécialiste des migrations pour le travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={generating}
-            sx={{ mb: 1.5 }}
-          />
-          <Button
-            fullWidth variant="contained" size="medium"
-            startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <AutoAwesome />}
-            onClick={handleGenerate}
-            disabled={!prompt.trim() || generating}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1 }}
-          >
-            {generating ? 'Génération en cours…' : 'Générer le graphe'}
-          </Button>
-        </Box>
-
-        {lastPrompt && (
-          <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1.5 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-              Dernier prompt ({meta.promptHistory.length} itération{meta.promptHistory.length > 1 ? 's' : ''})
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              {lastPrompt.length > 120 ? `${lastPrompt.slice(0, 120)}…` : lastPrompt}
-            </Typography>
-          </Box>
-        )}
-
-        <Divider />
-        <Box>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
-            Publications analysées
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            {selectedPubs.length > 0 ? (
-              <Chip size="small"
-                label={`${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''}`}
-                sx={{ bgcolor: `${TEAL}15`, color: TEAL, fontWeight: 600 }}
-              />
-            ) : (
-              <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-                Aucune publication sélectionnée
+          {lastPrompt && (
+            <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1, p: 1.5, mb: 1.5 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                Thèmes issus de :
               </Typography>
-            )}
-          </Box>
-          <Button size="small" variant="outlined" fullWidth
-            onClick={() => router.push(`/${lang}/documents${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)}
-            sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL, fontSize: '0.75rem', mb: selectedPubs.length > 0 ? 0.75 : 0 }}>
-            Modifier les publications →
-          </Button>
-          {selectedPubs.length > 0 && (
-            <Button size="small" variant="text" fullWidth
-              startIcon={generating ? <CircularProgress size={12} color="inherit" /> : <AutoAwesome sx={{ fontSize: '14px !important' }} />}
-              onClick={handleGenerateFromPublications}
-              disabled={generating}
-              sx={{ textTransform: 'none', color: TEAL, fontSize: '0.75rem' }}>
-              {generating ? 'Recalcul en cours…' : 'Recalculer à partir des publications'}
-            </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                {lastPrompt.length > 120 ? `${lastPrompt.slice(0, 120)}…` : lastPrompt}
+              </Typography>
+            </Box>
           )}
+          <Button
+            fullWidth variant="outlined" size="small"
+            onClick={onBackToList}
+            sx={{ borderColor: TEAL, color: TEAL, textTransform: 'none' }}
+          >
+            Modifier mes thèmes →
+          </Button>
         </Box>
+
         <Divider />
         {renderAddNodeButton()}
         <Divider />
@@ -957,6 +828,8 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
 
   // ── Empty state onboarding ────────────────────────────────────────────
 
+  // Ne s'affiche que si l'utilisateur supprime tous les thèmes pendant qu'il
+  // est dans cette vue — la génération se fait désormais depuis la vue Liste.
   const renderEmptyState = () => (
     <Box sx={{
       position: 'absolute', inset: 0,
@@ -968,130 +841,24 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
       <Box sx={{
         bgcolor: 'background.paper', borderRadius: 3,
         border: '1px solid', borderColor: 'divider',
-        p: { xs: 3, sm: 4 }, maxWidth: 520, width: '90%',
+        p: { xs: 3, sm: 4 }, maxWidth: 440, width: '90%',
         boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-        display: 'flex', flexDirection: 'column', gap: 2.5,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center',
       }}>
-        {!showManualInput ? (
-          <>
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <AutoGraph sx={{ fontSize: 52, color: TEAL, opacity: 0.85 }} />
-            </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-                Retrouvez vos thèmes de recherche à partir de vos publications
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Sélectionnez les publications à analyser, puis laissez l&apos;IA identifier vos thèmes de recherche. Vous pourrez ensuite l&apos;affiner via le chatbot.
-              </Typography>
-            </Box>
-
-            <Box sx={{
-              display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5,
-              bgcolor: selectedPubs.length > 0 ? `${TEAL}12` : '#f5f5f5',
-              borderRadius: 2, minHeight: 44,
-            }}>
-              {selectedPubs.length > 0 ? (
-                <>
-                  <Chip
-                    label={`${selectedPubs.length} publication${selectedPubs.length > 1 ? 's' : ''} sélectionnée${selectedPubs.length > 1 ? 's' : ''}`}
-                    size="small"
-                    sx={{ bgcolor: TEAL, color: 'white', fontWeight: 600 }}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    prête{selectedPubs.length > 1 ? 's' : ''} pour l&apos;analyse
-                  </Typography>
-                </>
-              ) : (
-                <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-                  Aucune publication sélectionnée pour l&apos;instant
-                </Typography>
-              )}
-            </Box>
-
-            <Button
-              variant="outlined" fullWidth size="medium"
-              onClick={() => router.push(`/${lang}/documents${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)}
-              sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL, borderRadius: 2 }}
-            >
-              Sélectionner des publications →
-            </Button>
-
-            <Button
-              variant="contained" size="large" fullWidth
-              startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
-              onClick={handleGenerateFromPublications}
-              disabled={selectedPubs.length === 0 || generating}
-              sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
-            >
-              {generating ? 'Construction de la carte…' : 'Générer mes thèmes de recherche'}
-            </Button>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
-              <Typography variant="caption" color="text.disabled">ou</Typography>
-              <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
-            </Box>
-
-            <Button
-              size="small" variant="text"
-              onClick={() => setShowManualInput(true)}
-              sx={{ textTransform: 'none', color: 'text.secondary', alignSelf: 'center' }}
-            >
-              Décrire mes thèmes manuellement
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              size="small" startIcon={<ArrowBack fontSize="small" />}
-              onClick={() => setShowManualInput(false)}
-              sx={{ textTransform: 'none', color: 'text.secondary', alignSelf: 'flex-start', mb: -1 }}
-            >
-              Retour
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
-                Décrivez vos thèmes de recherche
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                En quelques phrases, l&apos;IA construira votre carte de thèmes que vous pourrez ensuite modifier librement.
-              </Typography>
-            </Box>
-            <TextField
-              multiline rows={5} fullWidth autoFocus
-              placeholder="Ex : Je suis spécialiste des migrations de travail entre le Sri Lanka et le Moyen-Orient. Mes recherches portent sur le genre, l'identité et les politiques migratoires…"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              disabled={generating}
-              onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleGenerate() }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-            />
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Exemples de profils :
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {Object.entries(EXAMPLE_PROMPTS).map(([label, text]) => (
-                  <Chip
-                    key={label} label={label} size="small" variant="outlined"
-                    onClick={() => setPrompt(text)}
-                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
-                  />
-                ))}
-              </Box>
-            </Box>
-            <Button
-              variant="contained" size="large"
-              startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
-              onClick={handleGenerate}
-              disabled={!prompt.trim() || generating}
-              sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', py: 1.25, borderRadius: 2 }}
-            >
-              {generating ? 'Construction de la carte…' : 'Générer ma carte'}
-            </Button>
-          </>
-        )}
+        <AccountTree sx={{ fontSize: 44, color: 'text.disabled' }} />
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Plus aucun thème
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Vos thèmes de recherche se gèrent depuis la vue Liste — définissez-en de nouveaux
+          depuis vos publications ou en quelques phrases.
+        </Typography>
+        <Button
+          variant="contained" onClick={onBackToList}
+          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', borderRadius: 2 }}
+        >
+          Retour à la vue Liste
+        </Button>
       </Box>
     </Box>
   )
@@ -1160,7 +927,7 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
               />
               <Panel position="top-right">
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
-                  <Tooltip title="Ajouter un thème de recherche à la carte">
+                  <Tooltip title="Ajouter un thème de recherche">
                     <Button size="small" variant="contained" startIcon={<Add />} onClick={handleOpenAddNode}
                       sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
                       Ajouter un thème
@@ -1189,7 +956,7 @@ export default function MindMapView({ onGenerated }: MindMapViewProps) {
                       <RestartAlt fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Vider la carte (simuler un premier accès)">
+                  <Tooltip title="Vider les thèmes de recherche (simuler un premier accès)">
                     <IconButton size="small" onClick={handleClear} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
                       <DeleteSweep fontSize="small" />
                     </IconButton>

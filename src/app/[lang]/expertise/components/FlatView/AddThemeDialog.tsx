@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography,
 } from '@mui/material'
-import { Add } from '@mui/icons-material'
+import { Add, Check } from '@mui/icons-material'
 import { ExpertiseAttributes } from '../../types'
 import AttributesEditor from '../AttributesEditor'
 
@@ -20,33 +20,33 @@ interface Props {
   open: boolean
   onClose: () => void
   onAdd: (theme: NewTheme) => void
+  /** Si fourni, le dialog passe en mode édition avec ces valeurs préremplies. */
+  initial?: NewTheme
 }
 
-export default function AddThemeDialog({ open, onClose, onAdd }: Props) {
+export default function AddThemeDialog({ open, onClose, onAdd, initial }: Props) {
   const [label, setLabel] = useState('')
   const [description, setDescription] = useState('')
   const [attrs, setAttrs] = useState<ExpertiseAttributes>({})
 
-  const reset = () => {
-    setLabel('')
-    setDescription('')
-    setAttrs({})
-  }
+  const isEdit = Boolean(initial)
 
-  const handleClose = () => {
-    reset()
-    onClose()
-  }
+  useEffect(() => {
+    if (open) {
+      setLabel(initial?.label ?? '')
+      setDescription(initial?.description ?? '')
+      setAttrs(initial?.attributes ?? {})
+    }
+  }, [open, initial])
 
   const handleSubmit = () => {
     if (!label.trim()) return
     onAdd({ label: label.trim(), description: description.trim(), attributes: attrs })
-    reset()
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Ajouter un thème de recherche</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{isEdit ? 'Modifier le thème de recherche' : 'Ajouter un thème de recherche'}</DialogTitle>
       <DialogContent dividers>
         <TextField
           autoFocus fullWidth required size="small" label="Intitulé du thème"
@@ -67,16 +67,18 @@ export default function AddThemeDialog({ open, onClose, onAdd }: Props) {
 
         <AttributesEditor value={attrs} onChange={setAttrs} />
 
-        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 2 }}>
-          Vous pourrez ensuite relier ce thème aux autres dans la carte mentale.
-        </Typography>
+        {!isEdit && (
+          <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 2 }}>
+            Vous pourrez ensuite relier ce thème aux autres thèmes de recherche.
+          </Typography>
+        )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ textTransform: 'none' }}>Annuler</Button>
+        <Button onClick={onClose} sx={{ textTransform: 'none' }}>Annuler</Button>
         <Button variant="contained" disabled={!label.trim()} onClick={handleSubmit}
-          startIcon={<Add />}
+          startIcon={isEdit ? <Check /> : <Add />}
           sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
-          Ajouter le thème
+          {isEdit ? 'Enregistrer' : 'Ajouter le thème'}
         </Button>
       </DialogActions>
     </Dialog>
