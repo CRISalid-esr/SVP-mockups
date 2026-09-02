@@ -11,7 +11,7 @@
 
 La rubrique **Expertises** distingue deux objets de nature différente :
 
-- **Les thèmes de recherche** — la matière première que le chercheur saisit (à la main, par prompt ou depuis ses publications). Deux rendus du même contenu : une **liste** (défaut) et une **carte mentale** (structuration des relations).
+- **Les thèmes de recherche** — la matière première que le chercheur saisit (à la main, par prompt ou depuis ses publications). Un seul point d'entrée : la **vue liste** (défaut). Une vue avancée optionnelle, **Relations**, permet de structurer les liens entre thèmes déjà définis, sans proposer de génération.
 - **Les expertises** — le livrable : des fiches déclinées par public (Recherche, Innovation, Média, Vulgarisation), générées à partir des thèmes puis validées par le chercheur.
 
 **Architecture — le graphe reste la source de vérité unique :**
@@ -19,9 +19,9 @@ La rubrique **Expertises** distingue deux objets de nature différente :
 ```
 Graphe de thèmes (React Flow — source de vérité)
     │
-    ├── Vue liste (défaut)   : chaque nœud thème → fiche avec caractéristiques
-    ├── Vue carte mentale    : édition du graphe et des relations
-    └── Expertises           : chaque nœud thème → famille de fiches par public
+    ├── Vue liste (défaut)      : point d'entrée unique — génération, thèmes, caractéristiques
+    ├── Vue Relations (avancé)  : édition des liens entre thèmes existants (pas de génération)
+    └── Expertises              : chaque nœud thème → famille de fiches par public
 ```
 
 ---
@@ -31,7 +31,7 @@ Graphe de thèmes (React Flow — source de vérité)
 ```
 Sidebar
   └── Expertises                    [switcher Chercheur / Laboratoire dans l'en-tête]
-        ├── Thèmes de recherche     ◄── toggle Liste (défaut) / Carte mentale
+        ├── Thèmes de recherche     ◄── toggle Liste (défaut) / Relations (avancé)
         └── Expertises              ◄── fiches par public (chip "générées depuis vos thèmes")
 ```
 
@@ -40,129 +40,73 @@ Sidebar
 son compteur (N thèmes, N fiches, N publiques), coche verte quand l'étape est franchie,
 clic = navigation vers l'onglet correspondant.
 
-✅ **Après une génération depuis l'empty state**, la page bascule automatiquement sur la
-**vue liste** avec une bannière de revue (« passez vos thèmes en revue, puis générez vos
-fiches expertises ») ; un encart « Étape suivante » en bas de liste mène à l'onglet Expertises.
+✅ **La vue Liste est l'unique point d'entrée du parcours** — génération (prompt IA et/ou
+publications), ajout manuel, caractéristiques : tout se passe dans la vue Liste, y compris
+à vide (voir §3). La vue Relations (avancé, voir §4) ne sert qu'à structurer les liens entre
+thèmes déjà définis ; elle n'est accessible que si au moins un thème existe et ne propose
+plus de génération.
+
+✅ **Après une génération IA**, la vue Liste affiche une bannière de revue (« passez vos
+thèmes en revue, puis générez vos fiches expertises ») ; un encart « Étape suivante » en
+bas de liste mène à l'onglet Expertises.
 
 ✅ **Perspective Laboratoire** (voir § 6) : la même page, déclinée à l'échelle du labo,
 agrège en lecture seule les thèmes et les fiches publiées des membres.
 
 ---
 
-## 3. Thèmes de recherche — Carte mentale
+## 3. Thèmes de recherche — Vue liste (défaut)
 
 ### 3.1 Principe
 
-✅ Le chercheur décrit ses expertises en langage naturel. Un LLM (simulé dans la maquette) traduit ce texte en graphe que le chercheur peut ensuite modifier manuellement.
+✅ Point d'entrée unique du step « Thèmes de recherche » (le toggle Liste (défaut) /
+Relations (avancé) est un segmented control en haut à droite — la vue Relations est
+optionnelle, voir §4). Chaque nœud du graphe devient une fiche structurée. Les
+caractéristiques portées par le nœud (temporal, geographic, persons, organizations,
+concepts) sont projetées en chips colorés.
 
-✅ Le graphe est persisté en JSON versionné (`localStorage` dans la maquette, clé `expertise-graph-v2`, API en production).
-
-### 3.2 Modèle de données — Nœuds
-
-**Un seul type de nœud : Expertise** (teal `#006A61`)
-
-Chaque nœud porte, en plus de son intitulé et de sa description, des **caractéristiques** organisées en 5 catégories :
-
-| Catégorie | Icône | Couleur | Contenu |
-|---|---|---|---|
-| Couverture temporelle | Calendrier | Bleu `#0288D1` | Périodes, dates (texte libre) |
-| Lieux | Localisation | Vert `#388E3C` | Zones géographiques, pays, régions |
-| Personnes | Personne | Violet `#7B1FA2` | Auteurs de référence, collaborateurs |
-| Organisations | Bâtiment | Orange `#E65100` | Institutions, laboratoires, organismes |
-| Concepts et mots-clés | Étiquette | Teal `#006A61` | Mots-clés avec vocabulaire contrôlé optionnel |
-
-**Vocabulaires contrôlés disponibles pour les concepts :** RAMEAU · MeSH · Wikidata · JEL (Économie) · AMS (Mathématiques) · MSC (Sciences) · LCSH (Library of Congress) · Vocabulaire libre
-
-### 3.3 Modèle de données — Relations
-
-**Relations libres** — pas de liste fixe de types, la typologie émergera des ateliers.
-
-| Propriété | Valeurs | Rendu |
-|---|---|---|
-| `direction` | `forward` (A→B) · `backward` (A←B) · `bidirectional` (A↔B) | Flèche(s) sur l'arête |
-| `label` | Texte libre saisi par le chercheur | Étiquette sur l'arête |
-
-✅ **Relation qualifiée** (label renseigné) : trait teal continu.
-
-✅ **Relation non qualifiée** (label vide) : trait gris pointillé avec l'invite *"qualifier →"* — invitation visible à nommer la relation.
-
-### 3.4 Interactions — nœuds
-
-✅ **Générer depuis un prompt** : champ texte libre → "Générer le graphe" → simulation LLM (1,8 s) → graphe pré-rempli avec attributs. Chaque génération incrémente la version et conserve l'historique des prompts.
-
-✅ **Empty state onboarding** : quand le graphe est vide, le canvas est remplacé par une carte centrée (textarea autofocus, 4 chips de profils exemples, Ctrl+Entrée pour générer).
-
-✅ **Ajouter un thème** : bouton mis en avant dans la barre d'outils du canvas (+ panneau gauche) → dialog (intitulé, description).
-
-✅ **Modifier un thème** : sélection + "Modifier" → dialog pré-rempli.
-
-✅ **Supprimer** : sélection + "Supprimer" (sélection multiple supportée).
-
-✅ **Déployer les caractéristiques dans le graphe** : chaque nœud ayant des attributs affiche un bouton chevron (▼/▲). Clic → le nœud s'agrandit et affiche les chips par catégorie, directement dans le canvas. L'état replié/déployé est persisté.
-
-✅ **Éditer les caractéristiques depuis le panneau** : clic sur un nœud → panneau gauche affiche la section "Caractéristiques" avec un bouton "+" par catégorie → formulaire inline (label + sélecteur de vocabulaire pour les concepts) → chips supprimables.
-
-### 3.5 Interactions — relations
-
-✅ **Créer un lien** : tirer depuis un point d'ancrage d'un nœud vers un autre (direction `forward` par défaut, label vide).
-
-✅ **Qualifier un lien** : clic sur le lien → panneau gauche bascule en mode édition de relation :
-  - Sélecteur de direction : `A → B` · `A ← B` · `A ↔ B`
-  - Champ texte libre "Qualifier la relation" (placeholder : *influence, prolonge, critique, s'appuie sur…*)
-  - Si vide : avertissement discret "relation non qualifiée"
-
-✅ **Supprimer un lien** : sélectionner + "Supprimer ce lien".
-
-### 3.6 Interactions — canvas
-
-✅ **Enregistrer** : bouton → `localStorage`.
-
-✅ **Exporter JSON** : bouton "JSON" → viewer + téléchargement.
-
-✅ **Réinitialiser** : icône `RestartAlt` → revient à l'empty state.
-
-✅ **Panneau gauche rétractable** (persistent sur desktop, overlay sur mobile).
-
-### 3.7 Questions ouvertes
-
-❓ **Qualification des relations** : faut-il proposer des suggestions de labels selon le contexte (discipline, type de nœuds connectés) pour aider les chercheurs à trouver les bons termes ?
-
-❓ **Vocabulaires contrôlés** : les concepts avec `vocabulary = 'rameau'` devraient-ils bénéficier d'une autocomplete sur le référentiel RAMEAU (via IdRef/BnF) ?
-
-❓ **Visibilité du graphe** : est-il visible publiquement sur le profil chercheur, ou uniquement en mode édition ?
-
-❓ **Co-construction** : peut-on co-construire un graphe à plusieurs (chercheurs d'un même labo) ?
-
-❓ **Export sémantique** : export vers SKOS/RDF pour interopérabilité avec des référentiels de compétences ?
-
-❓ **Génération LLM** : prompt seul, ou prompt + publications HAL pour plus de pertinence ?
-
----
-
-## 4. Thèmes de recherche — Vue liste (défaut)
-
-### 4.1 Principe
-
-✅ Rendu par défaut de l'onglet Thèmes de recherche (le toggle Liste / Carte mentale est un
-segmented control en haut à droite : même contenu, deux affichages). Chaque nœud du graphe
-devient une fiche structurée. Les caractéristiques portées par le nœud (temporal, geographic,
-persons, organizations, concepts) sont projetées en chips colorés.
-
-✅ Bannière en haut : version du graphe, date de mise à jour, lien "Ouvrir la carte →".
-Après une génération IA, elle est remplacée par la bannière de revue (verte).
+✅ Bannière en haut : version du graphe, date de mise à jour, lien "Voir les relations →"
+vers la vue Relations (avancé). Après une génération IA, elle est remplacée par la bannière
+de revue (verte).
 
 ✅ Encart « Étape suivante : vos expertises » en bas de liste → onglet Expertises.
 
+### 3.2 Génération
+
+✅ **Composant partagé `GenerationPanel.tsx`**, seul point d'entrée de la génération IA (la
+vue Relations n'en propose plus) :
+  - Bloc **publications** : badge du nombre sélectionné, "Sélectionner des publications →"
+    (navigue vers `/documents?perspective=…`), "Générer mes thèmes de recherche" /
+    "Recalculer à partir des publications" selon qu'il existe déjà des thèmes.
+  - Séparateur "ou" + bloc **prompt** : textarea (+ 4 chips de profils exemples en grand
+    format) → "Générer le graphe". Simulation LLM ~1,8 s, chaque génération incrémente la
+    version et alimente l'historique des prompts.
+  - Les deux blocs sont toujours affichés ensemble — plus de bascule "ou → décrire
+    manuellement".
+
+✅ **Quand le graphe est vide** (`entries.length === 0`) : `GenerationPanel` s'affiche en
+grand (`variant="empty"`), carte centrée à la place de la grille de thèmes.
+
+✅ **Une fois des thèmes définis** : `GenerationPanel` reste accessible, replié par défaut
+dans un accordéon "Ajuster le périmètre ou régénérer des thèmes" (`variant="inline"`)
+au-dessus de la grille — pour ajuster le scope de publications ou relancer une génération
+sans quitter la liste.
+
+### 3.3 Gestion des thèmes
+
 ✅ **Ajouter un thème** : bouton principal de la vue → modale complète (intitulé, description,
-caractéristiques avec les mêmes widgets d'affinage que la carte : slider / périodes nommées,
-GeoNames, IdRef, vocabulaires — composant partagé `AttributesEditor`).
+caractéristiques avec les mêmes widgets d'affinage que la vue Relations : slider / périodes
+nommées, GeoNames, IdRef, vocabulaires — composant partagé `AttributesEditor`).
+
+✅ **Modifier / supprimer un thème** : menu ⋮ sur chaque carte → même modale (mode édition) /
+confirmation de suppression.
 
 ✅ **Expertises liées** : chaque carte de thème liste les fiches expertises qui en dérivent
 (icône + chip du public + titre, mention « à valider » le cas échéant) — symétrique du lien
 fiche → thème affiché dans l'onglet Expertises. Clic sur une fiche ou « Voir l'onglet → » →
 onglet Expertises. Si aucune fiche : CTA « Générer mes expertises → ».
 
-### 4.2 Anatomie d'une fiche expertise
+### 3.4 Anatomie d'une fiche expertise
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -186,13 +130,108 @@ onglet Expertises. Si aucune fiche : CTA « Générer mes expertises → ».
 
 ✅ **Association d'activités** : bouton "Associer" → dialog avec liste à cocher des activités de recherche.
 
-✅ Si aucun élément rattaché : lien "Enrichir dans la carte →".
+✅ Si aucun élément rattaché : lien « Ajouter des caractéristiques → » (ouvre le dialog
+d'édition du thème) + lien secondaire discret « Relier à un autre thème (avancé) » vers la
+vue Relations, réservé à la création de liens entre thèmes.
 
-### 4.3 Questions ouvertes
+### 3.5 Questions ouvertes
 
 ❓ **Filtres / tri** sur la liste (par lieu, par période, par mot-clé) ?
 
 ❓ **Couplage activités ↔ expertises** : association automatique depuis les mots-clés des publications HAL ?
+
+❓ **Génération LLM** : faut-il combiner prompt et publications HAL dans une même requête plutôt que deux entrées parallèles, pour plus de pertinence ?
+
+---
+
+## 4. Thèmes de recherche — Vue Relations (avancé)
+
+### 4.1 Principe
+
+✅ Vue avancée et optionnelle : elle sert uniquement à structurer les **liens entre thèmes
+déjà définis**. Elle n'est accessible que si au moins un thème existe (sinon la page reste
+sur la vue Liste), et ne propose plus de génération ni de saisie de prompt — ces actions
+vivent exclusivement dans la vue Liste (§3). Le panneau gauche, quand rien n'est
+sélectionné, rappelle la provenance des thèmes (dernier prompt) et propose un lien
+« Modifier mes thèmes → » vers la liste.
+
+✅ Le graphe est persisté en JSON versionné (`localStorage` dans la maquette, clé `expertise-graph-v2`, API en production).
+
+### 4.2 Modèle de données — Nœuds
+
+**Un seul type de nœud : Expertise** (teal `#006A61`)
+
+Chaque nœud porte, en plus de son intitulé et de sa description, des **caractéristiques** organisées en 5 catégories :
+
+| Catégorie | Icône | Couleur | Contenu |
+|---|---|---|---|
+| Couverture temporelle | Calendrier | Bleu `#0288D1` | Périodes, dates (texte libre) |
+| Lieux | Localisation | Vert `#388E3C` | Zones géographiques, pays, régions |
+| Personnes | Personne | Violet `#7B1FA2` | Auteurs de référence, collaborateurs |
+| Organisations | Bâtiment | Orange `#E65100` | Institutions, laboratoires, organismes |
+| Concepts et mots-clés | Étiquette | Teal `#006A61` | Mots-clés avec vocabulaire contrôlé optionnel |
+
+**Vocabulaires contrôlés disponibles pour les concepts :** RAMEAU · MeSH · Wikidata · JEL (Économie) · AMS (Mathématiques) · MSC (Sciences) · LCSH (Library of Congress) · Vocabulaire libre
+
+### 4.3 Modèle de données — Relations
+
+**Relations libres** — pas de liste fixe de types, la typologie émergera des ateliers.
+
+| Propriété | Valeurs | Rendu |
+|---|---|---|
+| `direction` | `forward` (A→B) · `backward` (A←B) · `bidirectional` (A↔B) | Flèche(s) sur l'arête |
+| `label` | Texte libre saisi par le chercheur | Étiquette sur l'arête |
+
+✅ **Relation qualifiée** (label renseigné) : trait teal continu.
+
+✅ **Relation non qualifiée** (label vide) : trait gris pointillé avec l'invite *"qualifier →"* — invitation visible à nommer la relation.
+
+### 4.4 Interactions — nœuds
+
+✅ **Ajouter un thème** : bouton mis en avant dans la barre d'outils du canvas (+ panneau gauche) → dialog (intitulé, description).
+
+✅ **Modifier un thème** : sélection + "Modifier" → dialog pré-rempli.
+
+✅ **Supprimer** : sélection + "Supprimer" (sélection multiple supportée). Si tous les
+thèmes sont supprimés pendant qu'on est dans cette vue, un état de repli s'affiche
+(« Plus aucun thème » + bouton « Retour à la vue Liste »).
+
+✅ **Déployer les caractéristiques dans le graphe** : chaque nœud ayant des attributs affiche un bouton chevron (▼/▲). Clic → le nœud s'agrandit et affiche les chips par catégorie, directement dans le canvas. L'état replié/déployé est persisté.
+
+✅ **Éditer les caractéristiques depuis le panneau** : clic sur un nœud → panneau gauche affiche la section "Caractéristiques" avec un bouton "+" par catégorie → formulaire inline (label + sélecteur de vocabulaire pour les concepts) → chips supprimables.
+
+### 4.5 Interactions — relations
+
+✅ **Créer un lien** : tirer depuis un point d'ancrage d'un nœud vers un autre (direction `forward` par défaut, label vide).
+
+✅ **Qualifier un lien** : clic sur le lien → panneau gauche bascule en mode édition de relation :
+  - Sélecteur de direction : `A → B` · `A ← B` · `A ↔ B`
+  - Champ texte libre "Qualifier la relation" (placeholder : *influence, prolonge, critique, s'appuie sur…*)
+  - Si vide : avertissement discret "relation non qualifiée"
+
+✅ **Supprimer un lien** : sélectionner + "Supprimer ce lien".
+
+### 4.6 Interactions — canvas
+
+✅ **Enregistrer** : bouton → `localStorage`.
+
+✅ **Exporter JSON** : bouton "JSON" → viewer + téléchargement.
+
+✅ **Réinitialiser** (icône `RestartAlt`, "Restaurer l'exemple de démonstration") : recharge le graphe de démonstration initial. **Vider** (icône `DeleteSweep`, "Vider la carte") : vide le graphe et déclenche l'état de repli décrit en §4.4.
+
+✅ **Panneau gauche rétractable** (persistent sur desktop, overlay sur mobile).
+
+### 4.7 Questions ouvertes
+
+❓ **Qualification des relations** : faut-il proposer des suggestions de labels selon le contexte (discipline, type de nœuds connectés) pour aider les chercheurs à trouver les bons termes ?
+
+❓ **Vocabulaires contrôlés** : les concepts avec `vocabulary = 'rameau'` devraient-ils bénéficier d'une autocomplete sur le référentiel RAMEAU (via IdRef/BnF) ?
+
+❓ **Visibilité du graphe** : est-il visible publiquement sur le profil chercheur, ou uniquement en mode édition ?
+
+❓ **Co-construction** : peut-on co-construire un graphe à plusieurs (chercheurs d'un même labo) ?
+
+❓ **Export sémantique** : export vers SKOS/RDF pour interopérabilité avec des référentiels de compétences ?
 
 ---
 
@@ -225,7 +264,7 @@ onglet Expertises. Si aucune fiche : CTA « Générer mes expertises → ».
 
 ✅ **Audiences cibles** : liste (Chercheurs, Industriels, Journalistes, Grand Public, Scolaires…)
 
-✅ **Caractéristiques** : héritées du thème de recherche source (couverture temporelle, lieux, personnes, organisations, concepts), modifiables fiche par fiche — mêmes widgets d'affinage que la carte mentale (composant partagé `AttributesEditor`)
+✅ **Caractéristiques** : héritées du thème de recherche source (couverture temporelle, lieux, personnes, organisations, concepts), modifiables fiche par fiche — mêmes widgets d'affinage que la vue Relations (composant partagé `AttributesEditor`)
 
 ✅ **Statut** : Validée · À valider
 
