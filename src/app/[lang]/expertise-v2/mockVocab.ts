@@ -1,4 +1,4 @@
-import { Keyword, ResearchTheme, Vocabulary } from './types'
+import { Keyword, Vocabulary } from './types'
 
 // ─── Référentiels simulés ────────────────────────────────────────────────────
 // En production : IdRef (RAMEAU), NLM (MeSH), Wikidata, référentiel des
@@ -85,58 +85,4 @@ const HAL_SUGGESTED: Keyword[] = [
 export function suggestedKeywords(current: Keyword[]): Keyword[] {
   const present = new Set(current.map((k) => normalize(k.label)))
   return HAL_SUGGESTED.filter((k) => !present.has(normalize(k.label))).slice(0, 3)
-}
-
-// ─── Import depuis HAL : thèmes proposés à partir des publications ───────────
-
-export interface HalThemeSuggestion {
-  label: string
-  description: string
-  yearFrom: number
-  yearTo: number | null
-  publicationCount: number
-  keywords: Keyword[]
-}
-
-export const HAL_THEME_SUGGESTIONS: HalThemeSuggestion[] = [
-  {
-    label: 'Précarité énergétique des ménages âgés',
-    description: 'Exposition des retraités modestes aux coûts de l’énergie et stratégies d’adaptation dans le logement.',
-    yearFrom: 2020,
-    yearTo: null,
-    publicationCount: 4,
-    keywords: [
-      { label: 'Précarité énergétique', vocabulary: 'rameau' },
-      { label: 'Personnes âgées', vocabulary: 'rameau' },
-      { label: 'Transition énergétique', vocabulary: 'wikidata', detail: 'Q1785580' },
-    ],
-  },
-  {
-    label: 'Gouvernance locale des politiques gérontologiques',
-    description: 'Rôle des départements et des intercommunalités dans la coordination de l’action gérontologique.',
-    yearFrom: 2016,
-    yearTo: 2021,
-    publicationCount: 6,
-    keywords: [
-      { label: 'Collectivités locales', vocabulary: 'rameau' },
-      { label: 'Gérontologie', vocabulary: 'wikidata', detail: 'Q188826' },
-      { label: 'Science politique', vocabulary: 'hal', detail: 'shs.scipo' },
-    ],
-  },
-  {
-    label: 'Accès aux soins dans les campagnes vieillissantes',
-    description: 'Déserts médicaux, mobilité des patients âgés et organisation territoriale de l’offre de soins.',
-    yearFrom: 2013,
-    yearTo: 2018,
-    publicationCount: 3,
-    keywords: [
-      { label: 'Désert médical', vocabulary: 'wikidata', detail: 'Q3023612' },
-      { label: 'Health Services Accessibility', vocabulary: 'mesh', detail: 'D006297' },
-      { label: 'Espace rural', vocabulary: 'rameau' },
-    ],
-  },
-]
-
-export function suggestionAlreadyPresent(s: HalThemeSuggestion, themes: ResearchTheme[]): boolean {
-  return themes.some((t) => normalize(t.label) === normalize(s.label))
 }

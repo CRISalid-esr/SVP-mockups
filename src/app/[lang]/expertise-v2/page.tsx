@@ -12,7 +12,7 @@ import { dashboardMockService } from '@/mocks/dashboardMockService'
 import ThemesList from './components/ThemesList'
 import ThemeEditor from './components/ThemeEditor'
 import PublicPreview from './components/PublicPreview'
-import HalImportDialog from './components/HalImportDialog'
+import ThemeProposalsWorkshop, { WorkshopResult } from './components/ThemeProposalsWorkshop'
 import LabView from './components/Lab/LabView'
 import { LAB_INFO } from './components/Lab/labMock'
 import { loadProfile, resetProfile, saveProfile } from './storage'
@@ -46,7 +46,7 @@ export default function ExpertiseV2Page() {
   const [tab, setTab] = useState<TabKey>('themes')
   const [view, setView] = useState<PageView>('researcher')
   const [editing, setEditing] = useState<EditingState | null>(null)
-  const [importOpen, setImportOpen] = useState(false)
+  const [workshopOpen, setWorkshopOpen] = useState(false)
   const [snackbar, setSnackbar] = useState('')
 
   useEffect(() => {
@@ -78,10 +78,28 @@ export default function ExpertiseV2Page() {
     setSnackbar('Thème supprimé')
   }
 
-  const importThemes = (themes: ResearchTheme[]) => {
-    commit({ ...profile, themes: [...profile.themes, ...themes] })
-    setImportOpen(false)
-    setSnackbar(`${themes.length} thème${themes.length > 1 ? 's' : ''} ajouté${themes.length > 1 ? 's' : ''} en brouillon — relisez-les puis validez-les`)
+  /** Résultat de l'atelier : nouveaux thèmes en brouillon + publications rattachées à des thèmes existants. */
+  const applyWorkshop = ({ newThemes, attachments }: WorkshopResult) => {
+    const themes = profile.themes.map((t) => {
+      const a = attachments.find((x) => x.themeId === t.id)
+      if (!a) return t
+      const yearFrom = t.yearFrom == null ? a.yearFrom : a.yearFrom == null ? t.yearFrom : Math.min(t.yearFrom, a.yearFrom)
+      const yearTo = t.yearTo == null || a.yearTo == null ? null : Math.max(t.yearTo, a.yearTo)
+      return {
+        ...t,
+        yearFrom,
+        yearTo,
+        publicationIds: [...new Set([...(t.publicationIds ?? []), ...a.publicationIds])],
+        studiedPeriods: [...t.studiedPeriods, ...a.studiedPeriods.filter((s) => !t.studiedPeriods.some((e) => e.label === s.label))],
+      }
+    })
+    commit({ ...profile, themes: [...themes, ...newThemes] })
+    setWorkshopOpen(false)
+    const parts = [
+      newThemes.length ? `${newThemes.length} thème${newThemes.length > 1 ? 's' : ''} ajouté${newThemes.length > 1 ? 's' : ''} en brouillon` : null,
+      attachments.length ? `${attachments.length} thème${attachments.length > 1 ? 's' : ''} existant${attachments.length > 1 ? 's' : ''} enrichi${attachments.length > 1 ? 's' : ''}` : null,
+    ].filter(Boolean)
+    setSnackbar(`${parts.join(' · ')} — relisez les brouillons puis validez-les`)
   }
 
   const openEditor = (id: string) => {
@@ -93,6 +111,7 @@ export default function ExpertiseV2Page() {
     resetProfile()
     setProfile(loadProfile())
     setEditing(null)
+    setWorkshopOpen(false)
     setTab('themes')
     setSnackbar('Profil de démonstration réinitialisé')
   }
@@ -105,7 +124,7 @@ export default function ExpertiseV2Page() {
       <DocumentHeader perspectiveName={view === 'lab' ? LAB_INFO.name : researcherName} pageName="Profil de recherche 2">
         <ToggleButtonGroup
           size="small" exclusive value={view}
-          onChange={(_e, v: PageView | null) => { if (v) { setView(v); setEditing(null) } }}
+          onChange={(_e, v: PageView | null) => { if (v) { setView(v); setEditing(null); setWorkshopOpen(false) } }}
           aria-label="Perspective"
         >
           <ToggleButton value="researcher" sx={{ textTransform: 'none', gap: 0.5 }}>
@@ -131,7 +150,7 @@ export default function ExpertiseV2Page() {
         </Box>
       )}
 
-      {view === 'researcher' && !editing && (
+      {view === 'researcher' && !editing && !workshopOpen && (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, bgcolor: 'background.paper' }}>
           <Tabs
             value={tab}
@@ -152,7 +171,9 @@ export default function ExpertiseV2Page() {
       )}
 
       {view === 'researcher' && <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {!mounted ? null : editing ? (
+        {!mounted ? null : workshopOpen ? (
+          <ThemeProposalsWorkshop profile={profile} onBack={() => setWorkshopOpen(false)} onApply={applyWorkshop} />
+        ) : editing ? (
           <ThemeEditor
             theme={editing.theme}
             isNew={editing.isNew}
@@ -169,7 +190,7 @@ export default function ExpertiseV2Page() {
             profile={profile}
             onEdit={openEditor}
             onAdd={() => setEditing({ theme: blankTheme(), isNew: true })}
-            onImport={() => setImportOpen(true)}
+            onPropose={() => setWorkshopOpen(true)}
           />
         ) : tab === 'graph' ? (
           <JourneyGraph
@@ -187,8 +208,6 @@ export default function ExpertiseV2Page() {
           />
         )}
       </Box>}
-
-      <HalImportDialog open={importOpen} themes={profile.themes} onClose={() => setImportOpen(false)} onImport={importThemes} />
 
       <Snackbar open={Boolean(snackbar)} autoHideDuration={3500} onClose={() => setSnackbar('')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>

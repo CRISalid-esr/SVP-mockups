@@ -119,18 +119,59 @@ describe('ExpertiseV2Page', () => {
     expect(screen.getByText(/1 thème sans déclinaison pour ce public/)).toBeInTheDocument()
   })
 
-  it('importe des thèmes depuis HAL en brouillon', () => {
+  it('distingue la période de travail de la période étudiée dans la liste et l’éditeur', () => {
     render(<ExpertiseV2Page />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Importer depuis HAL/ }))
-    fireEvent.click(screen.getByRole('button', { name: /Ajouter 3 thèmes en brouillon/ }))
+    const row = screen.getByRole('button', { name: /Modifier le thème Mobilités résidentielles des retraités/ })
+    expect(within(row).getByText('2009 → 2014')).toBeInTheDocument()
+    expect(within(row).getByText('Porte sur')).toBeInTheDocument()
+    expect(within(row).getByText('Recensements 1975 – 2006')).toBeInTheDocument()
+
+    fireEvent.click(row)
+    expect(screen.getByText('Période de travail sur ce thème')).toBeInTheDocument()
+    expect(screen.getByText('Période étudiée')).toBeInTheDocument()
+
+    // Ajout d'une période nommée du référentiel
+    fireEvent.change(screen.getByLabelText('Période étudiée'), { target: { value: 'Trente' } })
+    fireEvent.click(screen.getByText('Trente Glorieuses'))
+    fireEvent.click(screen.getByRole('button', { name: /Enregistrer le brouillon/ }))
+
+    const updated = screen.getByRole('button', { name: /Modifier le thème Mobilités résidentielles des retraités/ })
+    expect(within(updated).getByText('Trente Glorieuses')).toBeInTheDocument()
+  })
+
+  it('propose des thèmes d’après les publications non rattachées et rattache les autres aux thèmes existants', async () => {
+    render(<ExpertiseV2Page />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Proposer des thèmes d’après mes publications/ }))
+    expect(screen.getByText('Choisir les publications')).toBeInTheDocument()
+    // Les 12 publications non rattachées à un thème sont pré-sélectionnées
+    expect(screen.getByText(/12 publications sélectionnées sur 28/)).toBeInTheDocument()
+    // Une publication déjà rattachée est signalée par le nom de son thème
+    expect(screen.getAllByText('Habitat inclusif et politiques publiques').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: /Proposer des thèmes d’après 12 publications/ }))
+    // Une carte par proposition : 3 nouveaux thèmes + 2 rattachements
+    expect(await screen.findAllByText('Publications à l’appui', {}, { timeout: 4000 })).toHaveLength(5)
+
+    // Trois nouveaux thèmes, deux rattachements à des thèmes existants
+    expect(screen.getByLabelText('Intitulé proposé : Précarité énergétique des ménages âgés')).toBeInTheDocument()
+    expect(screen.getByText(/Période de travail : 2020 → en cours/)).toBeInTheDocument()
+    expect(screen.getByText(/Vous décrivez déjà ce sujet : « Mobilités résidentielles des retraités »/)).toBeInTheDocument()
+    expect(screen.getByText(/période étendue à 2009 → 2015/)).toBeInTheDocument()
+    expect(screen.getByText(/période étudiée ajoutée : Trente Glorieuses/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Ajouter 3 thèmes en brouillon et rattacher/ }))
 
     expect(screen.getByText(/4 thèmes en brouillon/)).toBeInTheDocument()
-    // Le thème importé apparaît comme une ligne de la liste. Le dialogue MUI est encore en
-    // transition de fermeture (aria-hidden sur le reste de la page), d'où `hidden: true`.
-    expect(
-      screen.getByRole('button', { name: /Modifier le thème Précarité énergétique des ménages âgés/, hidden: true }),
-    ).toBeInTheDocument()
+    const newRow = screen.getByRole('button', { name: /Modifier le thème Précarité énergétique des ménages âgés/ })
+    expect(within(newRow).getByText('2020 → en cours')).toBeInTheDocument()
+    expect(within(newRow).getByText('4 publications')).toBeInTheDocument()
+    // Le thème existant a été enrichi : période étendue, publication et période étudiée ajoutées
+    const existingRow = screen.getByRole('button', { name: /Modifier le thème Mobilités résidentielles des retraités/ })
+    expect(within(existingRow).getByText('2009 → 2015')).toBeInTheDocument()
+    expect(within(existingRow).getByText('5 publications')).toBeInTheDocument()
+    expect(within(existingRow).getByText('Trente Glorieuses')).toBeInTheDocument()
   })
 
   it('affiche la vue laboratoire agrégée à partir des thèmes des membres', () => {

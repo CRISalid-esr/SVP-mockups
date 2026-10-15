@@ -6,15 +6,19 @@ import {
   DialogTitle, FormControlLabel, Grid2 as Grid, IconButton, Link, Switch, TextField, Typography,
 } from '@mui/material'
 import {
-  AccountTree, ArrowBack, CampaignOutlined, CheckCircleOutline, DeleteOutline, NewspaperOutlined, SaveOutlined,
+  AccountTree, ArrowBack, ArticleOutlined, CampaignOutlined, CheckCircleOutline, Close, DeleteOutline, NewspaperOutlined,
+  SaveOutlined,
 } from '@mui/icons-material'
 import {
   CURRENT_YEAR, DESCRIPTION_MAX, ResearchTheme, TEAL, TEAL_DARK, ThemeRelation, VISIBILITY_CONFIG,
-  Visibility, relationSentence,
+  Visibility, formatPeriod, relationSentence,
 } from '../types'
 import KeywordPicker from './KeywordPicker'
 import RefsPicker from './RefsPicker'
 import AudienceVariantsEditor from './AudienceVariantsEditor'
+import StudiedPeriodPicker from './StudiedPeriodPicker'
+import PublicationPicker from './PublicationPicker'
+import { PUBLICATIONS, coverageMap, halUrl, periodFromPublications, publicationById } from '../mockPublications'
 
 interface Props {
   theme: ResearchTheme
@@ -57,6 +61,18 @@ export default function ThemeEditor({
   const [draft, setDraft] = useState<ResearchTheme>(theme)
   const [ongoing, setOngoing] = useState(theme.yearTo == null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pubsOpen, setPubsOpen] = useState(false)
+
+  const attachedPubs = useMemo(
+    () => (draft.publicationIds ?? []).map(publicationById).filter((p): p is NonNullable<typeof p> => Boolean(p)).sort((a, b) => a.year - b.year),
+    [draft.publicationIds],
+  )
+  const suggestedPeriod = useMemo(() => periodFromPublications(attachedPubs), [attachedPubs])
+  const applySuggestedPeriod = () => {
+    setDraft((d) => ({ ...d, yearFrom: suggestedPeriod.yearFrom, yearTo: suggestedPeriod.yearTo }))
+    setOngoing(suggestedPeriod.yearTo == null)
+  }
+  const coveredByOthers = useMemo(() => coverageMap(allThemes, draft.id), [allThemes, draft.id])
 
   useEffect(() => { setDraft(theme); setOngoing(theme.yearTo == null) }, [theme])
 
@@ -129,7 +145,7 @@ export default function ThemeEditor({
               />
             </Section>
 
-            <Section title="Période" hint="Datez vos thèmes : votre profil raconte un parcours. Un sujet abandonné il y a dix ans reste une expertise, mais ne s’affiche pas comme un travail en cours.">
+            <Section title="Période de travail sur ce thème" hint="Quand avez-vous travaillé sur ce sujet ? Votre profil raconte un parcours : un sujet abandonné il y a dix ans reste une expertise, mais ne s’affiche pas comme un travail en cours.">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                 <TextField
                   label="Début" type="number" size="small" sx={{ width: 130 }}
@@ -157,6 +173,49 @@ export default function ThemeEditor({
                   label="Thème toujours en cours"
                 />
               </Box>
+              {attachedPubs.length > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {`Vos ${attachedPubs.length} publication${attachedPubs.length > 1 ? 's' : ''} sur ce thème vont de ${formatPeriod(suggestedPeriod)}. Ajustez si vous avez commencé avant de publier.`}
+                  </Typography>
+                  {(draft.yearFrom !== suggestedPeriod.yearFrom || (ongoing ? null : draft.yearTo) !== suggestedPeriod.yearTo) && (
+                    <Button size="small" onClick={applySuggestedPeriod} sx={{ textTransform: 'none', color: TEAL, py: 0 }}>
+                      Reprendre les dates des publications
+                    </Button>
+                  )}
+                </Box>
+              )}
+            </Section>
+
+            <Section title="Publications à l’appui" hint="Les publications qui fondent ce thème. Elles servent à proposer la période de travail et, demain, à relier le thème aux publications sur les portails.">
+              {attachedPubs.length === 0 ? (
+                <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic', mb: 1 }}>
+                  Aucune publication rattachée pour l’instant.
+                </Typography>
+              ) : (
+                <Box sx={{ mb: 1 }}>
+                  {attachedPubs.map((p) => (
+                    <Box key={p.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="caption" sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary', width: 36, flexShrink: 0 }}>{p.year}</Typography>
+                      <Typography variant="body2" sx={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>{p.title}</Typography>
+                      <Link href={halUrl(p.halId)} target="_blank" rel="noopener" variant="caption" underline="hover"
+                        sx={{ color: TEAL, whiteSpace: 'nowrap' }}>{p.halId}</Link>
+                      <IconButton size="small" aria-label={`Retirer ${p.title}`} sx={{ p: 0.25 }}
+                        onClick={() => patch({ publicationIds: (draft.publicationIds ?? []).filter((id) => id !== p.id) })}>
+                        <Close sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+              <Button size="small" variant="outlined" startIcon={<ArticleOutlined />} onClick={() => setPubsOpen(true)}
+                sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
+                Choisir des publications
+              </Button>
+            </Section>
+
+            <Section title="Période étudiée" hint="L’époque sur laquelle porte ce thème, si elle compte : le Néolithique pour un préhistorien, la Révolution française, les Trente Glorieuses… Elle est indépendante de la période où vous avez travaillé sur le sujet. Facultatif.">
+              <StudiedPeriodPicker value={draft.studiedPeriods} onChange={(studiedPeriods) => patch({ studiedPeriods })} />
             </Section>
 
             <Section title="Mots-clés">
@@ -300,6 +359,25 @@ export default function ThemeEditor({
           Valider ce thème
         </Button>
       </Box>
+
+      <Dialog open={pubsOpen} onClose={() => setPubsOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Publications à l’appui de « {draft.label.trim() || 'ce thème'} »</DialogTitle>
+        <DialogContent dividers>
+          <PublicationPicker
+            publications={PUBLICATIONS}
+            selected={draft.publicationIds ?? []}
+            onChange={(publicationIds) => patch({ publicationIds })}
+            coveredBy={coveredByOthers}
+            themes={allThemes}
+            maxHeight={380}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPubsOpen(false)} sx={{ textTransform: 'none', bgcolor: TEAL, color: '#fff', '&:hover': { bgcolor: TEAL_DARK } }}>
+            Terminer
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Supprimer ce thème ?</DialogTitle>

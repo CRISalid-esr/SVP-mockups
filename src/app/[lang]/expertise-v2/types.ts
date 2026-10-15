@@ -47,6 +47,18 @@ export interface OrgRef {
   detail?: string
 }
 
+/**
+ * Période étudiée : l'époque sur laquelle porte le thème (le Néolithique, la
+ * Révolution française, les Trente Glorieuses…). À ne pas confondre avec la
+ * période de travail (yearFrom / yearTo), qui date le parcours du chercheur.
+ * Années négatives = avant J.-C. Bornes absentes = période nommée sans dates.
+ */
+export interface StudiedPeriod {
+  label: string
+  yearFrom?: number
+  yearTo?: number
+}
+
 // ─── Déclinaison par public ──────────────────────────────────────────────────
 
 export type Audience = 'researchers' | 'industry' | 'media' | 'public'
@@ -103,10 +115,14 @@ export interface ResearchTheme {
   id: string
   label: string
   description: string
-  /** Année de début du travail sur ce thème. */
+  /** Année où le chercheur a commencé à travailler sur ce thème (période de travail). */
   yearFrom: number | null
-  /** Année de fin ; null = thème toujours en cours. */
+  /** Année de fin du travail ; null = thème toujours en cours. */
   yearTo: number | null
+  /** Époques étudiées, indépendantes de la période de travail. */
+  studiedPeriods: StudiedPeriod[]
+  /** Publications à l'appui du thème (thèmes proposés d'après les publications). */
+  publicationIds?: string[]
   keywords: Keyword[]
   places: PlaceRef[]
   persons: PersonRef[]
@@ -197,6 +213,21 @@ export function formatPeriod(theme: Pick<ResearchTheme, 'yearFrom' | 'yearTo'>, 
   return `${theme.yearFrom} → ${theme.yearTo == null ? ongoingLabel : theme.yearTo}`
 }
 
+/** Année lisible, avec « av. J.-C. » pour les années négatives. */
+export function formatYear(y: number): string {
+  return y < 0 ? `${-y} av. J.-C.` : String(y)
+}
+
+/** Bornes d'une période étudiée (« 1945 – 1975 », « 6000 – 2200 av. J.-C. »), vide si non datée. */
+export function formatStudiedBounds(p: StudiedPeriod): string {
+  if (p.yearFrom == null && p.yearTo == null) return ''
+  if (p.yearFrom != null && p.yearTo != null) {
+    if (p.yearFrom < 0 && p.yearTo < 0) return `${-p.yearFrom} – ${-p.yearTo} av. J.-C.`
+    return `${formatYear(p.yearFrom)} – ${formatYear(p.yearTo)}`
+  }
+  return p.yearFrom != null ? `depuis ${formatYear(p.yearFrom)}` : `jusqu’à ${formatYear(p.yearTo as number)}`
+}
+
 /** Le thème était-il travaillé pendant l'année donnée ? */
 export function isActiveIn(theme: Pick<ResearchTheme, 'yearFrom' | 'yearTo'>, year: number): boolean {
   if (theme.yearFrom == null) return false
@@ -242,6 +273,7 @@ export function blankTheme(): ResearchTheme {
     description: '',
     yearFrom: CURRENT_YEAR,
     yearTo: null,
+    studiedPeriods: [],
     keywords: [],
     places: [],
     persons: [],
@@ -259,6 +291,7 @@ export function normalizeTheme(raw: Partial<ResearchTheme> & Pick<ResearchTheme,
   return {
     ...blankTheme(),
     ...raw,
+    studiedPeriods: raw.studiedPeriods ?? [],
     keywords: raw.keywords ?? [],
     places: raw.places ?? [],
     persons: raw.persons ?? [],
@@ -289,6 +322,8 @@ export const DEMO_PROFILE: ResearchProfile = {
         + 'quotidienne des habitants.',
       yearFrom: 2017,
       yearTo: null,
+      studiedPeriods: [],
+      publicationIds: ['p14', 'p15', 'p16'],
       keywords: [
         { label: 'Habitat inclusif', vocabulary: 'rameau', detail: 'Logement' },
         { label: 'Politique du logement', vocabulary: 'rameau' },
@@ -322,6 +357,8 @@ export const DEMO_PROFILE: ResearchProfile = {
         'Recherche-action, cartographie sensible et ateliers avec les habitants comme outils de production de savoirs.',
       yearFrom: 2015,
       yearTo: null,
+      studiedPeriods: [],
+      publicationIds: ['p10', 'p11', 'p12', 'p13'],
       keywords: [
         { label: 'Recherche participative', vocabulary: 'rameau' },
         { label: 'Cartographie', vocabulary: 'rameau' },
@@ -370,6 +407,8 @@ export const DEMO_PROFILE: ResearchProfile = {
         'Recompositions des services et des solidarités locales dans les campagnes bretonnes vieillissantes.',
       yearFrom: 2012,
       yearTo: 2019,
+      studiedPeriods: [{ label: 'Années 1990 – 2010', yearFrom: 1990, yearTo: 2010 }],
+      publicationIds: ['p06', 'p07', 'p08', 'p09'],
       keywords: [
         { label: 'Vieillissement', vocabulary: 'rameau' },
         { label: 'Espace rural', vocabulary: 'rameau' },
@@ -407,6 +446,8 @@ export const DEMO_PROFILE: ResearchProfile = {
         'Thèse : migrations de retraite vers le littoral atlantique et choix résidentiels au moment de la cessation d’activité.',
       yearFrom: 2009,
       yearTo: 2014,
+      studiedPeriods: [{ label: 'Recensements 1975 – 2006', yearFrom: 1975, yearTo: 2006 }],
+      publicationIds: ['p01', 'p02', 'p03', 'p04'],
       keywords: [
         { label: 'Retraités', vocabulary: 'rameau' },
         { label: 'Littoraux', vocabulary: 'rameau' },
@@ -435,6 +476,8 @@ export const DEMO_PROFILE: ResearchProfile = {
       description: '',
       yearFrom: 2021,
       yearTo: null,
+      studiedPeriods: [],
+      publicationIds: ['p28'],
       keywords: [{ label: 'Confort thermique', vocabulary: 'rameau' }],
       places: [],
       persons: [],

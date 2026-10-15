@@ -2,13 +2,14 @@
 
 import { Alert, Box, Button, Chip, Tooltip, Typography } from '@mui/material'
 import {
-  Add, BusinessOutlined, CampaignOutlined, CheckCircle, CloudDownloadOutlined, EditOutlined, Groups2Outlined,
+  Add, ArticleOutlined, AutoAwesome, BusinessOutlined, CampaignOutlined, CheckCircle, EditOutlined, Groups2Outlined,
   NewspaperOutlined, PersonOutline, PlaceOutlined,
 } from '@mui/icons-material'
 import {
   AUDIENCES, CURRENT_YEAR, ResearchProfile, ResearchTheme, TEAL, TEAL_DARK, VISIBILITY_CONFIG, VOCAB_CONFIG,
   formatPeriod, variantCount,
 } from '../types'
+import { StudiedPeriodsLine } from './ThemeDetail'
 
 /** Ligne discrète : terrains, personnes, organisations et nombre de déclinaisons par public. */
 function ThemeMeta({ theme }: { theme: ResearchTheme }) {
@@ -20,6 +21,8 @@ function ThemeMeta({ theme }: { theme: ResearchTheme }) {
   if (theme.places.length) parts.push({ Icon: PlaceOutlined, text: names(theme.places), title: 'Terrains' })
   if (theme.persons.length) parts.push({ Icon: PersonOutline, text: names(theme.persons), title: 'Personnes' })
   if (theme.organizations.length) parts.push({ Icon: BusinessOutlined, text: names(theme.organizations), title: 'Organisations' })
+  const pubs = theme.publicationIds?.length ?? 0
+  if (pubs) parts.push({ Icon: ArticleOutlined, text: `${pubs} publication${pubs > 1 ? 's' : ''}`, title: 'Publications à l’appui' })
   const variants = variantCount(theme)
   if (variants) parts.push({ Icon: Groups2Outlined, text: `${variants}/${AUDIENCES.length} publics`, title: 'Déclinaisons par public' })
   if (parts.length === 0) return null
@@ -41,7 +44,8 @@ interface Props {
   profile: ResearchProfile
   onEdit: (id: string) => void
   onAdd: () => void
-  onImport: () => void
+  /** Ouvre l'atelier « Proposer des thèmes d'après mes publications ». */
+  onPropose: () => void
 }
 
 const GRID_COLUMNS = { xs: '1fr', md: 'minmax(0, 1fr) 230px 190px 120px' }
@@ -149,12 +153,13 @@ function ThemeRow({ theme, min, max, onEdit }: {
         <ThemeMeta theme={theme} />
       </Box>
 
-      {/* Période */}
+      {/* Période de travail + période étudiée */}
       <Box>
         <Typography variant="body2" sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
           {formatPeriod(theme)}
         </Typography>
         <PeriodBar theme={theme} min={min} max={max} />
+        <StudiedPeriodsLine theme={theme} />
       </Box>
 
       {/* Diffusion */}
@@ -193,7 +198,7 @@ function ThemeRow({ theme, min, max, onEdit }: {
   )
 }
 
-export default function ThemesList({ profile, onEdit, onAdd, onImport }: Props) {
+export default function ThemesList({ profile, onEdit, onAdd, onPropose }: Props) {
   const themes = sortThemes(profile.themes)
   const drafts = themes.filter((t) => t.status === 'draft')
   const { min, max } = periodBounds(profile.themes)
@@ -209,9 +214,9 @@ export default function ThemesList({ profile, onEdit, onAdd, onImport }: Props) 
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-          <Button variant="outlined" startIcon={<CloudDownloadOutlined />} onClick={onImport}
+          <Button variant="outlined" startIcon={<AutoAwesome />} onClick={onPropose}
             sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
-            Importer depuis HAL
+            Proposer des thèmes d’après mes publications
           </Button>
           <Button variant="contained" startIcon={<Add />} onClick={onAdd}
             sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
@@ -241,13 +246,13 @@ export default function ThemesList({ profile, onEdit, onAdd, onImport }: Props) 
         }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Aucun thème pour l’instant</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 480, mx: 'auto' }}>
-            Commencez par importer des thèmes proposés d’après vos publications HAL, ou décrivez
+            Laissez l’IA proposer des thèmes d’après vos publications, ou décrivez
             directement un premier thème de recherche.
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-            <Button variant="outlined" startIcon={<CloudDownloadOutlined />} onClick={onImport}
+            <Button variant="outlined" startIcon={<AutoAwesome />} onClick={onPropose}
               sx={{ textTransform: 'none', borderColor: TEAL, color: TEAL }}>
-              Importer depuis HAL
+              Proposer des thèmes d’après mes publications
             </Button>
             <Button variant="contained" startIcon={<Add />} onClick={onAdd}
               sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
@@ -263,7 +268,7 @@ export default function ThemesList({ profile, onEdit, onAdd, onImport }: Props) 
             px: 3, py: 1, bgcolor: '#F8FAFB', borderBottom: '1px solid', borderColor: 'divider',
             borderLeft: '4px solid transparent',
           }}>
-            {['Thème', `Période · ${min + 1} — ${max}`, 'Diffusion', 'Statut'].map((h) => (
+            {['Thème', `Période de travail · ${min + 1} — ${max}`, 'Diffusion', 'Statut'].map((h) => (
               <Typography key={h} variant="caption"
                 sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {h}

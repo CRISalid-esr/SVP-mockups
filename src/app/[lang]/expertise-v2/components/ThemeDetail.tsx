@@ -4,6 +4,7 @@ import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/mat
 import { CampaignOutlined, NewspaperOutlined } from '@mui/icons-material'
 import { AUDIENCES, AUDIENCE_CONFIG, Audience, ResearchTheme, TEAL, descriptionFor, formatPeriod } from '../types'
 import { RefChip } from './RefsPicker'
+import { StudiedPeriodChip } from './StudiedPeriodPicker'
 
 // ─── Blocs partagés entre l'aperçu public et la vue laboratoire ──────────────
 
@@ -102,10 +103,24 @@ export function ThemePublicBlock({ theme, audience, showPeriodColumn = true }: {
   if (!showPeriodColumn) return body
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '150px 1fr' }, gap: { xs: 0.5, sm: 3 } }}>
-      <Typography variant="body2" sx={{ color: TEAL, fontWeight: 700, fontVariantNumeric: 'tabular-nums', pt: 0.4 }}>
-        {formatPeriod(theme, 'aujourd’hui')}
-      </Typography>
+      <Box>
+        <Typography variant="body2" sx={{ color: TEAL, fontWeight: 700, fontVariantNumeric: 'tabular-nums', pt: 0.4 }}>
+          {formatPeriod(theme, 'aujourd’hui')}
+        </Typography>
+        <StudiedPeriodsLine theme={theme} />
+      </Box>
       {body}
+    </Box>
+  )
+}
+
+/** « Porte sur : Révolution française (1789 – 1799) » — l'époque étudiée, distincte de la période de travail. */
+export function StudiedPeriodsLine({ theme, size = 'small' }: { theme: Pick<ResearchTheme, 'studiedPeriods'>; size?: 'small' | 'medium' }) {
+  if (theme.studiedPeriods.length === 0) return null
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.5, mt: 0.75 }}>
+      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>Porte sur</Typography>
+      {theme.studiedPeriods.map((p) => <StudiedPeriodChip key={p.label} value={p} size={size} />)}
     </Box>
   )
 }

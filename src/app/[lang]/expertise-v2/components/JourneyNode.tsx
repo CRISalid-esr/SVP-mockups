@@ -2,6 +2,7 @@
 
 import { Handle, NodeProps, Position } from '@xyflow/react'
 import { Box, Typography } from '@mui/material'
+import { HistoryEdu } from '@mui/icons-material'
 import { ResearchTheme, TEAL, VISIBILITY_CONFIG, formatPeriod } from '../types'
 
 export interface JourneyNodeData {
@@ -49,6 +50,14 @@ export default function JourneyNode({ data, selected }: NodeProps) {
           <vis.Icon sx={{ fontSize: 13 }} titleAccess={vis.label} />
           {draft && <Typography variant="caption" sx={{ fontWeight: 600, color: selected ? '#fff' : '#E65100' }}>· brouillon</Typography>}
         </Box>
+        {theme.studiedPeriods.length > 0 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, opacity: selected ? 0.85 : 0.75 }}>
+            <HistoryEdu sx={{ fontSize: 12, color: selected ? '#fff' : '#7B5E2A' }} />
+            <Typography variant="caption" noWrap title={`Porte sur : ${theme.studiedPeriods.map((p) => p.label).join(', ')}`}>
+              {theme.studiedPeriods.map((p) => p.label).join(', ')}
+            </Typography>
+          </Box>
+        )}
       </Box>
       <Handle type="source" position={Position.Right} style={handleStyle} />
     </>
