@@ -27,6 +27,7 @@ import { Box, useMediaQuery } from '@mui/system'
 import {
   BarChartSquare02 as BarChartSquare,
   CheckDone01 as CheckDone,
+  Compass03 as Compass,
   LayersThree01 as LayerThere,
   LifeBuoy01 as LifeBuoy,
   LogOut01 as Logout,
@@ -510,6 +511,55 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                       },
                     }}
                     primary={<Trans>side_bar_expertise</Trans>}
+                  />
+                )}
+              </ListItem>
+              <ListItem
+                component={Link}
+                href={`/${lang}/expertise-v2?${searchParams.toString()}`}
+                onClick={() => isMobile && handleToggleDrawerAction()}
+                sx={{
+                  marginBottom: theme.utils.pxToRem(4),
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: theme.palette.primaryContainer,
+                  ...(pathname?.startsWith(`/${lang}/expertise-v2`)
+                    ? {
+                      backgroundColor: theme.palette.primaryContainer,
+                      borderRadius: theme.utils.pxToRem(8),
+                      color: theme.palette.onPrimaryContainer,
+                    }
+                    : {}),
+                  '&:hover': {
+                    backgroundColor: theme.palette.sidebarItemHover,
+                    borderRadius: theme.utils.pxToRem(8),
+                    color: theme.palette.primaryContainer,
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    height: theme.utils.pxToRem(24),
+                    width: theme.utils.pxToRem(24),
+                    minWidth: 'unset',
+                    marginRight: open ? theme.utils.pxToRem(12) : 0,
+                    color: 'inherit',
+                  }}
+                >
+                  <Compass />
+                </ListItemIcon>
+                {open && (
+                  <ListItemText
+                    sx={{
+                      '& .MuiTypography-root': {
+                        fontFamily: 'Inter, Roboto, sans-serif',
+                        fontSize: theme.utils.pxToRem(16),
+                        fontWeight: theme.typography.fontWeightMedium,
+                        lineHeight: theme.typography.lineHeight.lineHeight24px,
+                      },
+                    }}
+                    primary={'Profil de recherche 2'}
                   />
                 )}
               </ListItem>
