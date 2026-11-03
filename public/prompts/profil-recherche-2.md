@@ -115,6 +115,16 @@ Remplace l'« Import depuis HAL » de la première mouture, dont le libellé lai
 
 Jeu de démonstration : 28 publications (2010 → 2025) cohérentes avec le profil ; 16 sont rattachées aux 5 thèmes de démo, 12 ne le sont pas. Avec la sélection par défaut, l'atelier propose 3 nouveaux thèmes (*Précarité énergétique des ménages âgés*, *Gouvernance locale des politiques gérontologiques*, *Accès aux soins dans les campagnes vieillissantes*) et 2 rattachements (une publication de 2015 sur les Trente Glorieuses au thème de thèse, une publication de 2025 au thème *Habitat inclusif*).
 
+### 2.7 Profil d'un·e collègue — lecture seule, copie d'un thème ✅
+
+Quand on consulte le profil de recherche d'une autre personne, on voit ses thèmes **sans pouvoir les modifier**, mais on peut **copier un thème dans son propre profil** pour gagner du temps sur la saisie (intitulé et mots-clés alignés sur les référentiels).
+
+- **Accès** : champ « Consulter le profil d'un·e collègue… » dans l'en-tête (membres groupés par équipe), ou depuis la vue laboratoire (clic sur un nom dans *Complétude des profils*, bouton « Voir tous les thèmes de … » dans le dialogue de détail d'une expertise). Cliquer sur son propre nom ramène à son profil modifiable.
+- **Écran** : avatar, nom, équipe, laboratoire, chip **Lecture seule** ; une ligne par thème (période de travail + mini-frise + période étudiée, intitulé, description complète, **tous les mots-clés** avec leur référentiel en infobulle, terrains / personnes / organisations, diffusion, sollicitations). Aucun élément cliquable pour modifier.
+- **Ce qu'on voit** : uniquement les thèmes **validés et non privés** (même règle que la vue laboratoire). Les brouillons et thèmes privés ne sont pas affichés ; une mention discrète en donne le nombre. Un profil sans thème visible affiche un état vide.
+- **Copier dans mon profil** (bouton par thème) ouvre un dialogue : intitulé retouchable, **mots-clés repris** (tous par défaut, chacun retirable, « Tout reprendre »), cases à cocher *Terrains, personnes et organisations* (cochée) et *Périodes étudiées* (cochée), *Description* (décochée : elle est rédigée à la première personne par l'autre chercheur·e). Encart : ne sont **pas repris** la période de travail, les publications, la diffusion, les sollicitations et les déclinaisons par public, propres à l'autre personne.
+- **« Copier et modifier »** enregistre aussitôt la copie **en brouillon** dans son profil et ouvre l'éditeur, avec un bandeau de provenance (« Copié le … depuis le thème « … » de … »). Dans la liste, la ligne porte « Copié de … » ; dans le profil du collègue, le thème porte « Copié le … » et le bouton devient « Copier à nouveau ». Le thème d'origine n'est jamais modifié.
+
 ---
 
 ## 3. Modèle de données
@@ -139,6 +149,7 @@ interface ResearchTheme {
   acceptsEvents: boolean
   status: 'draft' | 'validated'
   lastValidated?: string
+  copiedFrom?: { memberId: string; memberName: string; themeId: string; themeLabel: string; date: string }  // provenance d'une copie
 }
 
 interface ThemeRelation {

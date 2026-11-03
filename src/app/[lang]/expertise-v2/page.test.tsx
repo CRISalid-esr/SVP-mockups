@@ -193,4 +193,44 @@ describe('ExpertiseV2Page', () => {
     expect(within(dialog).getByText('Léa Guillou')).toBeInTheDocument()
     expect(within(dialog).getByText('Jean Dupont (vous)')).toBeInTheDocument()
   })
+
+  it('consulte le profil d’un·e collègue en lecture seule et copie un thème avec ses mots-clés', () => {
+    render(<ExpertiseV2Page />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Laboratoire/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voir le profil de recherche de Thomas Caradec' }))
+
+    expect(screen.getByText('Lecture seule')).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: /Renouvellement urbain et quartiers populaires/ })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: /Méthodes participatives en géographie sociale/ })).toBeInTheDocument()
+    // Aucun thème modifiable dans cette vue
+    expect(screen.queryByRole('button', { name: /Modifier le thème/ })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Copier le thème Renouvellement urbain et quartiers populaires dans mon profil/ }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Mots-clés repris (2/2)')).toBeInTheDocument()
+    expect(within(dialog).getByText('Rénovation urbaine')).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: /Copier et modifier/ }))
+
+    // L'éditeur s'ouvre sur la copie, avec sa provenance et les mots-clés repris
+    expect(screen.getByText(/depuis le thème « Renouvellement urbain et quartiers populaires » de Thomas Caradec/)).toBeInTheDocument()
+    expect(screen.getAllByText('Rénovation urbaine').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    const row = screen.getByRole('button', { name: /Modifier le thème Renouvellement urbain et quartiers populaires/ })
+    expect(within(row).getByText('Brouillon')).toBeInTheDocument()
+    expect(within(row).getByText('Copié de Thomas Caradec')).toBeInTheDocument()
+  })
+
+  it('ne montre pas les brouillons ni les thèmes privés d’un·e collègue', () => {
+    render(<ExpertiseV2Page />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Laboratoire/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voir le profil de recherche de Sarah Lemoine' }))
+    expect(screen.getByText('Aucun thème visible pour l’instant')).toBeInTheDocument()
+    expect(screen.getByText('1 thème non affiché (brouillon ou privé).')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Retour au laboratoire/ }))
+    expect(screen.getByText('Frise des sujets du laboratoire')).toBeInTheDocument()
+  })
 })

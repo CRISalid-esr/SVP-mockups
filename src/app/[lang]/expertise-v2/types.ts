@@ -137,6 +137,56 @@ export interface ResearchTheme {
   status: ThemeStatus
   /** Date ISO de la dernière validation. */
   lastValidated?: string
+  /** Provenance quand le thème a été copié depuis le profil d'un·e collègue. */
+  copiedFrom?: ThemeCopySource
+}
+
+/** Trace de la copie d'un thème depuis un autre profil (affichée dans l'éditeur, jamais publiée). */
+export interface ThemeCopySource {
+  memberId: string
+  memberName: string
+  themeId: string
+  themeLabel: string
+  /** Date ISO de la copie. */
+  date: string
+}
+
+/** Éléments d'un thème qu'on reprend en le copiant. */
+export interface CopyOptions {
+  label: string
+  keywords: Keyword[]
+  refs: boolean
+  studiedPeriods: boolean
+  description: boolean
+}
+
+/**
+ * Crée un nouveau thème, en brouillon, à partir du thème d'un·e collègue.
+ * Ce qui est propre à l'autre chercheur·e n'est pas repris : période de travail,
+ * publications, diffusion, sollicitations, déclinaisons par public, relations.
+ */
+export function copyTheme(
+  source: ResearchTheme,
+  from: { id: string; name: string },
+  options: CopyOptions,
+): ResearchTheme {
+  return {
+    ...blankTheme(),
+    label: options.label.trim() || source.label,
+    description: options.description ? source.description : '',
+    keywords: options.keywords.map((k) => ({ ...k })),
+    places: options.refs ? source.places.map((r) => ({ ...r })) : [],
+    persons: options.refs ? source.persons.map((r) => ({ ...r })) : [],
+    organizations: options.refs ? source.organizations.map((r) => ({ ...r })) : [],
+    studiedPeriods: options.studiedPeriods ? source.studiedPeriods.map((p) => ({ ...p })) : [],
+    copiedFrom: {
+      memberId: from.id,
+      memberName: from.name,
+      themeId: source.id,
+      themeLabel: source.label,
+      date: new Date().toISOString().split('T')[0],
+    },
+  }
 }
 
 export interface ThemeRelation {

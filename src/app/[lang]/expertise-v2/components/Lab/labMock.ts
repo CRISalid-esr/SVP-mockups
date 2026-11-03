@@ -461,3 +461,16 @@ export function yearRange(entries: LabEntry[]): number[] {
   const min = starts.length ? Math.min(...starts) : CURRENT_YEAR - 10
   return Array.from({ length: CURRENT_YEAR - min + 1 }, (_v, i) => min + i)
 }
+
+// ─── Affichage des membres ───────────────────────────────────────────────────
+
+const TEAM_COLORS = ['#006A61', '#1565C0', '#8E24AA']
+
+export function teamColor(team: string): string {
+  const i = LAB_INFO.teams.indexOf(team)
+  return TEAM_COLORS[i >= 0 ? i : TEAM_COLORS.length - 1]
+}
+
+export function initials(name: string): string {
+  return name.replace(/\s*\(.*\)$/, '').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('')
+}

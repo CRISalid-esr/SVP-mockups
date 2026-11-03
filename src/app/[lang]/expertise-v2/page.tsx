@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Box, Button, Snackbar, Tab, Tabs, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import {
+  Alert, Autocomplete, Avatar, Box, Button, Snackbar, Tab, Tabs, TextField, ToggleButton, ToggleButtonGroup, Typography,
+} from '@mui/material'
 import { AccountTree, Apartment, PersonOutline, RestartAlt, ViewList, VisibilityOutlined } from '@mui/icons-material'
 import * as Lingui from '@lingui/core'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
@@ -14,7 +16,8 @@ import ThemeEditor from './components/ThemeEditor'
 import PublicPreview from './components/PublicPreview'
 import ThemeProposalsWorkshop, { WorkshopResult } from './components/ThemeProposalsWorkshop'
 import LabView from './components/Lab/LabView'
-import { LAB_INFO } from './components/Lab/labMock'
+import MemberProfileView from './components/MemberProfile/MemberProfileView'
+import { LAB_INFO, LAB_MEMBERS, LabMember, initials, teamColor } from './components/Lab/labMock'
 import { loadProfile, resetProfile, saveProfile } from './storage'
 import { EMPTY_PROFILE, ResearchProfile, ResearchTheme, TEAL, ThemeRelation, blankTheme } from './types'
 
@@ -48,6 +51,8 @@ export default function ExpertiseV2Page() {
   const [editing, setEditing] = useState<EditingState | null>(null)
   const [workshopOpen, setWorkshopOpen] = useState(false)
   const [snackbar, setSnackbar] = useState('')
+  /** Profil d'un·e collègue consulté en lecture seule, et la vue d'où on vient. */
+  const [consulting, setConsulting] = useState<LabMember | null>(null)
 
   useEffect(() => {
     setProfile(loadProfile())
@@ -102,6 +107,23 @@ export default function ExpertiseV2Page() {
     setSnackbar(`${parts.join(' · ')} — relisez les brouillons puis validez-les`)
   }
 
+  const openMember = (member: LabMember) => {
+    setEditing(null)
+    setWorkshopOpen(false)
+    if (member.id === 'me') { setConsulting(null); setView('researcher'); setTab('themes'); return }
+    setConsulting(member)
+  }
+
+  /** Copie d'un thème d'un·e collègue : enregistrée tout de suite en brouillon, puis ouverte dans l'éditeur. */
+  const applyCopy = (copy: ResearchTheme) => {
+    commit({ ...profile, themes: [...profile.themes, copy] })
+    setConsulting(null)
+    setView('researcher')
+    setTab('themes')
+    setEditing({ theme: copy, isNew: false })
+    setSnackbar(`« ${copy.label} » copié dans votre profil en brouillon — adaptez-le puis validez-le`)
+  }
+
   const openEditor = (id: string) => {
     const theme = profile.themes.find((t) => t.id === id)
     if (theme) setEditing({ theme, isNew: false })
@@ -121,10 +143,31 @@ export default function ExpertiseV2Page() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <DocumentHeader perspectiveName={view === 'lab' ? LAB_INFO.name : researcherName} pageName="Profil de recherche 2">
+      <DocumentHeader perspectiveName={consulting ? consulting.name : view === 'lab' ? LAB_INFO.name : researcherName} pageName="Profil de recherche 2">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <Autocomplete
+          size="small"
+          options={LAB_MEMBERS}
+          value={consulting}
+          onChange={(_e, m) => { if (m) openMember(m); else setConsulting(null) }}
+          getOptionLabel={(m) => m.name}
+          groupBy={(m) => m.team}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          renderOption={({ key, ...props }, m) => (
+            <Box component="li" key={key} {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Avatar sx={{ width: 24, height: 24, fontSize: '0.6rem', bgcolor: teamColor(m.team) }}>{initials(m.name)}</Avatar>
+              {m.name}
+            </Box>
+          )}
+          renderInput={(params) => (
+            <TextField {...params} placeholder="Consulter le profil d’un·e collègue…"
+              inputProps={{ ...params.inputProps, 'aria-label': 'Consulter le profil d’un·e collègue' }} />
+          )}
+          sx={{ width: 280 }}
+        />
         <ToggleButtonGroup
-          size="small" exclusive value={view}
-          onChange={(_e, v: PageView | null) => { if (v) { setView(v); setEditing(null); setWorkshopOpen(false) } }}
+          size="small" exclusive value={consulting ? null : view}
+          onChange={(_e, v: PageView | null) => { if (v) { setView(v); setConsulting(null); setEditing(null); setWorkshopOpen(false) } }}
           aria-label="Perspective"
         >
           <ToggleButton value="researcher" sx={{ textTransform: 'none', gap: 0.5 }}>
@@ -136,21 +179,34 @@ export default function ExpertiseV2Page() {
             Laboratoire
           </ToggleButton>
         </ToggleButtonGroup>
-        {view === 'researcher' && (
+        {view === 'researcher' && !consulting && (
           <Button size="small" startIcon={<RestartAlt />} onClick={handleReset}
             sx={{ textTransform: 'none', color: 'text.secondary' }}>
             Réinitialiser la démo
           </Button>
         )}
+        </Box>
       </DocumentHeader>
 
-      {view === 'lab' && mounted && (
+      {consulting && mounted && (
         <Box sx={{ flex: 1, overflow: 'auto' }}>
-          <LabView researcherName={researcherName} ownProfile={profile} />
+          <MemberProfileView
+            member={consulting}
+            ownProfile={profile}
+            backLabel={view === 'lab' ? 'Retour au laboratoire' : 'Retour à mon profil'}
+            onBack={() => setConsulting(null)}
+            onCopy={applyCopy}
+          />
         </Box>
       )}
 
-      {view === 'researcher' && !editing && !workshopOpen && (
+      {!consulting && view === 'lab' && mounted && (
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <LabView researcherName={researcherName} ownProfile={profile} onOpenMember={openMember} />
+        </Box>
+      )}
+
+      {!consulting && view === 'researcher' && !editing && !workshopOpen && (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, bgcolor: 'background.paper' }}>
           <Tabs
             value={tab}
@@ -170,7 +226,7 @@ export default function ExpertiseV2Page() {
         </Box>
       )}
 
-      {view === 'researcher' && <Box sx={{ flex: 1, overflow: 'auto' }}>
+      {!consulting && view === 'researcher' && <Box sx={{ flex: 1, overflow: 'auto' }}>
         {!mounted ? null : workshopOpen ? (
           <ThemeProposalsWorkshop profile={profile} onBack={() => setWorkshopOpen(false)} onApply={applyWorkshop} />
         ) : editing ? (

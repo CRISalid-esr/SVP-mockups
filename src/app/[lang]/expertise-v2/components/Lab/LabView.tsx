@@ -21,7 +21,7 @@ import { AudienceSwitcher, RefsSummary, ThemePublicBlock } from '../ThemeDetail'
 import { RefChip } from '../RefsPicker'
 import {
   LAB_INFO, LAB_MEMBERS, LabEntry, LabMember, LabTopic, activeByYearAndTeam, aggregateRefs, aggregateTopics,
-  isLabVisible, labEntries, yearRange,
+  initials, isLabVisible, labEntries, teamColor, yearRange,
 } from './labMock'
 import { PlaceHits, aggregatePlaces } from './labPlaces'
 
@@ -41,17 +41,6 @@ const LabFieldMap = dynamic(() => import('./LabFieldMap'), {
 // mot-clé contrôlé. La frise collective montre quand chaque sujet a été
 // travaillé et par combien de personnes ; le curseur d'année permet de voir le
 // laboratoire « tel qu'il était » une année donnée.
-
-const TEAM_COLORS = ['#006A61', '#1565C0', '#8E24AA']
-
-function teamColor(team: string): string {
-  const i = LAB_INFO.teams.indexOf(team)
-  return TEAM_COLORS[i >= 0 ? i : TEAM_COLORS.length - 1]
-}
-
-function initials(name: string): string {
-  return name.replace(/\s*\(.*\)$/, '').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('')
-}
 
 function KpiTile({ icon, value, label, hint }: { icon: React.ReactNode; value: string | number; label: string; hint?: string }) {
   return (
@@ -168,9 +157,11 @@ function TopicTimeline({ topics, years, onSelect }: { topics: LabTopic[]; years:
 interface Props {
   researcherName: string
   ownProfile: ResearchProfile
+  /** Ouvre le profil d'un membre en lecture seule (ou le sien, id « me »). */
+  onOpenMember: (member: LabMember) => void
 }
 
-export default function LabView({ researcherName, ownProfile }: Props) {
+export default function LabView({ researcherName, ownProfile, onOpenMember }: Props) {
   const [team, setTeam] = useState<string>('all')
   const [yearMode, setYearMode] = useState<'all' | 'year'>('all')
   const [year, setYear] = useState<number>(CURRENT_YEAR)
@@ -446,7 +437,7 @@ export default function LabView({ researcherName, ownProfile }: Props) {
       {/* Complétude */}
       <Box sx={{ mb: 4 }}>
         <SectionTitle title="Complétude des profils"
-          hint="Qui a déclaré au moins un thème visible par le laboratoire. Les thèmes privés d’un membre comptent pour lui, pas pour le laboratoire."
+          hint="Qui a déclaré au moins un thème visible par le laboratoire. Les thèmes privés d’un membre comptent pour lui, pas pour le laboratoire. Cliquez sur un nom pour consulter son profil."
           action={
             <Button size="small" variant="outlined" startIcon={<MailOutline />} disabled={empty.length === 0}
               onClick={() => setSnackbar(`Relance envoyée à ${empty.length} membre${empty.length > 1 ? 's' : ''} (simulation)`)}
@@ -466,9 +457,15 @@ export default function LabView({ researcherName, ownProfile }: Props) {
                       const visible = m.themes.filter(isLabVisible)
                       const drafts = m.themes.filter((th) => th.status === 'draft').length
                       return (
-                        <Box key={m.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box key={m.id} role="button" tabIndex={0} onClick={() => onOpenMember(m)}
+                          onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onOpenMember(m) } }}
+                          aria-label={`Voir le profil de recherche de ${m.name}`}
+                          sx={{
+                            display: 'flex', alignItems: 'center', gap: 1, mx: -0.75, px: 0.75, py: 0.25, borderRadius: 1, cursor: 'pointer',
+                            '&:hover': { bgcolor: `${TEAL}08` }, '&:hover .member-name': { color: TEAL, textDecoration: 'underline' },
+                          }}>
                           <Avatar sx={{ width: 26, height: 26, fontSize: '0.65rem', bgcolor: visible.length ? teamColor(t) : '#BDBDBD' }}>{initials(m.name)}</Avatar>
-                          <Typography variant="body2" sx={{ flex: 1, color: visible.length ? 'text.primary' : 'text.secondary' }} noWrap>{m.name}</Typography>
+                          <Typography className="member-name" variant="body2" sx={{ flex: 1, color: visible.length ? 'text.primary' : 'text.secondary' }} noWrap>{m.name}</Typography>
                           {visible.length ? (
                             <Chip size="small" label={`${visible.length} thème${visible.length > 1 ? 's' : ''}`} sx={{ height: 20, fontSize: '0.68rem', bgcolor: '#E8F5F4', color: TEAL, fontWeight: 600 }} />
                           ) : drafts ? (
@@ -594,6 +591,10 @@ export default function LabView({ researcherName, ownProfile }: Props) {
               <RefsSummary theme={entry.theme} />
             </DialogContent>
             <DialogActions>
+              <Button startIcon={<PersonOutline />} onClick={() => { const m = entry.member; setEntry(null); onOpenMember(m) }}
+                sx={{ textTransform: 'none', color: TEAL, mr: 'auto' }}>
+                {entry.member.id === 'me' ? 'Voir mon profil' : `Voir tous les thèmes de ${entry.member.name}`}
+              </Button>
               <Button onClick={() => setEntry(null)} sx={{ textTransform: 'none' }}>Fermer</Button>
               <Button variant="contained" startIcon={<MailOutline />} disabled={!entry.theme.acceptsPress && !entry.theme.acceptsEvents}
                 onClick={() => { setSnackbar(`Demande de mise en relation avec ${entry.member.name} transmise (simulation)`); setEntry(null) }}

@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Box, Breadcrumbs, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText,
+  Alert, Box, Breadcrumbs, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText,
   DialogTitle, FormControlLabel, Grid2 as Grid, IconButton, Link, Switch, TextField, Typography,
 } from '@mui/material'
 import {
-  AccountTree, ArrowBack, ArticleOutlined, CampaignOutlined, CheckCircleOutline, Close, DeleteOutline, NewspaperOutlined,
+  AccountTree, ArrowBack, ArticleOutlined, CampaignOutlined, CheckCircleOutline, Close, ContentCopy, DeleteOutline, NewspaperOutlined,
   SaveOutlined,
 } from '@mui/icons-material'
 import {
@@ -119,6 +119,14 @@ export default function ThemeEditor({
             </Typography>
           </Breadcrumbs>
         </Box>
+
+        {draft.copiedFrom && (
+          <Alert severity="info" variant="outlined" icon={<ContentCopy fontSize="small" />} sx={{ mb: 3 }}>
+            Copié le {draft.copiedFrom.date} depuis le thème « {draft.copiedFrom.themeLabel} » de {draft.copiedFrom.memberName}.
+            {' '}Adaptez l’intitulé et les mots-clés, puis renseignez votre propre période de travail,
+            vos publications et la diffusion de ce thème.
+          </Alert>
+        )}
 
         <Grid container spacing={4}>
           {/* ── Colonne principale ── */}

@@ -2,7 +2,7 @@
 
 import { Alert, Box, Button, Chip, Tooltip, Typography } from '@mui/material'
 import {
-  Add, ArticleOutlined, AutoAwesome, BusinessOutlined, CampaignOutlined, CheckCircle, EditOutlined, Groups2Outlined,
+  Add, ArticleOutlined, AutoAwesome, BusinessOutlined, CampaignOutlined, CheckCircle, ContentCopy, EditOutlined, Groups2Outlined,
   NewspaperOutlined, PersonOutline, PlaceOutlined,
 } from '@mui/icons-material'
 import {
@@ -25,6 +25,7 @@ function ThemeMeta({ theme }: { theme: ResearchTheme }) {
   if (pubs) parts.push({ Icon: ArticleOutlined, text: `${pubs} publication${pubs > 1 ? 's' : ''}`, title: 'Publications à l’appui' })
   const variants = variantCount(theme)
   if (variants) parts.push({ Icon: Groups2Outlined, text: `${variants}/${AUDIENCES.length} publics`, title: 'Déclinaisons par public' })
+  if (theme.copiedFrom) parts.push({ Icon: ContentCopy, text: `Copié de ${theme.copiedFrom.memberName}`, title: `Copié depuis « ${theme.copiedFrom.themeLabel} » le ${theme.copiedFrom.date}` })
   if (parts.length === 0) return null
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.75, color: 'text.secondary' }}>
