@@ -132,6 +132,20 @@ Onglet "Déposer dans HAL" dans la fiche document, visible uniquement si la publ
 
 ---
 
+### ✅ Compléter dans HAL (`src/app/[lang]/documents/[uid]/components/HalUpdate/`)
+
+Onglet `hal_update`, à la place de « Déposer dans HAL » quand la publication a une notice HAL. L'utilisateur coche ce que HAL n'a pas, et seuls ces éléments sont envoyés (simulé).
+
+**Décisions (nov. 2026) :** ajouts uniquement, les différences (« À vérifier ») sont visibles sans être envoyables · un·e documentaliste peut agir pour le propriétaire · fichiers hors parcours (renvoi vers HAL).
+
+**Parcours :** comparaison → vérification → envoi → « Envoyé, en attente de mise à jour » → comparaison actualisée. Non propriétaire : demande de partage de propriété (en attente / acceptée / refusée). Dépôt modifié entre-temps : rien n'est envoyé, nouvelle comparaison. « Ne plus proposer » est mémorisé. Zone « Simuler » pour changer de situation.
+
+**Données :** `halUpdateMock.ts` (propositions écrites à la main, `doc-1` propriétaire et `doc-6` non propriétaire) · état en localStorage `hal-update-state-{uid}` · `documents.json` : sources Scopus/OpenAlex et mots-clés ajoutés sur ces deux documents, date HAL de `doc-1` différente pour la démo. « Enregistrer » dans l'onglet Auteurs précise que HAL n'a pas été modifié et mène à cet onglet. Pas de « ? » : pas encore de page d'aide. Tests : `HalUpdate.test.tsx`.
+
+**Questions au CCSD et descriptif complet :** `public/prompts/hal-update.md`
+
+---
+
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
 **Réorganisation septembre 2026 — Liste = surface unique, Carte = vue avancée :**
 - Onglet **Thèmes de recherche** : toggle **Liste (défaut) / Relations (avancé)**. La vue Liste (`FlatView`) est l'unique point d'entrée du parcours (scope publications, prompt IA, thèmes, caractéristiques) ; la vue Relations (`MindMapView`) sert uniquement à dessiner des liens entre thèmes existants — elle ne propose plus de génération.

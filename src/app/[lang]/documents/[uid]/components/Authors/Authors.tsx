@@ -1,11 +1,13 @@
 'use client'
 
 import useStore from '@/stores/global_store'
+import { BibliographicPlatform } from '@/types/BibliographicPlatform'
 import { Contribution } from '@/types/Contribution'
 import { publicPath } from '@/utils/publicPath'
 import {
   Add,
   CheckCircle,
+  Close,
   DeleteOutline,
   DragIndicator,
   Edit,
@@ -21,6 +23,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -33,11 +36,14 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Switch,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material'
+import * as Lingui from '@lingui/core'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -505,12 +511,26 @@ const Authors = () => {
     initFromContributions(contributions),
   )
   const [isDirty, setIsDirty] = useState(false)
+  const [showHalReminder, setShowHalReminder] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const isInHal = !!selectedDocument?.records.some(
+    (record) => record.platform === BibliographicPlatform.HAL,
+  )
 
   const handleSave = () => {
     if (!ranksFromSource) {
       setAuthors((prev) => prev.map((a) => ({ ...a, rank: undefined })))
     }
+    // « Enregistrer » ne modifie que SoVisu+ : on le dit, et on mène vers HAL.
+    if (isDirty && isInHal) setShowHalReminder(true)
     setIsDirty(false)
+  }
+
+  const goToHalUpdate = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', 'hal_update')
+    router.push(`/${Lingui.i18n.locale}/documents/${selectedDocument?.uid}?${params.toString()}`)
   }
   const [ranksFromSource, setRanksFromSource] = useState(() =>
     contributions.some((c) => c.rank != null),
@@ -1120,6 +1140,27 @@ const Authors = () => {
           </Button>
         )}
       </Box>
+
+      <Snackbar
+        open={showHalReminder}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity="info"
+          action={
+            <>
+              <Button color="inherit" size="small" onClick={goToHalUpdate} sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}>
+                Compléter dans HAL
+              </Button>
+              <IconButton color="inherit" size="small" aria-label="Fermer" onClick={() => setShowHalReminder(false)}>
+                <Close fontSize="small" />
+              </IconButton>
+            </>
+          }
+        >
+          {`Enregistré dans SoVisu+. HAL n'a pas encore été modifié.`}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

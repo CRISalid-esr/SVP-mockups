@@ -20,6 +20,7 @@ import {
   DocumentDetailsTitle,
   Domains,
   HalDeposit,
+  HalUpdate,
   Keywords,
   Sources,
 } from './components/'
@@ -75,13 +76,19 @@ const DocumentDetailsPage = () => {
       value: 'authors',
       color: theme.palette.primary.main,
     },
-    ...(isHorsHal
+    ...(selectedDocument
       ? [
-          {
-            label: t`document_details_hal_deposit_tab`,
-            value: 'hal_deposit',
-            color: theme.palette.primary.main,
-          },
+          isHorsHal
+            ? {
+                label: t`document_details_hal_deposit_tab`,
+                value: 'hal_deposit',
+                color: theme.palette.primary.main,
+              }
+            : {
+                label: t`document_details_hal_update_tab`,
+                value: 'hal_update',
+                color: theme.palette.primary.main,
+              },
         ]
       : []),
   ]
@@ -143,6 +150,8 @@ const DocumentDetailsPage = () => {
         return <Domains />
       case 'hal_deposit':
         return <HalDeposit />
+      case 'hal_update':
+        return <HalUpdate />
       default:
         return <BibliographicInformation />
     }

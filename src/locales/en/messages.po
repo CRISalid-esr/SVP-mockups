@@ -1069,6 +1069,10 @@ msgstr "Disciplines"
 msgid "document_details_hal_deposit_tab"
 msgstr "Deposit in HAL"
 
+#: src/app/[lang]/documents/[uid]/page.tsx
+msgid "document_details_hal_update_tab"
+msgstr "Complete in HAL"
+
 #: src/app/[lang]/documents/[uid]/page.tsx:59
 msgid "document_details_keywords_tab"
 msgstr "Keywords"

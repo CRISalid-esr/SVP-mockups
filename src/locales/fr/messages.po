@@ -1069,6 +1069,10 @@ msgstr "Domaines"
 msgid "document_details_hal_deposit_tab"
 msgstr "Déposer dans HAL"
 
+#: src/app/[lang]/documents/[uid]/page.tsx
+msgid "document_details_hal_update_tab"
+msgstr "Compléter dans HAL"
+
 #: src/app/[lang]/documents/[uid]/page.tsx:59
 msgid "document_details_keywords_tab"
 msgstr "Mots-clés"
