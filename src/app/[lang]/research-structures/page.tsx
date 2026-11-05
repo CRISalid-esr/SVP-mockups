@@ -1,6 +1,7 @@
 'use client'
 
 import * as Lingui from '@lingui/core'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CallMadeIcon from '@mui/icons-material/CallMade'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
@@ -555,7 +556,9 @@ const ResearchStructuresPage = () => {
           mb: 3,
         }}
       >
-        <Typography variant='h4'>Structures de recherche</Typography>
+        <Typography variant='h4'>
+          Structures de recherche <HelpLink topic='structures' />
+        </Typography>
         <Button
           startIcon={<FileDownloadIcon />}
           variant='outlined'
@@ -568,6 +571,7 @@ const ResearchStructuresPage = () => {
       </Box>
 
       <Tabs
+        data-tour='structures-tabs'
         value={tab}
         onChange={(_, v) => setTab(v)}
         sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}

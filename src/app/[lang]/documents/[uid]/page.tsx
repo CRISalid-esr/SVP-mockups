@@ -2,6 +2,7 @@
 
 import { t } from '@lingui/core/macro'
 import { TabFilter } from '@/components/TabFilter'
+import { HelpLink, HelpTopic } from '@/app/[lang]/components/HelpLink'
 import useStore from '@/stores/global_store'
 import { Alert, Box, CircularProgress, Link, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -147,6 +148,15 @@ const DocumentDetailsPage = () => {
     }
   }
 
+  // L'onglet Domaines n'a pas de page d'aide.
+  const helpTopics: Record<string, HelpTopic[]> = {
+    bibliographic_information: ['bibliographic'],
+    keywords: ['keywords'],
+    sources: ['sources'],
+    authors: ['authors', 'align'],
+    hal_deposit: ['halDeposit'],
+  }
+
   return (
     <Box>
       <DocumentDetailsHeader />
@@ -179,6 +189,10 @@ const DocumentDetailsPage = () => {
         tabsData={tabs}
         selectedValue={selectedTab}
         onTabChange={handleTabChange}
+        tourId='document-tabs'
+        action={(helpTopics[selectedTab] ?? []).map((topic) => (
+          <HelpLink key={topic} topic={topic} />
+        ))}
       />
       {renderTabContent()}
     </Box>

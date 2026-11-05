@@ -2,6 +2,23 @@ import documentsData from './data/documents.json'
 import personsData from './data/persons.json'
 import structuresData from './data/structures.json'
 
+const MOCK_ID_TYPES: Record<string, string> = {
+  ror: 'ROR', idref: 'IDREF', rnsr: 'NNS', halCollection: 'HAL', scopusId: 'SCOPUS_ID',
+}
+
+// Les mocks stockent les identifiants en objet ({ ror: '…' }) alors que
+// ResearchStructure attend un tableau [{ type, value }] : sans cette conversion,
+// le chargement d'une structure échoue silencieusement.
+const toAgentJson = <T extends object>(structure: T) => {
+  const raw = (structure as { identifiers?: unknown }).identifiers
+  const identifiers = Array.isArray(raw)
+    ? raw
+    : Object.entries((raw ?? {}) as Record<string, string>)
+        .filter(([type, value]) => MOCK_ID_TYPES[type] && value)
+        .map(([type, value]) => ({ type: MOCK_ID_TYPES[type], value }))
+  return { ...structure, identifiers }
+}
+
 export const mockService = {
   getDocuments: (searchTerm = '') => {
     const filtered = searchTerm
@@ -33,14 +50,16 @@ export const mockService = {
 
   getResearchStructures: (searchTerm = '') => {
     const filtered = searchTerm
-      ? structuresData.filter((s) =>
-          s.long_labels.some((n) =>
-            n.value.toLowerCase().includes(searchTerm.toLowerCase()),
-          ),
+      ? structuresData.filter(
+          (s) =>
+            s.acronym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.long_labels.some((n) =>
+              n.value.toLowerCase().includes(searchTerm.toLowerCase()),
+            ),
         )
       : structuresData
     return {
-      researchStructures: filtered,
+      researchStructures: filtered.map(toAgentJson),
       hasMore: false,
       total: filtered.length,
     }
@@ -62,7 +81,8 @@ export const mockService = {
 
   getResearchStructureBySlug: (slug: string) => {
     const structureSlug = slug.replace('research-structure:', '')
-    return structuresData.find((s) => s.slug === structureSlug) ?? null
+    const structure = structuresData.find((s) => s.slug === structureSlug)
+    return structure ? toAgentJson(structure) : null
   },
 
   getResearchStructureByUid: (uid: string) =>

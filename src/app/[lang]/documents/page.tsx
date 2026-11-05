@@ -55,6 +55,7 @@ import React, {
 } from 'react'
 import Highlighter from 'react-highlight-words'
 import DocumentHeader from './components/DocumentHeader'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import HalStatusCell from './components/HalStatusCell'
 import HalStatusCellBadge, {
   HalStatusCellType,
@@ -390,6 +391,12 @@ const DocumentsPage = () => {
         enableSorting: false,
         accessorKey: 'halStatus',
         header: t`documents_page_halStatus_column`,
+        Header: () => (
+          <>
+            {t`documents_page_halStatus_column`}
+            <HelpLink topic='statuses' />
+          </>
+        ),
         Cell({ row }) {
           return <HalStatusCell row={row} />
         },
@@ -438,6 +445,12 @@ const DocumentsPage = () => {
               : 'UNKNOWN',
         accessorKey: 'oaStatus',
         header: t`documents_page_oaStatus_column`,
+        Header: () => (
+          <>
+            {t`documents_page_oaStatus_column`}
+            <HelpLink topic='statuses' />
+          </>
+        ),
         Cell({ row }) {
           return <OAStatusCell row={row} />
         },
@@ -742,6 +755,7 @@ const DocumentsPage = () => {
             ? t`documents_page_main_title_first_person`
             : t`documents_page_main_title`
         }
+        helpTopic='documents'
       >
         {listHasChanged && (
           <Alert
@@ -780,6 +794,7 @@ const DocumentsPage = () => {
           </Alert>
         )}
 
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
         {currentPerspective && (
           <Can
             I={PermissionAction.fetch_documents}
@@ -805,6 +820,8 @@ const DocumentsPage = () => {
             )}
           </Can>
         )}
+          <HelpLink topic='update' />
+        </Box>
       </DocumentHeader>
       <TabFilter
         tabsData={tabs}
@@ -825,6 +842,7 @@ const DocumentsPage = () => {
         </Can>
       )}
 
+      <Box data-tour='documents-table'>
       <DocumentTable<Document>
         columns={columns}
         data={documents}
@@ -890,6 +908,7 @@ const DocumentsPage = () => {
                 >
                   {t`documents_page_merge_selected_documents_button`}
                 </Button>
+                <HelpLink topic='merge' sx={{ ml: -1.5 }} />
                 <Button
                   variant="outlined"
                   startIcon={<Psychology fontSize="small" />}
@@ -932,6 +951,7 @@ const DocumentsPage = () => {
           ]
         }}
       />
+      </Box>
     </Box>
   )
 }

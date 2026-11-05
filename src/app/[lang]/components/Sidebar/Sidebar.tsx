@@ -1,6 +1,8 @@
 'use client'
 
 import { Trans } from '@lingui/react/macro'
+import { t } from '@lingui/core/macro'
+import TourOutlinedIcon from '@mui/icons-material/TourOutlined'
 import { publicPath } from '@/utils/publicPath'
 import Check from '@/public/icons/check.svg'
 import DarkMode from '@/public/icons/dark_mode.svg'
@@ -12,13 +14,13 @@ import {
   Backdrop,
   Drawer,
   IconButton,
-  List,
   ListItem,
   ListItemIcon,
   ListItemText,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
@@ -31,7 +33,6 @@ import {
   LayersThree01 as LayerThere,
   LifeBuoy01 as LifeBuoy,
   LogOut01 as Logout,
-  SearchSm,
   Settings01 as Settings,
   User01 as Users,
   XClose as Close,
@@ -42,7 +43,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ThemeMode, useThemeContext } from '../../context/ThemeContext'
-import { SearchInput } from '../SearchInput'
+import { PerspectiveSwitcher, PerspectiveVariantSwitch } from '../Perspective'
+import { helpUrl } from '../HelpLink'
+import { useOnboarding } from '../Onboarding'
 import { signOut } from 'next-auth/react'
 import { institutionalConfig } from '@/configs/index'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
@@ -62,6 +65,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const router = useRouter()
   const searchParams = useSearchParams()
+  const startTour = useOnboarding((state) => state.start)
 
   const handleThemeChange = (event: SelectChangeEvent) => {
     setTheme(event.target.value as 'light' | 'dark' | 'system')
@@ -329,42 +333,8 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
             }}
           >
             <Box component='div' sx={{}} pt={3} pb={open ? 3 : 0}>
-              {open ? (
-                <SearchInput />
-              ) : (
-                <List
-                  sx={{
-                    paddingBottom: 0,
-                  }}
-                >
-                  <ListItem
-                    sx={{
-                      marginBottom: theme.utils.pxToRem(4),
-                      color: theme.palette.primaryContainer,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      '&:hover': {
-                        backgroundColor: theme.palette.sidebarItemHover,
-                        borderRadius: theme.utils.pxToRem(8),
-                      },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        height: theme.utils.pxToRem(24),
-                        width: theme.utils.pxToRem(24),
-                        color: 'inherit',
-                        minWidth: 'unset',
-                        cursor: 'pointer',
-                      }}
-                      onClick={handleToggleDrawerAction}
-                    >
-                      <SearchSm />
-                    </ListItemIcon>
-                  </ListItem>
-                </List>
-              )}
+              {/* Option A du sélecteur d'espace : remplace l'ancien champ « Chercher » */}
+              <PerspectiveSwitcher compact={!open} />
             </Box>
             <Box>
               <ListItem
@@ -622,6 +592,73 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                 flexDirection: 'column',
               }}
             >
+              {/* Aide : présentée en dernière étape de la visite guidée */}
+              <Box
+                data-tour='help'
+                sx={{
+                  display: 'flex',
+                  flexDirection: open ? 'row' : 'column',
+                  alignItems: 'center',
+                  marginBottom: theme.utils.pxToRem(4),
+                }}
+              >
+                <ListItem
+                  component='a'
+                  href={helpUrl(undefined, lang)}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: theme.palette.primaryContainer,
+                    '&:hover': {
+                      backgroundColor: theme.palette.sidebarItemHover,
+                      borderRadius: theme.utils.pxToRem(8),
+                      color: theme.palette.primaryContainer,
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      height: theme.utils.pxToRem(24),
+                      width: theme.utils.pxToRem(24),
+                      minWidth: 'unset',
+                      marginRight: open ? theme.utils.pxToRem(12) : 0,
+                      color: 'inherit',
+                    }}
+                  >
+                    <LifeBuoy />
+                  </ListItemIcon>
+                  {open && (
+                    <ListItemText
+                      sx={{
+                        '& .MuiTypography-root': {
+                          fontFamily: 'Inter, Roboto, sans-serif',
+                          fontSize: theme.utils.pxToRem(16),
+                          fontWeight: theme.typography.fontWeightMedium,
+                          lineHeight:
+                            theme.typography.lineHeight.lineHeight24px,
+                        },
+                      }}
+                      primary={t`side_bar_help`}
+                    />
+                  )}
+                </ListItem>
+                <Tooltip title={t`side_bar_tour`} placement='right'>
+                  <IconButton
+                    aria-label={t`side_bar_tour`}
+                    onClick={() => {
+                      if (isMobile) handleToggleDrawerAction()
+                      startTour()
+                    }}
+                    sx={{ color: theme.palette.primaryContainer }}
+                  >
+                    <TourOutlinedIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               {/* Second Box */}
               <Box pb={3}>
                 <ListItem
@@ -777,6 +814,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
               </Box>
               {/* Third Box */}
               <Box>
+                {open && <PerspectiveVariantSwitch />}
                 {open ? (
                   <Select
                     aria-label='Theme switcher'

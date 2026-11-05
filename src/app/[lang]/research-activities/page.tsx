@@ -188,6 +188,7 @@ const ResearchActivitiesPage = () => {
       <Box sx={{ p: 3 }}>
         {/* Titre + bouton */}
         <Box
+          data-tour='activities-header'
           sx={{
             display: 'flex',
             justifyContent: 'space-between',

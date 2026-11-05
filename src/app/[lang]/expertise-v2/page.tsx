@@ -1,23 +1,26 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Alert, Autocomplete, Avatar, Box, Button, Snackbar, Tab, Tabs, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Button, Snackbar, Tab, Tabs, Typography,
 } from '@mui/material'
-import { AccountTree, Apartment, PersonOutline, RestartAlt, ViewList, VisibilityOutlined } from '@mui/icons-material'
+import { AccountTree, PersonSearch, RestartAlt, ViewList, VisibilityOutlined } from '@mui/icons-material'
 import * as Lingui from '@lingui/core'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import useStore from '@/stores/global_store'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { dashboardMockService } from '@/mocks/dashboardMockService'
+import { usePerspectiveNavigation } from '@/app/[lang]/components/Perspective/usePerspectiveNavigation'
+import { usePerspectiveUi } from '@/app/[lang]/components/Perspective/perspectiveUiStore'
+import { demoIndex, structureLevelOf, usePerspectiveScope } from '@/app/[lang]/components/Perspective/usePerspectiveScope'
 import ThemesList from './components/ThemesList'
 import ThemeEditor from './components/ThemeEditor'
 import PublicPreview from './components/PublicPreview'
 import ThemeProposalsWorkshop, { WorkshopResult } from './components/ThemeProposalsWorkshop'
 import LabView from './components/Lab/LabView'
 import MemberProfileView from './components/MemberProfile/MemberProfileView'
-import { LAB_INFO, LAB_MEMBERS, LabMember, initials, teamColor } from './components/Lab/labMock'
+import { LAB_INFO, LabMember, memberForPerson } from './components/Lab/labMock'
 import { loadProfile, resetProfile, saveProfile } from './storage'
 import { EMPTY_PROFILE, ResearchProfile, ResearchTheme, TEAL, ThemeRelation, blankTheme } from './types'
 
@@ -31,7 +34,6 @@ const JourneyGraph = dynamic(() => import('./components/JourneyGraph'), {
 })
 
 type TabKey = 'themes' | 'graph' | 'preview'
-type PageView = 'researcher' | 'lab'
 
 interface EditingState {
   theme: ResearchTheme
@@ -39,20 +41,51 @@ interface EditingState {
 }
 
 export default function ExpertiseV2Page() {
-  const { currentPerspective } = useStore((state) => state.user)
+  const { currentPerspective, connectedUser } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
-  const researcherName = currentPerspective?.getDisplayName(lang) || 'Jean Dupont'
+  const displayName = currentPerspective?.getDisplayName(lang) || 'Jean Dupont'
+  const ownName = connectedUser?.person?.getDisplayName(lang) || displayName
   const labName = dashboardMockService.getLab().name
+  const scope = usePerspectiveScope()
+  const { goHome } = usePerspectiveNavigation()
+  const openPicker = usePerspectiveUi((state) => state.openPicker)
+  const slug = currentPerspective?.slug ?? ''
 
+  // Toujours le profil de la personne connectée : c'est le seul modifiable.
   const [profile, setProfile] = useState<ResearchProfile>(EMPTY_PROFILE)
   const [mounted, setMounted] = useState(false)
   const [tab, setTab] = useState<TabKey>('themes')
-  const [view, setView] = useState<PageView>('researcher')
   const [editing, setEditing] = useState<EditingState | null>(null)
   const [workshopOpen, setWorkshopOpen] = useState(false)
   const [snackbar, setSnackbar] = useState('')
-  /** Profil d'un·e collègue consulté en lecture seule, et la vue d'où on vient. */
-  const [consulting, setConsulting] = useState<LabMember | null>(null)
+  /** Membre ouvert depuis la vue laboratoire, en lecture seule. */
+  const [labMember, setLabMember] = useState<LabMember | null>(null)
+
+  // Copie en attente : l'éditeur ne s'ouvre qu'une fois revenu dans son propre espace.
+  const pendingEdit = useRef<ResearchTheme | null>(null)
+
+  // Changer d'espace referme ce qui était ouvert dans le précédent.
+  useEffect(() => {
+    setLabMember(null)
+    if (scope !== 'own') {
+      setEditing(null)
+      setWorkshopOpen(false)
+    } else if (pendingEdit.current) {
+      setEditing({ theme: pendingEdit.current, isNew: false })
+      pendingEdit.current = null
+    }
+  }, [slug, scope])
+
+  // Personne consultée depuis le sélecteur d'espace.
+  const consultedPerson = useMemo(() => {
+    if (scope !== 'person' || !currentPerspective) return null
+    const affiliation = currentPerspective.membershipAcronyms[0] ?? ''
+    return memberForPerson(displayName, slug, affiliation)
+  }, [scope, currentPerspective, displayName, slug])
+
+  const isMyStructure = scope === 'structure' && Boolean(
+    connectedUser?.person?.memberships?.some((m) => m.researchStructure.uid === currentPerspective?.uid),
+  )
 
   useEffect(() => {
     setProfile(loadProfile())
@@ -108,19 +141,17 @@ export default function ExpertiseV2Page() {
   }
 
   const openMember = (member: LabMember) => {
-    setEditing(null)
-    setWorkshopOpen(false)
-    if (member.id === 'me') { setConsulting(null); setView('researcher'); setTab('themes'); return }
-    setConsulting(member)
+    if (member.id === 'me') { setLabMember(null); setTab('themes'); goHome(); return }
+    setLabMember(member)
   }
 
-  /** Copie d'un thème d'un·e collègue : enregistrée tout de suite en brouillon, puis ouverte dans l'éditeur. */
+  /** Copie d'un thème d'un·e collègue : enregistrée en brouillon dans son profil, puis ouverte dans l'éditeur. */
   const applyCopy = (copy: ResearchTheme) => {
     commit({ ...profile, themes: [...profile.themes, copy] })
-    setConsulting(null)
-    setView('researcher')
+    setLabMember(null)
     setTab('themes')
-    setEditing({ theme: copy, isNew: false })
+    if (scope !== 'own') goHome()
+    pendingEdit.current = copy
     setSnackbar(`« ${copy.label} » copié dans votre profil en brouillon — adaptez-le puis validez-le`)
   }
 
@@ -143,72 +174,58 @@ export default function ExpertiseV2Page() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <DocumentHeader perspectiveName={consulting ? consulting.name : view === 'lab' ? LAB_INFO.name : researcherName} pageName="Profil de recherche 2">
+      <DocumentHeader perspectiveName={labMember ? labMember.name : displayName} pageName="Profil de recherche 2">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        <Autocomplete
-          size="small"
-          options={LAB_MEMBERS}
-          value={consulting}
-          onChange={(_e, m) => { if (m) openMember(m); else setConsulting(null) }}
-          getOptionLabel={(m) => m.name}
-          groupBy={(m) => m.team}
-          isOptionEqualToValue={(a, b) => a.id === b.id}
-          renderOption={({ key, ...props }, m) => (
-            <Box component="li" key={key} {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ width: 24, height: 24, fontSize: '0.6rem', bgcolor: teamColor(m.team) }}>{initials(m.name)}</Avatar>
-              {m.name}
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField {...params} placeholder="Consulter le profil d’un·e collègue…"
-              inputProps={{ ...params.inputProps, 'aria-label': 'Consulter le profil d’un·e collègue' }} />
-          )}
-          sx={{ width: 280 }}
-        />
-        <ToggleButtonGroup
-          size="small" exclusive value={consulting ? null : view}
-          onChange={(_e, v: PageView | null) => { if (v) { setView(v); setConsulting(null); setEditing(null); setWorkshopOpen(false) } }}
-          aria-label="Perspective"
-        >
-          <ToggleButton value="researcher" sx={{ textTransform: 'none', gap: 0.5 }}>
-            <PersonOutline fontSize="small" />
-            Chercheur
-          </ToggleButton>
-          <ToggleButton value="lab" sx={{ textTransform: 'none', gap: 0.5 }}>
-            <Apartment fontSize="small" />
-            Laboratoire
-          </ToggleButton>
-        </ToggleButtonGroup>
-        {view === 'researcher' && !consulting && (
-          <Button size="small" startIcon={<RestartAlt />} onClick={handleReset}
-            sx={{ textTransform: 'none', color: 'text.secondary' }}>
-            Réinitialiser la démo
+          {/* Même moteur de recherche que le sélecteur d'espace, proposé là où on en a besoin. */}
+          <Button size="small" variant="outlined" startIcon={<PersonSearch />} onClick={(e) => openPicker(e.currentTarget)}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}>
+            Consulter le profil d’un·e collègue
           </Button>
-        )}
+          {scope === 'own' && (
+            <Button size="small" startIcon={<RestartAlt />} onClick={handleReset}
+              sx={{ textTransform: 'none', color: 'text.secondary' }}>
+              Réinitialiser la démo
+            </Button>
+          )}
         </Box>
       </DocumentHeader>
 
-      {consulting && mounted && (
+      {consultedPerson && mounted && (
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <MemberProfileView member={consultedPerson} ownProfile={profile} labLine={consultedPerson.team} onCopy={applyCopy} />
+        </Box>
+      )}
+
+      {labMember && mounted && (
         <Box sx={{ flex: 1, overflow: 'auto' }}>
           <MemberProfileView
-            member={consulting}
+            member={labMember}
             ownProfile={profile}
-            backLabel={view === 'lab' ? 'Retour au laboratoire' : 'Retour à mon profil'}
-            onBack={() => setConsulting(null)}
+            backLabel="Retour au laboratoire"
+            onBack={() => setLabMember(null)}
             onCopy={applyCopy}
           />
         </Box>
       )}
 
-      {!consulting && view === 'lab' && mounted && (
+      {!labMember && scope === 'structure' && mounted && (
         <Box sx={{ flex: 1, overflow: 'auto' }}>
-          <LabView researcherName={researcherName} ownProfile={profile} onOpenMember={openMember} />
+          <LabView
+            key={slug}
+            initialTeam={structureLevelOf(currentPerspective?.uid) === 'team' ? LAB_INFO.teams[demoIndex(slug, LAB_INFO.teams.length)] : 'all'}
+            researcherName={ownName}
+            ownProfile={profile}
+            labName={displayName}
+            includeOwn={isMyStructure}
+            onOpenMember={openMember}
+          />
         </Box>
       )}
 
-      {!consulting && view === 'researcher' && !editing && !workshopOpen && (
+      {scope === 'own' && !editing && !workshopOpen && (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, bgcolor: 'background.paper' }}>
           <Tabs
+            data-tour='profile-tabs'
             value={tab}
             onChange={(_e, v: TabKey) => setTab(v)}
             sx={{
@@ -226,7 +243,7 @@ export default function ExpertiseV2Page() {
         </Box>
       )}
 
-      {!consulting && view === 'researcher' && <Box sx={{ flex: 1, overflow: 'auto' }}>
+      {scope === 'own' && <Box sx={{ flex: 1, overflow: 'auto' }}>
         {!mounted ? null : workshopOpen ? (
           <ThemeProposalsWorkshop profile={profile} onBack={() => setWorkshopOpen(false)} onApply={applyWorkshop} />
         ) : editing ? (
@@ -258,7 +275,7 @@ export default function ExpertiseV2Page() {
         ) : (
           <PublicPreview
             profile={profile}
-            researcherName={researcherName}
+            researcherName={displayName}
             affiliation={labName}
             onBack={() => setTab('themes')}
           />

@@ -3,6 +3,7 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Trans } from '@lingui/react'
 import { CustomCard } from '@/components/Card'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import { PersonIdentifierType } from '@/types/PersonIdentifier'
 import { identifierComponentMap } from '@/app/[lang]/account/components/myProfile/components/identifiers/index'
 
@@ -30,6 +31,7 @@ const Identifiers = () => {
           >
             <Trans id='profile_identifiers_card_title' />
           </Typography>
+          <HelpLink topic='identifiers' />
         </Box>
       }
     >

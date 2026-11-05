@@ -99,7 +99,7 @@ export default function RightsPage() {
         </Typography>
       </Paper>
 
-      <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 2 }}>
+      <Tabs data-tour='rights-tabs' value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 2 }}>
         <Tab label='Utilisateurs' />
         <Tab label='Groupes Keycloak' />
         <Tab label='Rôles (vocabulaire transverse)' />

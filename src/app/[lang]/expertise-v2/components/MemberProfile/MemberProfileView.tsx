@@ -21,9 +21,12 @@ interface Props {
   member: LabMember
   /** Profil connecté : sert à signaler les thèmes déjà copiés. */
   ownProfile: ResearchProfile
-  backLabel: string
-  onBack: () => void
+  /** Retour vers la vue d'origine ; absent quand le sélecteur d'espace offre déjà le retour. */
+  backLabel?: string
+  onBack?: () => void
   onCopy: (copy: ResearchTheme) => void
+  /** Ligne sous le nom ; par défaut l'équipe et le laboratoire de démonstration. */
+  labLine?: string
 }
 
 function PeriodBar({ theme, min, max }: { theme: ResearchTheme; min: number; max: number }) {
@@ -115,7 +118,7 @@ function ReadOnlyTheme({ theme, min, max, copiedOn, onCopy }: {
   )
 }
 
-export default function MemberProfileView({ member, ownProfile, backLabel, onBack, onCopy }: Props) {
+export default function MemberProfileView({ member, ownProfile, backLabel, onBack, onCopy, labLine }: Props) {
   const [copying, setCopying] = useState<ResearchTheme | null>(null)
 
   const visible = sortThemes(member.themes.filter(isLabVisible))
@@ -128,16 +131,18 @@ export default function MemberProfileView({ member, ownProfile, backLabel, onBac
 
   return (
     <Box sx={{ p: 3, maxWidth: 1280, mx: 'auto' }}>
-      <Button size="small" startIcon={<ArrowBack />} onClick={onBack} sx={{ textTransform: 'none', color: 'text.secondary', mb: 2 }}>
-        {backLabel}
-      </Button>
+      {onBack && (
+        <Button size="small" startIcon={<ArrowBack />} onClick={onBack} sx={{ textTransform: 'none', color: 'text.secondary', mb: 2 }}>
+          {backLabel}
+        </Button>
+      )}
 
       {/* En-tête de la personne */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 2.5 }}>
         <Avatar sx={{ width: 56, height: 56, fontSize: '1.2rem', bgcolor: teamColor(member.team) }}>{initials(member.name)}</Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>{member.name}</Typography>
-          <Typography variant="body2" color="text.secondary">{member.team} · {LAB_INFO.name}</Typography>
+          <Typography variant="body2" color="text.secondary">{labLine ?? `${member.team} · ${LAB_INFO.name}`}</Typography>
         </Box>
         <Chip icon={<LockOutlined sx={{ fontSize: 16 }} />} label="Lecture seule" variant="outlined"
           sx={{ fontWeight: 600, color: 'text.secondary' }} />

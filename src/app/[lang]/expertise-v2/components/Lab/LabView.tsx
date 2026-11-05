@@ -157,12 +157,18 @@ function TopicTimeline({ topics, years, onSelect }: { topics: LabTopic[]; years:
 interface Props {
   researcherName: string
   ownProfile: ResearchProfile
+  /** Nom de la structure affichée. */
+  labName?: string
+  /** La personne connectée est membre de cette structure : ses thèmes remontent dans l'agrégat. */
+  includeOwn?: boolean
+  /** Équipe présélectionnée quand la perspective est une équipe. */
+  initialTeam?: string
   /** Ouvre le profil d'un membre en lecture seule (ou le sien, id « me »). */
   onOpenMember: (member: LabMember) => void
 }
 
-export default function LabView({ researcherName, ownProfile, onOpenMember }: Props) {
-  const [team, setTeam] = useState<string>('all')
+export default function LabView({ researcherName, ownProfile, labName = LAB_INFO.name, includeOwn = true, initialTeam = 'all', onOpenMember }: Props) {
+  const [team, setTeam] = useState<string>(initialTeam)
   const [yearMode, setYearMode] = useState<'all' | 'year'>('all')
   const [year, setYear] = useState<number>(CURRENT_YEAR)
   const [query, setQuery] = useState('')
@@ -177,8 +183,8 @@ export default function LabView({ researcherName, ownProfile, onOpenMember }: Pr
   // Le profil connecté est un membre comme les autres : ses thèmes validés non privés remontent ici.
   const members: LabMember[] = useMemo(() => [
     ...LAB_MEMBERS,
-    { id: 'me', name: `${researcherName} (vous)`, team: LAB_INFO.teams[0], themes: ownProfile.themes },
-  ], [researcherName, ownProfile.themes])
+    ...(includeOwn ? [{ id: 'me', name: `${researcherName} (vous)`, team: LAB_INFO.teams[0], themes: ownProfile.themes }] : []),
+  ], [researcherName, ownProfile.themes, includeOwn])
 
   const teamMembers = useMemo(() => (team === 'all' ? members : members.filter((m) => m.team === team)), [members, team])
   const allEntries = useMemo(() => labEntries(teamMembers), [teamMembers])
@@ -200,7 +206,7 @@ export default function LabView({ researcherName, ownProfile, onOpenMember }: Pr
   const empty = teamMembers.filter((m) => !m.themes.some(isLabVisible))
   const publicEntries = entries.filter((e) => e.theme.visibility === 'public')
   const pressMembers = new Set(publicEntries.filter((e) => e.theme.acceptsPress).map((e) => e.member.id))
-  const ownHidden = ownProfile.themes.filter((t) => !isLabVisible(t)).length
+  const ownHidden = includeOwn ? ownProfile.themes.filter((t) => !isLabVisible(t)).length : 0
 
   const directory = publicEntries
     .filter((e) => (!pressOnly || e.theme.acceptsPress) && (!eventsOnly || e.theme.acceptsEvents))
@@ -234,7 +240,7 @@ export default function LabView({ researcherName, ownProfile, onOpenMember }: Pr
       {/* En-tête */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{LAB_INFO.name}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>{labName}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 720 }}>
             Le laboratoire ne saisit rien : cette vue agrège les thèmes de recherche datés déclarés par ses membres
             (diffusion établissement ou public, validés), regroupés par mot-clé contrôlé. Les thèmes privés et les

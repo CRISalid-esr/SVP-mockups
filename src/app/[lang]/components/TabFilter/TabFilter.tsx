@@ -12,12 +12,18 @@ type TabFilterProps = {
   tabsData: TabData[]
   selectedValue: string
   onTabChange: (newValue: string) => void
+  /** Commande affichée au bout de la ligne d'onglets, par exemple un lien d'aide. */
+  action?: React.ReactNode
+  /** Repère de la zone pour la visite guidée. */
+  tourId?: string
 }
 
 const TabFilter = ({
   tabsData = [],
   selectedValue,
   onTabChange,
+  action,
+  tourId,
 }: TabFilterProps) => {
   const theme = useTheme()
 
@@ -27,7 +33,10 @@ const TabFilter = ({
 
   return (
     <Box
+      data-tour={tourId}
       sx={(theme) => ({
+        display: 'flex',
+        alignItems: 'center',
         overflowX: 'auto',
         whiteSpace: 'nowrap',
         borderBottom: '1px solid #DDE4E1',
@@ -43,7 +52,8 @@ const TabFilter = ({
         sx={{
           display: 'flex',
           justifyContent: 'center',
-          width: '100%',
+          flexGrow: 1,
+          minWidth: 0,
         }}
       >
         {tabsData.map((tab, index) => (
@@ -80,6 +90,7 @@ const TabFilter = ({
           />
         ))}
       </Tabs>
+      {action}
     </Box>
   )
 }

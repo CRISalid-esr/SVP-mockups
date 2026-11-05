@@ -1,17 +1,13 @@
-import { DEMO_PROFILE, EMPTY_PROFILE, ResearchProfile, normalizeProfile } from './types'
+import { DEMO_PROFILE, ResearchProfile, normalizeProfile } from './types'
 
-// Persistance localStorage du « Profil de recherche 2 », isolée par perspective
-// (?perspective=…) comme la rubrique v1. Le profil de démo n'est servi qu'à la
-// perspective « default » ; tout autre profil démarre vide.
+// Persistance localStorage du « Profil de recherche 2 ». On n'y écrit que le profil
+// de la personne connectée : les autres perspectives sont en lecture seule et ne
+// passent jamais par ce stockage. L'indépendance vis-à-vis de l'URL garantit qu'un
+// enregistrement ne peut pas atterrir dans le profil de quelqu'un d'autre.
 export const PROFILE_KEY_PREFIX = 'research-profile-v2'
 
-export function getPerspective(): string {
-  if (typeof window === 'undefined') return 'default'
-  return new URLSearchParams(window.location.search).get('perspective') || 'default'
-}
-
 export function profileStorageKey(): string {
-  return `${PROFILE_KEY_PREFIX}-${getPerspective()}`
+  return `${PROFILE_KEY_PREFIX}-default`
 }
 
 export function loadProfile(): ResearchProfile {
@@ -22,7 +18,7 @@ export function loadProfile(): ResearchProfile {
     // déclinaisons par public sont complétés à la lecture.
     if (raw) return normalizeProfile(JSON.parse(raw) as ResearchProfile)
   } catch (_e) { /* ignore */ }
-  return getPerspective() === 'default' ? DEMO_PROFILE : EMPTY_PROFILE
+  return DEMO_PROFILE
 }
 
 export function saveProfile(profile: ResearchProfile): ResearchProfile {

@@ -68,9 +68,9 @@ function KpiCard({ icon, value, label, extra }: {
   )
 }
 
-export default function LabView({ labName }: { labName: string }) {
+export default function LabView({ labName, initialTeam = 'all' }: { labName: string; initialTeam?: string }) {
   const [tab, setTab] = useState<'sujets' | 'annuaire'>('sujets')
-  const [teamFilter, setTeamFilter] = useState<string>('all')
+  const [teamFilter, setTeamFilter] = useState<string>(initialTeam)
   const [selectedSujet, setSelectedSujet] = useState<AggregatedSujet | null>(null)
   const [profileFilter, setProfileFilter] = useState<ProfileType | 'all'>('all')
   const [search, setSearch] = useState('')

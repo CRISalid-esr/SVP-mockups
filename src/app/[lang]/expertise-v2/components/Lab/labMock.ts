@@ -1,6 +1,7 @@
 import {
   CURRENT_YEAR, Keyword, OrgRef, PersonRef, PlaceRef, ResearchTheme, Visibility, Vocabulary, blankTheme, isActiveIn,
 } from '../../types'
+import { demoIndex } from '@/app/[lang]/components/Perspective/usePerspectiveScope'
 
 // ─── Vue laboratoire v2 : données de démonstration ───────────────────────────
 // Le laboratoire n'a pas d'objet propre : il agrège les thèmes de recherche
@@ -360,6 +361,16 @@ export const LAB_MEMBERS: LabMember[] = [
 // ─── Agrégation ──────────────────────────────────────────────────────────────
 
 /** Un thème remonte au laboratoire s'il est validé et non privé. */
+/**
+ * Profil de démonstration d'une personne consultée depuis le sélecteur d'espace :
+ * les thèmes d'un membre fictif, choisi de façon stable et portés à son nom.
+ */
+export function memberForPerson(name: string, slug: string, affiliation: string): LabMember {
+  const withThemes = LAB_MEMBERS.filter((m) => m.themes.some(isLabVisible))
+  const source = withThemes[demoIndex(slug, withThemes.length)]
+  return { ...source, id: slug, name, team: affiliation }
+}
+
 export function isLabVisible(theme: ResearchTheme): boolean {
   return theme.status === 'validated' && theme.visibility !== 'private'
 }

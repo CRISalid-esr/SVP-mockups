@@ -3,6 +3,7 @@ import { Trans } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
 
 import { TabFilter } from '@/components/TabFilter'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import { Box, Typography } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -77,7 +78,7 @@ const MyAccountPage = () => {
       >
         <Box>
           <Typography variant='h4' gutterBottom>
-            <Trans>side_bar_my_account</Trans>
+            <Trans>side_bar_my_account</Trans> <HelpLink topic='profile' />
           </Typography>
         </Box>
       </Box>

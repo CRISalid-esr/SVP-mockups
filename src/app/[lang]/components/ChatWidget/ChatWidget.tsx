@@ -1,6 +1,7 @@
 'use client'
 
 import { publicPath } from '@/utils/publicPath'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import CloseIcon from '@mui/icons-material/Close'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
@@ -154,6 +155,7 @@ export default function ChatWidget() {
     return (
       <Tooltip title='Assistant de Recherche CRISalid' placement='left'>
         <Fab
+          data-tour='assistant'
           color='primary'
           aria-label={`Ouvrir l'assistant de recherche CRISalid`}
           onClick={() => setOpen(true)}
@@ -208,6 +210,7 @@ export default function ChatWidget() {
             {`Publications, laboratoires, domaines d'expertise…`}
           </Typography>
         </Box>
+        <HelpLink topic='assistant' sx={{ color: 'inherit' }} />
         <Tooltip title='Nouvelle conversation'>
           <IconButton size='small' onClick={handleReset} sx={{ color: 'inherit' }}>
             <RestartAltIcon fontSize='small' />

@@ -1,6 +1,7 @@
 'use client'
 
 import * as Lingui from '@lingui/core'
+import { HelpLink } from '@/app/[lang]/components/HelpLink'
 import { Box, CircularProgress, Tab, Tabs } from '@mui/material'
 import { notFound, useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -118,7 +119,7 @@ export default function StructureDetailPage() {
   // ── Tabs bar ─────────────────────────────────────────────────────────────────
 
   const tabBar = (
-    <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}>
       <Tabs
         value={selectedTab}
         onChange={(_, v) => setSelectedTab(v)}
@@ -131,6 +132,7 @@ export default function StructureDetailPage() {
           <Tab key={t.value} label={t.label} value={t.value} />
         ))}
       </Tabs>
+      {selectedTab === 'membres' && <HelpLink topic='members' sx={{ ml: 'auto' }} />}
     </Box>
   )
 

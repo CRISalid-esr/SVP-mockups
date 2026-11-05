@@ -17,7 +17,7 @@
         "descriptions": [{ "language": "fr", "value": "Université pluridisciplinaire fondée en 2022. Regroupe Nantes Université historique, Centrale Nantes et l'ENSA Nantes au sein d'un établissement public expérimental. Elle forme plus de 42 000 étudiants et conduit une politique de recherche ambitieuse dans tous les champs disciplinaires." }],
         "external": false,
         "slug": "nantes-universite",
-        "childUids": ["comp-ufr-st", "comp-ufr-llshs", "comp-iae", "comp-polytech", "unit-bu", "unit-pole-st"]
+        "childUids": ["lab-x", "comp-ufr-st", "comp-ufr-llshs", "comp-iae", "comp-polytech", "unit-bu", "unit-pole-st"]
     },
     {
         "uid": "inst-cn",
@@ -165,6 +165,318 @@
         "publicationsByYear": [],
         "disciplines": [],
         "sources": []
+    },
+    {
+        "uid": "lab-x",
+        "generic_type": "unit",
+        "national_type": "UMR",
+        "main_mission": "research",
+        "acronym": "Labo X",
+        "parent_uid": "inst-nu",
+        "secondary_parent_uids": [],
+        "rnsr": "000000000X",
+        "short_labels": [
+            {
+                "language": "fr",
+                "value": "Labo X"
+            },
+            {
+                "language": "en",
+                "value": "Labo X"
+            }
+        ],
+        "long_labels": [
+            {
+                "language": "fr",
+                "value": "Labo X"
+            },
+            {
+                "language": "en",
+                "value": "Labo X"
+            }
+        ],
+        "institutionNames": [],
+        "membersCount": 120,
+        "publicationsCount": 355,
+        "oaRate": 60,
+        "halRate": 55,
+        "halDelta": 4,
+        "publicationsDelta": 2,
+        "descriptions": [
+            {
+                "language": "fr",
+                "value": "Unité de recherche fictive de la maquette, rattachée à Nantes Université. Elle porte le jeu de démonstration du tableau de bord et des expertises."
+            }
+        ],
+        "external": false,
+        "slug": "labo-x",
+        "identifiers": {
+            "halCollection": "LABOX"
+        },
+        "members": [
+            "person-1",
+            "person-2"
+        ],
+        "publicationsByYear": [
+            {
+                "year": 2020,
+                "open": 45,
+                "closed": 24,
+                "unknown": 0
+            },
+            {
+                "year": 2021,
+                "open": 32,
+                "closed": 21,
+                "unknown": 0
+            },
+            {
+                "year": 2022,
+                "open": 22,
+                "closed": 28,
+                "unknown": 0
+            },
+            {
+                "year": 2023,
+                "open": 43,
+                "closed": 28,
+                "unknown": 0
+            },
+            {
+                "year": 2024,
+                "open": 43,
+                "closed": 26,
+                "unknown": 0
+            },
+            {
+                "year": 2025,
+                "open": 21,
+                "closed": 14,
+                "unknown": 0
+            },
+            {
+                "year": 2026,
+                "open": 2,
+                "closed": 6,
+                "unknown": 0
+            }
+        ],
+        "disciplines": [
+            {
+                "label": "Informatique",
+                "pct": 45
+            },
+            {
+                "label": "Automatique",
+                "pct": 22
+            },
+            {
+                "label": "Traitement du signal",
+                "pct": 18
+            },
+            {
+                "label": "Intelligence artificielle",
+                "pct": 10
+            },
+            {
+                "label": "Mathématiques appliquées",
+                "pct": 5
+            }
+        ],
+        "sources": [
+            {
+                "name": "HAL",
+                "coverage": 78,
+                "found": 405,
+                "total": 520
+            },
+            {
+                "name": "ScanR",
+                "coverage": 82,
+                "found": 426,
+                "total": 520
+            },
+            {
+                "name": "OpenAlex",
+                "coverage": 91,
+                "found": 473,
+                "total": 520
+            },
+            {
+                "name": "Crossref",
+                "coverage": 65,
+                "found": 338,
+                "total": 520
+            },
+            {
+                "name": "Scopus",
+                "coverage": 55,
+                "found": 286,
+                "total": 520
+            },
+            {
+                "name": "Web of Science",
+                "coverage": 48,
+                "found": 250,
+                "total": 520
+            }
+        ]
+    },
+    {
+        "uid": "team-labo-x-2",
+        "generic_type": "team",
+        "national_type": null,
+        "main_mission": "research",
+        "acronym": "Équipe 2",
+        "parent_uid": "lab-x",
+        "secondary_parent_uids": [],
+        "short_labels": [
+            {
+                "language": "fr",
+                "value": "Équipe 2"
+            },
+            {
+                "language": "en",
+                "value": "Team 2"
+            }
+        ],
+        "long_labels": [
+            {
+                "language": "fr",
+                "value": "Équipe 2 du Labo X"
+            },
+            {
+                "language": "en",
+                "value": "Labo X Team 2"
+            }
+        ],
+        "institutionNames": [],
+        "membersCount": 45,
+        "publicationsCount": 218,
+        "oaRate": 60,
+        "halRate": 55,
+        "halDelta": 4,
+        "publicationsDelta": 2,
+        "descriptions": [
+            {
+                "language": "fr",
+                "value": "Équipe fictive du Labo X, pour illustrer le niveau équipe."
+            }
+        ],
+        "external": false,
+        "slug": "labo-x-equipe-2",
+        "identifiers": {
+            "halCollection": "LABOX-E2"
+        },
+        "members": [
+            "person-1",
+            "person-2"
+        ],
+        "publicationsByYear": [
+            {
+                "year": 2020,
+                "open": 27,
+                "closed": 16,
+                "unknown": 0
+            },
+            {
+                "year": 2021,
+                "open": 18,
+                "closed": 13,
+                "unknown": 0
+            },
+            {
+                "year": 2022,
+                "open": 12,
+                "closed": 20,
+                "unknown": 0
+            },
+            {
+                "year": 2023,
+                "open": 28,
+                "closed": 16,
+                "unknown": 0
+            },
+            {
+                "year": 2024,
+                "open": 27,
+                "closed": 19,
+                "unknown": 0
+            },
+            {
+                "year": 2025,
+                "open": 10,
+                "closed": 6,
+                "unknown": 0
+            },
+            {
+                "year": 2026,
+                "open": 2,
+                "closed": 4,
+                "unknown": 0
+            }
+        ],
+        "disciplines": [
+            {
+                "label": "Informatique",
+                "pct": 45
+            },
+            {
+                "label": "Automatique",
+                "pct": 22
+            },
+            {
+                "label": "Traitement du signal",
+                "pct": 18
+            },
+            {
+                "label": "Intelligence artificielle",
+                "pct": 10
+            },
+            {
+                "label": "Mathématiques appliquées",
+                "pct": 5
+            }
+        ],
+        "sources": [
+            {
+                "name": "HAL",
+                "coverage": 78,
+                "found": 405,
+                "total": 520
+            },
+            {
+                "name": "ScanR",
+                "coverage": 82,
+                "found": 426,
+                "total": 520
+            },
+            {
+                "name": "OpenAlex",
+                "coverage": 91,
+                "found": 473,
+                "total": 520
+            },
+            {
+                "name": "Crossref",
+                "coverage": 65,
+                "found": 338,
+                "total": 520
+            },
+            {
+                "name": "Scopus",
+                "coverage": 55,
+                "found": 286,
+                "total": 520
+            },
+            {
+                "name": "Web of Science",
+                "coverage": 48,
+                "found": 250,
+                "total": 520
+            }
+        ],
+        "dashboardTeam": "Équipe 2"
     },
     {
         "uid": "lab-ls2n",

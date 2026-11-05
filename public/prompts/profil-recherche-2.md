@@ -90,7 +90,7 @@ Bandeau en haut : nombre de thèmes masqués et pourquoi (établissement, privé
 
 ### 2.5 Vue laboratoire ✅
 
-Switcher **Chercheur / Laboratoire** dans l'en-tête (même pattern que le tableau de bord). Lecture seule : le laboratoire ne saisit rien, il **agrège les thèmes datés de ses membres**. Règle de remontée : un thème est visible du laboratoire s'il est **validé** et en diffusion **établissement** ou **public** ; les thèmes privés et les brouillons n'apparaissent pas (le profil connecté est traité comme un membre, et un bandeau lui rappelle combien de ses thèmes sont invisibles ici).
+Affichée quand le sélecteur de perspective global pointe sur une **structure**. Lecture seule : le laboratoire ne saisit rien, il **agrège les thèmes datés de ses membres**. Règle de remontée : un thème est visible du laboratoire s'il est **validé** et en diffusion **établissement** ou **public** ; les thèmes privés et les brouillons n'apparaissent pas (le profil connecté est traité comme un membre, et un bandeau lui rappelle combien de ses thèmes sont invisibles ici).
 
 - **Regroupement** : deux thèmes de membres différents forment un même *sujet* s'ils partagent le même mot-clé contrôlé (RAMEAU, Wikidata, MeSH), sinon par intitulé normalisé. Un membre peut donc personnaliser l'intitulé (« Habitats partagés pour les aînés ») et rester regroupé avec « Habitat inclusif et politiques publiques ».
 - **Filtres** : équipe (3 équipes de démonstration), recherche texte, et surtout **curseur d'année** (« Le laboratoire en 2015 ») qui ne garde que les thèmes actifs cette année-là — la datation des thèmes permet de voir le laboratoire tel qu'il était.
@@ -119,7 +119,7 @@ Jeu de démonstration : 28 publications (2010 → 2025) cohérentes avec le prof
 
 Quand on consulte le profil de recherche d'une autre personne, on voit ses thèmes **sans pouvoir les modifier**, mais on peut **copier un thème dans son propre profil** pour gagner du temps sur la saisie (intitulé et mots-clés alignés sur les référentiels).
 
-- **Accès** : champ « Consulter le profil d'un·e collègue… » dans l'en-tête (membres groupés par équipe), ou depuis la vue laboratoire (clic sur un nom dans *Complétude des profils*, bouton « Voir tous les thèmes de … » dans le dialogue de détail d'une expertise). Cliquer sur son propre nom ramène à son profil modifiable.
+- **Accès** : bouton « Consulter le profil d'un·e collègue » de l'en-tête, qui ouvre le moteur de recherche global (tous les chercheurs de la base), ou depuis la vue laboratoire (clic sur un nom dans *Complétude des profils*, bouton « Voir tous les thèmes de … » dans le dialogue de détail d'une expertise). Cliquer sur son propre nom ramène à son profil modifiable.
 - **Écran** : avatar, nom, équipe, laboratoire, chip **Lecture seule** ; une ligne par thème (période de travail + mini-frise + période étudiée, intitulé, description complète, **tous les mots-clés** avec leur référentiel en infobulle, terrains / personnes / organisations, diffusion, sollicitations). Aucun élément cliquable pour modifier.
 - **Ce qu'on voit** : uniquement les thèmes **validés et non privés** (même règle que la vue laboratoire). Les brouillons et thèmes privés ne sont pas affichés ; une mention discrète en donne le nombre. Un profil sans thème visible affiche un état vide.
 - **Copier dans mon profil** (bouton par thème) ouvre un dialogue : intitulé retouchable, **mots-clés repris** (tous par défaut, chacun retirable, « Tout reprendre »), cases à cocher *Terrains, personnes et organisations* (cochée) et *Périodes étudiées* (cochée), *Description* (décochée : elle est rédigée à la première personne par l'autre chercheur·e). Encart : ne sont **pas repris** la période de travail, les publications, la diffusion, les sollicitations et les déclinaisons par public, propres à l'autre personne.
@@ -161,7 +161,7 @@ interface ThemeRelation {
 }
 ```
 
-Le profil (`themes`, `relations`, positions libres du graphe) est persisté en localStorage sous `research-profile-v2-{perspective}`. La perspective de démo (`default`) est pré-remplie avec cinq thèmes de géographie sociale (2009 → aujourd'hui) et quatre relations ; les autres perspectives démarrent vides.
+Le profil (`themes`, `relations`, positions libres du graphe) est persisté en localStorage sous `research-profile-v2-default` : uniquement le profil connecté, les autres perspectives étant en lecture seule. Ce profil est pré-rempli avec cinq thèmes de géographie sociale (2009 → aujourd'hui) et quatre relations.
 
 ---
 

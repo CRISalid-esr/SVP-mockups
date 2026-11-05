@@ -29,6 +29,14 @@
                     "names": [{ "language": "fr", "value": "Laboratoire des Sciences du Numérique de Nantes" }]
                 },
                 "membershipType": "stat_mmb"
+            },
+            {
+                "researchStructure": {
+                    "uid": "lab-x",
+                    "acronym": "Labo X",
+                    "names": [{ "language": "fr", "value": "Labo X" }]
+                },
+                "membershipType": "stat_mmb"
             }
         ],
         "hdr": false,

@@ -64,7 +64,7 @@ const RESEARCHER_TABS = new Set<DashboardTabKey>([
 ])
 
 const DashboardTabs = () => {
-  const { isResearcher } = useDashboardData()
+  const { isResearcher, structureLevel } = useDashboardData()
   const [selected, setSelected] = useState<DashboardTabKey>('overview')
 
   const allTabs: TabDef[] = [
@@ -80,7 +80,9 @@ const DashboardTabs = () => {
   ]
   const tabs = isResearcher
     ? allTabs.filter((tb) => RESEARCHER_TABS.has(tb.value))
-    : allTabs
+    : structureLevel === 'team'
+      ? allTabs.filter((tb) => tb.value !== 'teams')
+      : allTabs
 
   // Si l'onglet courant n'est plus visible (changement de perspective), revenir à la vue d'ensemble.
   useEffect(() => {
@@ -120,6 +122,7 @@ const DashboardTabs = () => {
         tabsData={tabs.map((tb) => ({ label: tb.label, value: tb.value }))}
         selectedValue={selected}
         onTabChange={(v) => setSelected(v as DashboardTabKey)}
+        tourId='dashboard-tabs'
       />
 
       {renderTab()}

@@ -32,7 +32,7 @@ const OverviewTab = () => {
   const theme = useTheme()
   const { _ } = useLingui()
 
-  const { publications, authors, isResearcher, researcherId } =
+  const { publications, authors, isResearcher, isOwn, structureLevel, researcherId } =
     useDashboardData()
   const bounds = useMemo(() => getYearBounds(publications), [publications])
 
@@ -122,9 +122,16 @@ const OverviewTab = () => {
               color: theme.palette.primary.main,
             }}
           >
-            {isResearcher
-              ? t`dashboard_overview_researcher_synthesis_title`
-              : t`dashboard_overview_lab_synthesis_title`}
+            {!isResearcher
+              ? {
+                  institution: t`dashboard_overview_institution_synthesis_title`,
+                  unit: t`dashboard_overview_lab_synthesis_title`,
+                  other: t`dashboard_overview_structure_synthesis_title`,
+                  team: t`dashboard_overview_team_synthesis_title`,
+                }[structureLevel]
+              : isOwn
+                ? t`dashboard_overview_researcher_synthesis_title`
+                : t`dashboard_overview_other_researcher_synthesis_title`}
           </Typography>
           <Typography variant='caption' color='text.secondary'>
             {t`dashboard_overview_lab_demo_caption`}
@@ -199,14 +206,18 @@ const OverviewTab = () => {
         <Grid size={{ xs: 12 }}>
           <DashboardSectionCard
             title={
-              isResearcher
-                ? t`dashboard_network_researcher_title`
-                : t`dashboard_network_title`
+              !isResearcher
+                ? t`dashboard_network_title`
+                : isOwn
+                  ? t`dashboard_network_researcher_title`
+                  : t`dashboard_network_other_researcher_title`
             }
             subtitle={
-              isResearcher
-                ? t`dashboard_network_researcher_subtitle`
-                : t`dashboard_network_subtitle`
+              !isResearcher
+                ? t`dashboard_network_subtitle`
+                : isOwn
+                  ? t`dashboard_network_researcher_subtitle`
+                  : t`dashboard_network_other_researcher_subtitle`
             }
           >
             <Stack

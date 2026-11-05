@@ -2,6 +2,8 @@
 
 import { Appbar } from '@/components/appbar'
 import { Sidebar } from 'src/app/[lang]/components/Sidebar'
+import { PerspectiveBanner, PerspectivePicker } from 'src/app/[lang]/components/Perspective'
+import { OnboardingTour, useOnboarding } from 'src/app/[lang]/components/Onboarding'
 import PromptDrawer from 'src/app/[lang]/components/PromptDrawer/PromptDrawer'
 import ChatWidget from 'src/app/[lang]/components/ChatWidget/ChatWidget'
 import { useTheme } from '@mui/material/styles'
@@ -23,6 +25,12 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const searchParams = useSearchParams()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  // La visite guidée présente des entrées du menu : il doit être déplié.
+  const tourActive = useOnboarding((state) => state.active)
+  useEffect(() => {
+    if (tourActive && !isMobile) setOpen(true)
+  }, [tourActive, isMobile])
 
   const handleToggleDrawer = () => {
     setOpen((prev) => !prev)
@@ -83,6 +91,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <WebSocketListener />
         <PromptDrawer />
         <ChatWidget />
+        <PerspectivePicker />
+        <OnboardingTour />
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* AppBar for mobile */}
           {isMobile && <Appbar handleToggleDrawer={handleToggleDrawer} />}
@@ -104,6 +114,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               position: 'relative', // Ensure main is properly positioned
             }}
           >
+            <PerspectiveBanner />
             {children}
           </Box>
         </Box>

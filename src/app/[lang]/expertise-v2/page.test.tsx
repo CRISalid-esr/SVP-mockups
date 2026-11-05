@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { usePerspectiveUi } from '@/app/[lang]/components/Perspective/perspectiveUiStore'
 import ExpertiseV2Page from './page'
 
 jest.mock('next/dynamic', () => () => {
@@ -13,9 +14,39 @@ jest.mock('echarts-for-react', () => {
   return { __esModule: true, default: Stub }
 })
 
+const OWN = {
+  currentPerspective: null,
+  ownPerspective: true,
+  connectedUser: { person: { getDisplayName: () => 'Jean Dupont', memberships: [{ researchStructure: { uid: 'lab-ths' } }] } },
+}
+const LAB = {
+  ...OWN,
+  ownPerspective: false,
+  currentPerspective: {
+    type: 'research_structure', uid: 'lab-ths', slug: 'ths', membershipAcronyms: ['THS'],
+    getDisplayName: () => 'Territoires, Habitat et Sociétés (THS)',
+  },
+}
+const COLLEAGUE = {
+  ...OWN,
+  ownPerspective: false,
+  currentPerspective: {
+    type: 'person', uid: 'marie', slug: 'marie-curie', membershipAcronyms: ['LS2N'],
+    getDisplayName: () => 'Marie Curie',
+  },
+}
+let mockUser: unknown = OWN
+
 jest.mock('@/stores/global_store', () => ({
   __esModule: true,
-  default: (selector: (s: unknown) => unknown) => selector({ user: { currentPerspective: null } }),
+  default: (selector: (s: unknown) => unknown) => selector({ user: mockUser }),
+}))
+
+// Revenir à son espace : la perspective redevient celle de la personne connectée.
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: () => { mockUser = OWN } }),
+  usePathname: () => '/fr/expertise-v2',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 jest.mock('@/mocks/dashboardMockService', () => ({
@@ -29,6 +60,7 @@ jest.setTimeout(20000)
 describe('ExpertiseV2Page', () => {
   beforeEach(() => {
     localStorage.clear()
+    mockUser = OWN
   })
 
   it('affiche la liste des thèmes du profil de démo avec période, diffusion et statut', () => {
@@ -175,9 +207,9 @@ describe('ExpertiseV2Page', () => {
   })
 
   it('affiche la vue laboratoire agrégée à partir des thèmes des membres', () => {
+    mockUser = LAB
     render(<ExpertiseV2Page />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Laboratoire/ }))
     expect(screen.getByText('Territoires, Habitat et Sociétés (THS)')).toBeInTheDocument()
     expect(screen.getByText('Frise des sujets du laboratoire')).toBeInTheDocument()
     expect(screen.getByText('Profils renseignés')).toBeInTheDocument()
@@ -195,9 +227,9 @@ describe('ExpertiseV2Page', () => {
   })
 
   it('consulte le profil d’un·e collègue en lecture seule et copie un thème avec ses mots-clés', () => {
+    mockUser = LAB
     render(<ExpertiseV2Page />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Laboratoire/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Voir le profil de recherche de Thomas Caradec' }))
 
     expect(screen.getByText('Lecture seule')).toBeInTheDocument()
@@ -223,14 +255,55 @@ describe('ExpertiseV2Page', () => {
   })
 
   it('ne montre pas les brouillons ni les thèmes privés d’un·e collègue', () => {
+    mockUser = LAB
     render(<ExpertiseV2Page />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Laboratoire/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Voir le profil de recherche de Sarah Lemoine' }))
     expect(screen.getByText('Aucun thème visible pour l’instant')).toBeInTheDocument()
     expect(screen.getByText('1 thème non affiché (brouillon ou privé).')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Retour au laboratoire/ }))
     expect(screen.getByText('Frise des sujets du laboratoire')).toBeInTheDocument()
+  })
+
+  it('propose de consulter un·e collègue depuis son propre profil, via le moteur de recherche', () => {
+    render(<ExpertiseV2Page />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Consulter le profil d’un·e collègue/ }))
+    expect(usePerspectiveUi.getState().anchorEl).not.toBeNull()
+    act(() => usePerspectiveUi.getState().closePicker())
+  })
+
+  it('consulte une autre personne en lecture seule sans rien écrire dans son profil', () => {
+    mockUser = COLLEAGUE
+    render(<ExpertiseV2Page />)
+
+    expect(screen.getByText('Lecture seule')).toBeInTheDocument()
+    expect(screen.queryByText('Mes thèmes de recherche')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Modifier le thème/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Ajouter un thème/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Réinitialiser la démo/ })).not.toBeInTheDocument()
+    expect(localStorage.length).toBe(0)
+  })
+
+  it('n’inclut pas la personne connectée dans une structure dont elle n’est pas membre', () => {
+    mockUser = { ...LAB, currentPerspective: { ...LAB.currentPerspective, uid: 'autre', slug: 'autre', getDisplayName: () => 'Autre labo' } }
+    render(<ExpertiseV2Page />)
+
+    expect(screen.getByText('Autre labo')).toBeInTheDocument()
+    expect(screen.queryByText(/de vos thèmes/)).not.toBeInTheDocument()
+  })
+
+  it('copie un thème depuis l’espace d’une autre personne : retour à son profil, éditeur ouvert', () => {
+    mockUser = COLLEAGUE
+    render(<ExpertiseV2Page />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Copier le thème .* dans mon profil/ })[0])
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Copier et modifier/ }))
+
+    expect(screen.getByText(/de Marie Curie/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    expect(screen.getByText('Mes thèmes de recherche')).toBeInTheDocument()
+    expect(screen.getByText('Copié de Marie Curie')).toBeInTheDocument()
   })
 })

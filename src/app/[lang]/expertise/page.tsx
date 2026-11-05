@@ -6,18 +6,19 @@ import {
   Box, Chip, Tab, Tabs, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
 import {
-  AccountTree, Campaign, ChevronRight, PersonOutline,
-  Apartment, TravelExplore, ViewList,
+  AccountTree, Campaign, ChevronRight, TravelExplore, ViewList,
 } from '@mui/icons-material'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import useStore from '@/stores/global_store'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
-import { dashboardMockService } from '@/mocks/dashboardMockService'
+import { demoIndex, structureLevelOf, usePerspectiveScope } from '@/app/[lang]/components/Perspective/usePerspectiveScope'
 import FlatView from './components/FlatView/FlatView'
 import ImpactCardsView from './components/ImpactCards/ImpactCardsView'
 import { INITIAL_CARDS } from './components/ImpactCards/impactCardsTypes'
+import ConsultationView from './components/ConsultationView'
 import LabView from './components/Lab/LabView'
+import { LAB_TEAMS } from './components/Lab/labMock'
 import { CARDS_KEY, loadStoredGraph } from './storage'
 
 const MindMapView = dynamic(
@@ -35,7 +36,6 @@ const MindMapView = dynamic(
 const TEAL = '#006A61'
 
 type SujetView = 'liste' | 'carte'
-type PageView = 'researcher' | 'lab'
 
 interface CompletionStats {
   sujets: number
@@ -95,10 +95,9 @@ function JourneyStep({ index, label, count, done, active, onClick }: {
 export default function ExpertisePage() {
   const { currentPerspective } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
-  const researcherName = currentPerspective?.getDisplayName(lang) || 'Jean Dupont'
-  const labName = dashboardMockService.getLab().name
+  const displayName = currentPerspective?.getDisplayName(lang) || 'Jean Dupont'
+  const scope = usePerspectiveScope()
 
-  const [view, setView] = useState<PageView>('researcher')
   const [tab, setTab] = useState(0)
   const [sujetView, setSujetView] = useState<SujetView>('liste')
   const [justGenerated, setJustGenerated] = useState(false)
@@ -110,7 +109,7 @@ export default function ExpertisePage() {
   useEffect(() => {
     refreshStats()
     setMounted(true)
-  }, [tab, sujetView, view, refreshStats])
+  }, [tab, sujetView, scope, refreshStats])
 
   const hasSujets = stats.sujets > 0
 
@@ -128,31 +127,21 @@ export default function ExpertisePage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <DocumentHeader
-        perspectiveName={view === 'researcher' ? researcherName : labName}
-        pageName={'Profil recherche'}
-      >
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={view}
-          onChange={(_e, v: PageView | null) => v && setView(v)}
-          aria-label="Perspective"
-        >
-          <ToggleButton value="researcher" sx={{ textTransform: 'none', gap: 0.5 }}>
-            <PersonOutline fontSize="small" />
-            Chercheur
-          </ToggleButton>
-          <ToggleButton value="lab" sx={{ textTransform: 'none', gap: 0.5 }}>
-            <Apartment fontSize="small" />
-            Laboratoire
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </DocumentHeader>
+      <DocumentHeader perspectiveName={displayName} pageName={'Profil recherche'} />
 
-      {view === 'lab' ? (
+      {scope === 'structure' ? (
         <Box sx={{ flex: 1, overflow: 'auto' }}>
-          <LabView labName={labName} />
+          <LabView
+            key={currentPerspective?.slug}
+            labName={displayName}
+            initialTeam={structureLevelOf(currentPerspective?.uid) === 'team'
+              ? LAB_TEAMS[demoIndex(currentPerspective?.slug, LAB_TEAMS.length)]
+              : 'all'}
+          />
+        </Box>
+      ) : scope === 'person' ? (
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <ConsultationView name={displayName} slug={currentPerspective?.slug ?? ''} />
         </Box>
       ) : (
         <>

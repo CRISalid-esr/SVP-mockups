@@ -17,6 +17,16 @@ jest.mock('../components/Sidebar', () => ({
   Sidebar: jest.fn(() => <div>Sidebar</div>),
 }))
 
+jest.mock('../components/Perspective', () => ({
+  PerspectiveBanner: () => null,
+  PerspectivePicker: () => null,
+}))
+
+jest.mock('../components/Onboarding', () => ({
+  OnboardingTour: () => null,
+  useOnboarding: () => false,
+}))
+
 jest.mock('../components/AuthenticatedRoute', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => (
