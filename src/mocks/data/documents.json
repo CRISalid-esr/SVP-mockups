@@ -157,6 +157,31 @@
                 "_url": "https://www.scopus.com/record/display.uri?eid=2-s2.0-123456789",
                 "halCollectionCodes": [],
                 "halSubmitType": null
+            },
+            {
+                "uid": "rec-1-openalex",
+                "sourceIdentifier": "openalex-W4200000001",
+                "identifiers": [
+                    {
+                        "type": "doi",
+                        "value": "10.1000/123456"
+                    }
+                ],
+                "contributions": [],
+                "documentTypes": [
+                    "Article"
+                ],
+                "publicationDate": "2023-05-15T00:00:00.000Z",
+                "platform": "openalex",
+                "titles": [
+                    {
+                        "language": "en",
+                        "value": "A deep learning approach to climate modeling"
+                    }
+                ],
+                "_url": "https://openalex.org/W4200000001",
+                "halCollectionCodes": [],
+                "halSubmitType": null
             }
         ],
         "state": "default",
@@ -312,12 +337,7 @@
                 "value": "Migrations et identités en contexte postcolonial : nouvelles perspectives"
             }
         ],
-        "abstracts": [
-            {
-                "language": "fr",
-                "value": "Cette communication examine les reconfigurations identitaires des populations migrantes issues des anciens territoires coloniaux français."
-            }
-        ],
+        "abstracts": [],
         "subjects": [],
         "contributions": [
             {

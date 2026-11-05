@@ -146,6 +146,16 @@ Onglet `hal_update`, à la place de « Déposer dans HAL » quand la publication
 
 ---
 
+### ✅ Onglet Domaines (`src/app/[lang]/documents/[uid]/components/Domains/`)
+
+Classification OpenAlex sur 4 niveaux (OpenAlex en lecture seule ; propositions à valider ou écarter ; saisie au niveau du sujet) et domaines HAL (moissonnés en lecture seule ; attribués, repris au dépôt pour une publication hors HAL). Zone « Simuler » : droits, document figé, panne de génération.
+
+**Données :** `domainsMock.ts` (échantillon réel de la classification, traductions et scores de maquette, un scénario par document de `doc-1` à `doc-6`) · état en localStorage `document-domains-v1-{uid}` · `halDomains.ts` partagé avec `HalDeposit.tsx`, pré-rempli via `getDepositDomains()`. `documents.json` : notice OpenAlex ajoutée à `doc-1`, résumé retiré de `doc-4` (cas du titre seul). Vocabulaire à l'écran : pas de « taxi », dire « Proposé » et « Générer ». Pas de « ? » : pas encore de page d'aide. Tests : `Domains.test.tsx`.
+
+**Descriptif et questions ouvertes :** `public/prompts/domaines.md`
+
+---
+
 ### ✅ Expertises (`src/app/[lang]/expertise/`)
 **Réorganisation septembre 2026 — Liste = surface unique, Carte = vue avancée :**
 - Onglet **Thèmes de recherche** : toggle **Liste (défaut) / Relations (avancé)**. La vue Liste (`FlatView`) est l'unique point d'entrée du parcours (scope publications, prompt IA, thèmes, caractéristiques) ; la vue Relations (`MindMapView`) sert uniquement à dessiner des liens entre thèmes existants — elle ne propose plus de génération.
