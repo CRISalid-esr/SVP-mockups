@@ -15,7 +15,7 @@
 ```
 src/app/[lang]/
 ├── dashboard/
-│   ├── page.tsx                      # Shell : en-tête + switcher de perspective + provider + onglets
+│   ├── page.tsx                      # Shell : en-tête + provider (vue déduite de la perspective) + onglets
 │   └── components/
 │       ├── DashboardViewContext.tsx  # Contexte de perspective (chercheur / labo) + données filtrées
 │       ├── DashboardTabs.tsx         # Barre d'onglets + routage de l'onglet actif
@@ -51,9 +51,9 @@ src/app/[lang]/
 
 ---
 
-## Switcher de perspective
+## Perspective
 
-Dans l'en-tête, à droite du titre `Tableau de bord : {nom}`, un `ToggleButtonGroup` bascule entre deux perspectives (état dans `page.tsx`, données dans `DashboardViewContext`) :
+La perspective vient du sélecteur global de l'application (`?perspective=`, voir `components/Perspective/`) : une personne donne la vue Chercheur, une structure la vue Laboratoire (`usePerspectiveScope` dans `page.tsx`, données dans `DashboardViewContext`) :
 
 | Perspective | Périmètre de données | Titre | Onglets visibles |
 |---|---|---|---|

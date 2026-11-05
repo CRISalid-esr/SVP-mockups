@@ -30,7 +30,7 @@ Graphe de thèmes (React Flow — source de vérité)
 
 ```
 Sidebar
-  └── Expertises                    [switcher Chercheur / Laboratoire dans l'en-tête]
+  └── Expertises                    [la vue suit le sélecteur de perspective global]
         ├── Thèmes de recherche     ◄── toggle Liste (défaut) / Relations (avancé)
         └── Expertises              ◄── fiches par public (chip "générées depuis vos thèmes")
 ```
@@ -308,8 +308,7 @@ propose « Valider cette fiche » dans son menu ⋮.
 
 ### 6.1 Principe
 
-✅ Un **switcher Chercheur / Laboratoire** dans l'en-tête de page (même pattern que le tableau
-de bord) bascule sur la vue agrégée du labo. Vue en **lecture seule** : les thèmes et les fiches
+✅ Choisir une **structure** dans le sélecteur de perspective global affiche la vue agrégée du labo. Vue en **lecture seule** : les thèmes et les fiches
 sont renseignés par chaque membre depuis sa propre page Expertises.
 
 ✅ **Regroupement des thèmes entre membres** : par identifiant quand le thème est aligné sur un
