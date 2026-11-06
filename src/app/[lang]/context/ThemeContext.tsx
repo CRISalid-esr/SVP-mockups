@@ -40,7 +40,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [currentTheme, setCurrentTheme] = useState<ThemeModeType>('system')
+  const [currentTheme, setCurrentTheme] = useState<ThemeModeType>('light')
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
   // Update resolved theme based on system preference or user selection

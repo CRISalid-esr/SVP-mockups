@@ -6,8 +6,8 @@ const Tabs = (theme: Theme) => ({
     styleOverrides: {
       root: {},
       indicator: {
-        height: '4px',
-        borderRadius: '100px 100px 0px 0px',
+        height: '2px',
+        borderRadius: '2px 2px 0px 0px',
         backgroundColor: theme.palette.primary.main,
       },
     },

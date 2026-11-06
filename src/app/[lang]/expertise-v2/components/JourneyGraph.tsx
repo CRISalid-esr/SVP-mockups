@@ -2,22 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Background, BackgroundVariant, Connection, ConnectionMode, Controls, Edge, Node, Panel, ReactFlow,
-  useEdgesState, useNodesState,
+  Connection, ConnectionMode, Controls, Edge, Node, Panel, ReactFlow, useEdgesState, useNodesState,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
-  Alert, Box, Button, Chip, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Snackbar,
-  TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
+  Alert, Box, Button, Card, Chip, FormControl, IconButton, InputLabel, Link, MenuItem, Select, Snackbar,
+  TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
-import { AddLink, DeleteOutline, EditOutlined, LinkOff, Timeline, ViewQuilt } from '@mui/icons-material'
+import { Close, EditOutlined, LinkOff } from '@mui/icons-material'
 import {
-  CURRENT_YEAR, RELATION_SUGGESTIONS, RelationDirection, ResearchProfile, ResearchTheme, TEAL, TEAL_DARK,
-  ThemeRelation, VISIBILITY_CONFIG, formatPeriod, relationSentence,
+  RELATION_SUGGESTIONS, RelationDirection, ResearchProfile, ResearchTheme, ThemeRelation, formatPeriod, relationSentence,
 } from '../types'
-import JourneyNode, { AxisLineNode, AxisTickNode, JourneyNodeData } from './JourneyNode'
+import JourneyNode, { JourneyNodeData } from './JourneyNode'
 import JourneyEdge, { ARROW_COLORS, JourneyEdgeData } from './JourneyEdge'
-import { RefsSummary } from './ThemeDetail'
+import { defaultPositions } from './journeyLayout'
 
 interface Props {
   profile: ResearchProfile
@@ -26,392 +24,331 @@ interface Props {
   onEditTheme: (id: string) => void
 }
 
-type LayoutMode = 'timeline' | 'free'
+type Selection = { kind: 'theme' | 'relation'; id: string } | null
 
-interface RelationForm {
-  id?: string
-  source: string
-  target: string
-  direction: RelationDirection
-  label: string
+const nodeTypes = { journeyNode: JourneyNode }
+const edgeTypes = { journeyEdge: JourneyEdge }
+
+const DIRECTIONS: { value: RelationDirection; symbol: string; label: string }[] = [
+  { value: 'forward', symbol: '→', label: 'Du premier thème vers le second' },
+  { value: 'backward', symbol: '←', label: 'Du second thème vers le premier' },
+  { value: 'bidirectional', symbol: '↔', label: 'Réciproque' },
+]
+
+const panelTitleSx = { display: 'flex', alignItems: 'flex-start', gap: 1, mb: 2 }
+
+/** Une relation : ses modifications s'enregistrent au fil de l'eau. */
+function RelationPanel({ relation, themes, onChange, onDelete, onClose }: {
+  relation: ThemeRelation
+  themes: ResearchTheme[]
+  onChange: (patch: Partial<ThemeRelation>) => void
+  onDelete: () => void
+  onClose: () => void
+}) {
+  return (
+    <>
+      <Box sx={panelTitleSx}>
+        <Typography variant="body1" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>
+          {relationSentence(relation, themes)}
+        </Typography>
+        <IconButton size="small" aria-label="Fermer" onClick={onClose}><Close fontSize="small" /></IconButton>
+      </Box>
+      <TextField
+        fullWidth
+        size="small"
+        label="Nature du lien"
+        placeholder="Ex : prolonge, nourrit…"
+        value={relation.label}
+        onChange={(e) => onChange({ label: e.target.value })}
+      />
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1.5 }}>
+        {RELATION_SUGGESTIONS.map((suggestion) => (
+          <Chip
+            key={suggestion}
+            size="small"
+            clickable
+            label={suggestion}
+            color={relation.label === suggestion ? 'primary' : 'default'}
+            variant={relation.label === suggestion ? 'filled' : 'outlined'}
+            onClick={() => onChange({ label: suggestion })}
+          />
+        ))}
+      </Box>
+      <Typography variant="body1" fontWeight={600} sx={{ mt: 2.5, mb: 1 }}>Sens</Typography>
+      <ToggleButtonGroup
+        fullWidth
+        exclusive
+        size="small"
+        value={relation.direction}
+        onChange={(_e, direction: RelationDirection | null) => direction && onChange({ direction })}
+      >
+        {DIRECTIONS.map(({ value, symbol, label }) => (
+          <ToggleButton key={value} value={value} aria-label={label} title={label} sx={{ fontSize: '1.1rem', lineHeight: 1.2 }}>
+            {symbol}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+      <Button color="error" size="small" startIcon={<LinkOff />} onClick={onDelete} sx={{ mt: 2.5 }}>
+        Supprimer la relation
+      </Button>
+    </>
+  )
 }
 
-const PX_PER_YEAR = 44
-const NODE_MIN_WIDTH = 180
-const LANE_HEIGHT = 96
-const PANEL_WIDTH = 420
+/** Un thème : l'ouvrir, voir ses liens, le relier à un autre. */
+function ThemePanel({ theme, themes, relations, onEdit, onLink, onSelectRelation, onClose }: {
+  theme: ResearchTheme
+  themes: ResearchTheme[]
+  relations: ThemeRelation[]
+  onEdit: () => void
+  onLink: (targetId: string) => void
+  onSelectRelation: (id: string) => void
+  onClose: () => void
+}) {
+  const mine = relations.filter((r) => r.source === theme.id || r.target === theme.id)
+  const linkedIds = new Set(mine.flatMap((r) => [r.source, r.target]))
 
-// ─── Disposition « Frise » : x = année de début, largeur = durée, empilement par couloirs ──
+  return (
+    <>
+      <Box sx={panelTitleSx}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="h6" component="h2">{theme.label || 'Thème sans titre'}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{formatPeriod(theme)}</Typography>
+        </Box>
+        <IconButton size="small" aria-label="Fermer" onClick={onClose}><Close fontSize="small" /></IconButton>
+      </Box>
+      <Button size="small" variant="outlined" startIcon={<EditOutlined />} onClick={onEdit}>
+        Modifier ce thème
+      </Button>
 
-function timelineLayout(themes: ResearchTheme[]) {
-  const starts = themes.map((t) => t.yearFrom ?? CURRENT_YEAR - 1)
-  const minYear = starts.length ? Math.min(...starts) : CURRENT_YEAR - 10
-  const axisStart = Math.floor((minYear - 1) / 4) * 4
-  const axisEnd = CURRENT_YEAR + 1
-  const x = (year: number) => (year - axisStart) * PX_PER_YEAR
+      {mine.length > 0 && (
+        <Box component="ul" sx={{ listStyle: 'none', m: 0, mt: 2.5, p: 0, display: 'grid', gap: 1 }}>
+          {mine.map((r) => (
+            <li key={r.id}>
+              <Link component="button" underline="hover" onClick={() => onSelectRelation(r.id)} sx={{ textAlign: 'left', fontSize: '0.875rem', color: 'text.primary' }}>
+                {relationSentence(r, themes)}
+              </Link>
+            </li>
+          ))}
+        </Box>
+      )}
 
-  const sorted = [...themes].sort((a, b) => (a.yearFrom ?? 0) - (b.yearFrom ?? 0))
-  const laneEnds: number[] = []
-  const nodes: Node<JourneyNodeData>[] = []
-
-  for (const theme of sorted) {
-    const from = theme.yearFrom ?? CURRENT_YEAR - 1
-    const to = theme.yearTo ?? CURRENT_YEAR + 0.5
-    const left = x(from)
-    const width = Math.max(NODE_MIN_WIDTH, (to - from) * PX_PER_YEAR)
-    let lane = laneEnds.findIndex((end) => end + 24 <= left)
-    if (lane === -1) { lane = laneEnds.length; laneEnds.push(0) }
-    laneEnds[lane] = left + width
-    nodes.push({
-      id: theme.id,
-      type: 'journeyNode',
-      position: { x: left, y: lane * LANE_HEIGHT },
-      data: { theme, width },
-    })
-  }
-
-  const axisY = Math.max(1, laneEnds.length) * LANE_HEIGHT + 16
-  const axisNodes: Node[] = [{
-    id: 'axis-line',
-    type: 'axisLine',
-    position: { x: 0, y: axisY },
-    data: { width: x(axisEnd) },
-    selectable: false, draggable: false, connectable: false, focusable: false,
-  }]
-  for (let year = axisStart; year <= axisEnd; year += 4) {
-    axisNodes.push({
-      id: `axis-${year}`,
-      type: 'axisTick',
-      position: { x: x(year), y: axisY + 2 },
-      data: { label: String(year) },
-      selectable: false, draggable: false, connectable: false, focusable: false,
-    })
-  }
-  return { nodes, axisNodes }
+      <FormControl fullWidth size="small" sx={{ mt: 2.5 }}>
+        <InputLabel id="journey-link-label">Relier à un autre thème</InputLabel>
+        <Select
+          labelId="journey-link-label"
+          label="Relier à un autre thème"
+          value=""
+          onChange={(e) => onLink(e.target.value)}
+        >
+          {themes.filter((t) => t.id !== theme.id).map((t) => (
+            <MenuItem key={t.id} value={t.id} disabled={linkedIds.has(t.id)} sx={{ whiteSpace: 'normal' }}>
+              {t.label || 'Thème sans titre'}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </>
+  )
 }
-
-function toEdge(rel: ThemeRelation, selected = false): Edge<JourneyEdgeData> {
-  return {
-    id: rel.id, source: rel.source, target: rel.target, type: 'journeyEdge', selected,
-    data: { label: rel.label, direction: rel.direction },
-  }
-}
-
-const BLANK_FORM: RelationForm = { source: '', target: '', direction: 'forward', label: '' }
 
 export default function JourneyGraph({ profile, onChangeRelations, onChangePositions, onEditTheme }: Props) {
-  const [mode, setMode] = useState<LayoutMode>('timeline')
+  const { themes, relations } = profile
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<JourneyEdgeData>>([])
-  const [form, setForm] = useState<RelationForm>(BLANK_FORM)
-  const [snackbar, setSnackbar] = useState('')
+  const [selection, setSelection] = useState<Selection>(null)
+  const [warning, setWarning] = useState('')
+  // Change à chaque réorganisation : le canevas se recadre sur la nouvelle disposition.
+  const [layoutVersion, setLayoutVersion] = useState(0)
 
-  const nodeTypes = useMemo(() => ({ journeyNode: JourneyNode, axisTick: AxisTickNode, axisLine: AxisLineNode }), [])
-  const edgeTypes = useMemo(() => ({ journeyEdge: JourneyEdge }), [])
+  const selectRelation = useCallback((id: string) => setSelection({ kind: 'relation', id }), [])
 
-  const themes = profile.themes
-  const themeById = useMemo(() => new Map(themes.map((t) => [t.id, t])), [themes])
-
-  // Reconstruit nœuds et arêtes depuis le profil, en conservant la sélection courante.
-  useEffect(() => {
-    const { nodes: themeNodes, axisNodes } = timelineLayout(themes)
-    setNodes((prev) => {
-      const selectedIds = new Set(prev.filter((n) => n.selected).map((n) => n.id))
-      const placed = themeNodes.map((n) => ({
-        ...n,
-        selected: selectedIds.has(n.id),
-        draggable: mode === 'free',
-        position: mode === 'free' && profile.positions?.[n.id] ? profile.positions[n.id] : n.position,
-      }))
-      return mode === 'timeline' ? [...axisNodes, ...placed] : placed
-    })
-    setEdges((prev) => {
-      const selectedIds = new Set(prev.filter((e) => e.selected).map((e) => e.id))
-      return profile.relations.map((r) => toEdge(r, selectedIds.has(r.id)))
-    })
-  }, [themes, profile.relations, profile.positions, mode, setNodes, setEdges])
-
-  const selectedEdge = edges.find((e) => e.selected) ?? null
-  const selectedNode = nodes.find((n) => n.selected && n.type === 'journeyNode') ?? null
-  const selectedTheme = selectedNode ? themeById.get(selectedNode.id) ?? null : null
-
-  // Le formulaire suit la sélection : relation sélectionnée → édition ; thème sélectionné → nouvelle relation depuis ce thème.
-  useEffect(() => {
-    if (selectedEdge) {
-      const rel = profile.relations.find((r) => r.id === selectedEdge.id)
-      if (rel) { setForm({ id: rel.id, source: rel.source, target: rel.target, direction: rel.direction, label: rel.label }); return }
-    }
-    setForm((f) => (f.id ? { ...BLANK_FORM, source: selectedTheme?.id ?? '' } : { ...f, source: selectedTheme?.id ?? f.source }))
-  }, [selectedEdge?.id, selectedTheme?.id, profile.relations]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const selectEdge = useCallback((id: string | null) => {
-    setEdges((eds) => eds.map((e) => ({ ...e, selected: e.id === id })))
-    setNodes((nds) => nds.map((n) => ({ ...n, selected: false })))
-  }, [setEdges, setNodes])
-
-  const alreadyLinked = (a: string, b: string, exceptId?: string) =>
-    profile.relations.some((r) => r.id !== exceptId
-      && ((r.source === a && r.target === b) || (r.source === b && r.target === a)))
-
-  const addRelation = useCallback((source: string, target: string, label = '', direction: RelationDirection = 'forward') => {
-    if (!source || !target || source === target) return null
-    if (alreadyLinked(source, target)) { setSnackbar('Ces deux thèmes sont déjà reliés : modifiez la relation existante.'); return null }
-    const rel: ThemeRelation = { id: `r${Date.now()}`, source, target, direction, label: label.trim() }
-    onChangeRelations([...profile.relations, rel])
-    return rel
-  }, [profile.relations, onChangeRelations]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const onConnect = useCallback((c: Connection) => {
-    if (!c.source || !c.target) return
-    const rel = addRelation(c.source, c.target)
-    if (rel) setTimeout(() => selectEdge(rel.id), 0)
-  }, [addRelation, selectEdge])
-
-  const handleSaveForm = () => {
-    if (!form.source || !form.target || form.source === form.target) return
-    if (form.id) {
-      if (alreadyLinked(form.source, form.target, form.id)) { setSnackbar('Ces deux thèmes sont déjà reliés par une autre relation.'); return }
-      onChangeRelations(profile.relations.map((r) => (r.id === form.id
-        ? { ...r, source: form.source, target: form.target, direction: form.direction, label: form.label.trim() }
-        : r)))
-      setSnackbar('Relation enregistrée')
-    } else {
-      const rel = addRelation(form.source, form.target, form.label, form.direction)
-      if (rel) { setSnackbar('Relation ajoutée'); setTimeout(() => selectEdge(rel.id), 0) }
-    }
-  }
-
-  const handleDelete = (id: string) => {
-    onChangeRelations(profile.relations.filter((r) => r.id !== id))
-    if (form.id === id) { setForm(BLANK_FORM); selectEdge(null) }
-  }
-
-  const storedRelation = form.id ? profile.relations.find((r) => r.id === form.id) : undefined
-  const formDirty = form.id
-    ? Boolean(storedRelation) && (storedRelation!.source !== form.source || storedRelation!.target !== form.target
-      || storedRelation!.direction !== form.direction || storedRelation!.label !== form.label.trim())
-    : Boolean(form.source && form.target)
-  const formValid = Boolean(form.source && form.target && form.source !== form.target)
-  const otherRelations = profile.relations.filter((r) => r.id !== form.id)
-
-  const previewRelation: ThemeRelation = { id: form.id ?? 'preview', source: form.source, target: form.target, direction: form.direction, label: form.label }
-
-  const renderThemeSelect = (label: string, value: string, onChange: (v: string) => void, exclude?: string) => (
-    <FormControl fullWidth size="small">
-      <InputLabel>{label}</InputLabel>
-      <Select label={label} value={value} onChange={(e) => onChange(e.target.value)} displayEmpty={false}>
-        {themes.map((t) => (
-          <MenuItem key={t.id} value={t.id} disabled={t.id === exclude}>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" noWrap>{t.label || 'Thème sans titre'}</Typography>
-              <Typography variant="caption" color="text.secondary">{formatPeriod(t)}</Typography>
-            </Box>
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+  const positions = useMemo(
+    () => ({ ...defaultPositions(themes), ...profile.positions }),
+    [themes, profile.positions],
   )
 
-  if (themes.length === 0) {
+  useEffect(() => {
+    setNodes(themes.map((theme): Node<JourneyNodeData> => ({
+      id: theme.id,
+      type: 'journeyNode',
+      position: positions[theme.id],
+      selected: selection?.kind === 'theme' && selection.id === theme.id,
+      data: { theme },
+    })))
+  }, [themes, positions, selection, setNodes])
+
+  useEffect(() => {
+    setEdges(relations.map((relation): Edge<JourneyEdgeData> => ({
+      id: relation.id,
+      source: relation.source,
+      target: relation.target,
+      type: 'journeyEdge',
+      selected: selection?.kind === 'relation' && selection.id === relation.id,
+      data: { label: relation.label, direction: relation.direction, onSelect: selectRelation },
+    })))
+  }, [relations, selection, selectRelation, setEdges])
+
+  const addRelation = useCallback((source: string, target: string) => {
+    if (source === target) return
+    const linked = relations.some((r) => (r.source === source && r.target === target) || (r.source === target && r.target === source))
+    if (linked) {
+      setWarning('Ces deux thèmes sont déjà reliés.')
+      return
+    }
+    const relation: ThemeRelation = { id: `r${Date.now()}`, source, target, direction: 'forward', label: '' }
+    onChangeRelations([...relations, relation])
+    selectRelation(relation.id)
+  }, [relations, onChangeRelations, selectRelation])
+
+  const onConnect = useCallback((connection: Connection) => {
+    if (connection.source && connection.target) addRelation(connection.source, connection.target)
+  }, [addRelation])
+
+  const selectedRelation = selection?.kind === 'relation' ? relations.find((r) => r.id === selection.id) : undefined
+  const selectedTheme = selection?.kind === 'theme' ? themes.find((t) => t.id === selection.id) : undefined
+  const closePanel = () => setSelection(null)
+
+  if (themes.length < 2) {
     return (
-      <Box sx={{ p: 6, textAlign: 'center' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Aucun thème à relier</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Décrivez d’abord au moins deux thèmes de recherche dans l’onglet Thèmes.
+      <Box sx={{ p: 6, textAlign: 'center', border: '1px dashed', borderColor: 'divider', borderRadius: 4 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>Pas encore de parcours à dessiner</Typography>
+        <Typography variant="body1" color="text.secondary">
+          Décrivez au moins deux thèmes dans l’onglet Thèmes pour pouvoir les relier.
         </Typography>
       </Box>
     )
   }
 
   return (
-    <Box sx={{
-      display: 'flex', flexDirection: { xs: 'column', md: 'row' },
-      height: { md: 'calc(100vh - 236px)' }, minHeight: { md: 520 },
-    }}>
+    <Box
+      sx={{
+        position: 'relative',
+        height: { xs: 480, md: 'calc(100vh - 305px)' },
+        minHeight: 400,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 4,
+        overflow: 'hidden',
+        bgcolor: 'background.default',
+        // Les poignées de liaison n'apparaissent qu'au survol, sauf sur écran tactile.
+        '& .react-flow__handle': { opacity: 0, transition: 'opacity 0.15s ease' },
+        '& .react-flow__node:hover .react-flow__handle, & .react-flow__node.selected .react-flow__handle': { opacity: 1 },
+        '@media (hover: none)': { '& .react-flow__handle': { opacity: 1 } },
+      }}
+    >
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           {ARROW_COLORS.map((color) => (
-            <marker key={color} id={`journey-arrow-${color.replace('#', '')}`}
-              markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto-start-reverse">
+            <marker
+              key={color}
+              id={`journey-arrow-${color.replace('#', '')}`}
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto-start-reverse"
+            >
               <polygon points="0 0, 10 3.5, 0 7" fill={color} />
             </marker>
           ))}
         </defs>
       </svg>
 
-      {/* ── Canevas ── */}
-      <Box sx={{ flex: 1, minWidth: 0, height: { xs: 480, md: 'auto' }, position: 'relative', bgcolor: '#FAFBFC' }}>
-        <ReactFlow
-          key={mode}
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeDragStop={(_e, node) => onChangePositions({ ...(profile.positions ?? {}), [node.id]: node.position })}
-          onPaneClick={() => setForm((f) => (f.id ? BLANK_FORM : f))}
-          connectionMode={ConnectionMode.Loose}
-          nodesDraggable={mode === 'free'}
-          fitView
-          fitViewOptions={{ padding: 0.2, maxZoom: 1.3 }}
-          minZoom={0.3}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#E0E4E8" />
-          <Controls showInteractive={false} />
-          <Panel position="top-left">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <ToggleButtonGroup size="small" exclusive value={mode}
-                onChange={(_e, v: LayoutMode | null) => v && setMode(v)}
-                sx={{ bgcolor: 'background.paper', '& .MuiToggleButton-root': { textTransform: 'none', gap: 0.5, px: 1.5 } }}>
-                <ToggleButton value="timeline"><Timeline fontSize="small" />Frise</ToggleButton>
-                <ToggleButton value="free"><ViewQuilt fontSize="small" />Libre</ToggleButton>
-              </ToggleButtonGroup>
-              <Typography variant="caption" sx={{ bgcolor: 'background.paper', px: 1.25, py: 0.5, borderRadius: 1, border: '1px solid', borderColor: 'divider', color: 'text.secondary' }}>
-                Glissez d’une poignée de thème vers un autre thème pour créer une relation
-                {mode === 'free' ? ' · déplacez les thèmes librement' : ''}
-              </Typography>
-            </Box>
+      <ReactFlow
+        key={layoutVersion}
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onConnectEnd={(event, state) => {
+          // Lâcher le trait n'importe où sur un thème suffit : viser sa poignée serait trop précis.
+          if (state.isValid || !state.fromNode) return
+          const point = 'changedTouches' in event ? event.changedTouches[0] : event
+          const dropped = document.elementFromPoint(point.clientX, point.clientY)?.closest('.react-flow__node')
+          const targetId = dropped?.getAttribute('data-id')
+          if (targetId) addRelation(state.fromNode.id, targetId)
+        }}
+        onNodeClick={(_e, node) => setSelection({ kind: 'theme', id: node.id })}
+        onEdgeClick={(_e, edge) => selectRelation(edge.id)}
+        onPaneClick={closePanel}
+        onNodeDragStop={(_e, node) => onChangePositions({ ...positions, [node.id]: node.position })}
+        connectionMode={ConnectionMode.Loose}
+        fitView
+        fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
+        minZoom={0.3}
+        proOptions={{ hideAttribution: true }}
+      >
+        <Controls showInteractive={false} />
+        <Panel position="top-left">
+          <Typography variant="body2" color="text.secondary">
+            Cliquez sur un thème pour le relier à un autre, ou tirez un trait de l’un à l’autre.
+          </Typography>
+        </Panel>
+        {profile.positions && Object.keys(profile.positions).length > 0 && (
+          <Panel position="bottom-right">
+            <Button
+              size="small"
+              onClick={() => {
+                onChangePositions({})
+                setLayoutVersion((version) => version + 1)
+              }}
+            >
+              Réorganiser
+            </Button>
           </Panel>
-        </ReactFlow>
-      </Box>
-
-      {/* ── Panneau de qualification ── */}
-      <Box sx={{
-        width: { xs: '100%', md: PANEL_WIDTH }, flexShrink: 0,
-        borderLeft: { md: '1px solid' }, borderTop: { xs: '1px solid', md: 'none' }, borderColor: 'divider',
-        bgcolor: 'background.paper', overflowY: 'auto', p: 3,
-      }}>
-        {selectedTheme && !form.id && (
-          <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: '#E8F5F4', border: `1px solid ${TEAL}30` }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>{selectedTheme.label}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {formatPeriod(selectedTheme)} · {VISIBILITY_CONFIG[selectedTheme.visibility].label}
-                </Typography>
-              </Box>
-              <Tooltip title="Modifier ce thème (intitulé, description, mots-clés, diffusion)">
-                <IconButton size="small" onClick={() => onEditTheme(selectedTheme.id)} aria-label="Modifier ce thème">
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-            {selectedTheme.keywords.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-                {selectedTheme.keywords.slice(0, 5).map((k) => (
-                  <Chip key={`${k.vocabulary}-${k.label}`} size="small" label={k.label} sx={{ height: 20, fontSize: '0.68rem', bgcolor: '#fff' }} />
-                ))}
-              </Box>
-            )}
-            <Box sx={{ mt: 1 }}>
-              <RefsSummary theme={selectedTheme} dense />
-            </Box>
-          </Box>
         )}
+      </ReactFlow>
 
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-          {form.id ? 'Relation entre deux thèmes' : 'Nouvelle relation'}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-          {form.id
-            ? 'Précisez le sens et la nature du lien. La phrase ci-dessous est celle qui sera affichée.'
-            : 'Reliez deux thèmes pour raconter comment vos recherches se sont construites.'}
-        </Typography>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {renderThemeSelect('Thème A', form.source, (v) => setForm((f) => ({ ...f, source: v })), form.target)}
-
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.75 }}>
-              Direction
-            </Typography>
-            <ToggleButtonGroup fullWidth exclusive value={form.direction}
-              onChange={(_e, v: RelationDirection | null) => v && setForm((f) => ({ ...f, direction: v }))}
-              sx={{ '& .MuiToggleButton-root': { textTransform: 'none', py: 1, flexDirection: 'column', gap: 0.25, '&.Mui-selected': { bgcolor: `${TEAL}14`, color: TEAL, fontWeight: 700 } } }}>
-              <ToggleButton value="forward"><Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>A → B</Typography><Typography variant="caption">A mène à B</Typography></ToggleButton>
-              <ToggleButton value="backward"><Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>A ← B</Typography><Typography variant="caption">B mène à A</Typography></ToggleButton>
-              <ToggleButton value="bidirectional"><Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>A ↔ B</Typography><Typography variant="caption">Réciproque</Typography></ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-
-          {renderThemeSelect('Thème B', form.target, (v) => setForm((f) => ({ ...f, target: v })), form.source)}
-
-          <Box>
-            <TextField fullWidth size="small" label="Qualifier la relation" placeholder="Ex : prolonge, s’appuie sur, nourrit…"
-              value={form.label} onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-              inputProps={{ 'aria-label': 'Qualifier la relation' }} />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1.25 }}>
-              {RELATION_SUGGESTIONS.map((s) => (
-                <Chip key={s} size="small" label={s} clickable variant={form.label === s ? 'filled' : 'outlined'}
-                  onClick={() => setForm((f) => ({ ...f, label: s }))}
-                  sx={{ borderColor: `${TEAL}60`, color: form.label === s ? '#fff' : TEAL, bgcolor: form.label === s ? TEAL : 'transparent', '&:hover': { bgcolor: form.label === s ? TEAL_DARK : `${TEAL}10` } }} />
-              ))}
-            </Box>
-          </Box>
-
-          {formValid && (
-            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: `${TEAL}0A`, borderLeft: `3px solid ${TEAL}` }}>
-              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>{relationSentence(previewRelation, themes)}</Typography>
-            </Box>
+      {(selectedRelation || selectedTheme) && (
+        <Card
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            zIndex: 5,
+            width: { xs: 'calc(100% - 32px)', sm: 320 },
+            maxHeight: 'calc(100% - 32px)',
+            overflowY: 'auto',
+            p: 2.5,
+          }}
+        >
+          {selectedRelation && (
+            <RelationPanel
+              relation={selectedRelation}
+              themes={themes}
+              onChange={(patch) => onChangeRelations(relations.map((r) => (r.id === selectedRelation.id ? { ...r, ...patch } : r)))}
+              onDelete={() => {
+                onChangeRelations(relations.filter((r) => r.id !== selectedRelation.id))
+                closePanel()
+              }}
+              onClose={closePanel}
+            />
           )}
+          {selectedTheme && (
+            <ThemePanel
+              theme={selectedTheme}
+              themes={themes}
+              relations={relations}
+              onEdit={() => onEditTheme(selectedTheme.id)}
+              onLink={(targetId) => addRelation(selectedTheme.id, targetId)}
+              onSelectRelation={selectRelation}
+              onClose={closePanel}
+            />
+          )}
+        </Card>
+      )}
 
-          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
-            {form.id ? (
-              <Button size="small" color="error" startIcon={<LinkOff />} onClick={() => handleDelete(form.id!)} sx={{ textTransform: 'none' }}>
-                Supprimer
-              </Button>
-            ) : <span />}
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {form.id && (
-                <Button size="small" onClick={() => { setForm(BLANK_FORM); selectEdge(null) }} sx={{ textTransform: 'none' }}>
-                  Fermer
-                </Button>
-              )}
-              <Button variant="contained" size="small" disabled={!formValid || !formDirty} onClick={handleSaveForm}
-                startIcon={form.id ? undefined : <AddLink />}
-                sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
-                {form.id ? 'Enregistrer' : 'Ajouter la relation'}
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-
-        <Divider sx={{ my: 3 }} />
-
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary', mb: 1.5 }}>
-          {form.id
-            ? `${otherRelations.length} autre${otherRelations.length > 1 ? 's' : ''} relation${otherRelations.length > 1 ? 's' : ''}`
-            : `${otherRelations.length} relation${otherRelations.length > 1 ? 's' : ''}`}
-        </Typography>
-        {otherRelations.length === 0 ? (
-          <Alert severity="info" variant="outlined" sx={{ py: 0.5 }}>Aucune relation pour l’instant.</Alert>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            {otherRelations.map((r) => (
-              <Box key={r.id} onClick={() => selectEdge(r.id)}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: 1.5, cursor: 'pointer',
-                  border: '1px solid', borderColor: 'divider', '&:hover': { bgcolor: `${TEAL}08`, borderColor: `${TEAL}60` },
-                }}>
-                <Typography variant="body2" sx={{ flex: 1, minWidth: 0, fontStyle: r.label ? 'normal' : 'italic', color: r.label ? 'text.primary' : 'text.secondary' }}>
-                  {relationSentence(r, themes)}
-                </Typography>
-                <IconButton size="small" aria-label="Supprimer cette relation"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(r.id) }}>
-                  <DeleteOutline sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
-            ))}
-          </Box>
-        )}
-      </Box>
-
-      <Snackbar open={Boolean(snackbar)} autoHideDuration={3000} onClose={() => setSnackbar('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity={snackbar.startsWith('Ces deux') ? 'warning' : 'success'} onClose={() => setSnackbar('')}>{snackbar}</Alert>
+      <Snackbar
+        open={Boolean(warning)}
+        autoHideDuration={3000}
+        onClose={() => setWarning('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="warning" onClose={() => setWarning('')}>{warning}</Alert>
       </Snackbar>
     </Box>
   )

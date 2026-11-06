@@ -105,7 +105,7 @@ describe('DashboardLayout', () => {
     expect(screen.getByText('Appbar')).toBeInTheDocument()
   })
 
-  it('does not render Appbar on desktop view', () => {
+  it('renders Appbar on desktop view too', () => {
     // Mock useMediaQuery to return false (desktop view)
     ;(useMediaQuery as jest.Mock).mockImplementation(() => false)
 
@@ -115,8 +115,7 @@ describe('DashboardLayout', () => {
       </MainLayout>,
     )
 
-    // Assert that Appbar is not rendered on desktop view
-    expect(screen.queryByText('Appbar')).toBeNull()
+    expect(screen.getByText('Appbar')).toBeInTheDocument()
   })
 
   it('renders Sidebar', () => {

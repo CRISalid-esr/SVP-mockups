@@ -26,6 +26,14 @@ jest.mock('next/image', () => {
   return MockImage
 })
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/fr/dashboard',
+  useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}))
+
+jest.mock('next-auth/react', () => ({ signOut: jest.fn() }))
+
 describe('Appbar Component', () => {
   const handleToggleDrawerMock = jest.fn()
 

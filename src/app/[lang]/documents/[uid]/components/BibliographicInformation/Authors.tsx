@@ -49,16 +49,13 @@ const Authors = () => {
           }}
           sx={{
             borderRadius: theme.utils.pxToRem(4),
-            backgroundColor: contribution.person.external
-              ? theme.palette.lightSecondaryContainer
-              : theme.palette.primary.main,
+            backgroundColor: contribution.person.external ? 'transparent' : 'navActive',
+            border: contribution.person.external ? `1px solid ${theme.palette.divider}` : 'none',
             letterSpacing: '0.1px',
             lineHeight: theme.typography.lineHeight.lineHeight20px,
             fontWeight: theme.typography.fontWeightRegular,
-            color: contribution.person.external
-              ? theme.palette.getContrastText(theme.palette.secondary.dark)
-              : theme.palette.primary.contrastText,
-            cursor: 'pointer',
+            color: contribution.person.external ? 'text.primary' : 'primary.main',
+            cursor: contribution.person.external ? 'default' : 'pointer',
             '&:hover': {
               opacity: 0.85,
             },

@@ -18,6 +18,8 @@ import {
   BibliographicInformation,
   DocumentDetailsHeader,
   DocumentDetailsTitle,
+  DocumentMeta,
+  DocumentSummaryCard,
   Domains,
   HalDeposit,
   HalUpdate,
@@ -162,13 +164,19 @@ const DocumentDetailsPage = () => {
     bibliographic_information: ['bibliographic'],
     keywords: ['keywords'],
     sources: ['sources'],
-    authors: ['authors', 'align'],
+    authors: ['authors'],
     hal_deposit: ['halDeposit'],
   }
 
   return (
-    <Box>
-      <DocumentDetailsHeader />
+    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 4 }}>
+        <DocumentDetailsHeader />
+        <Box sx={{ minWidth: 0 }}>
+          <DocumentDetailsTitle />
+          <DocumentMeta />
+        </Box>
+      </Box>
       {selectedDocumentHasChanged && (
         <Alert
           severity='info'
@@ -193,17 +201,28 @@ const DocumentDetailsPage = () => {
           </Link>
         </Alert>
       )}
-      <DocumentDetailsTitle />
-      <TabFilter
-        tabsData={tabs}
-        selectedValue={selectedTab}
-        onTabChange={handleTabChange}
-        tourId='document-tabs'
-        action={(helpTopics[selectedTab] ?? []).map((topic) => (
-          <HelpLink key={topic} topic={topic} />
-        ))}
-      />
-      {renderTabContent()}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', xl: 'minmax(0, 1fr) 300px' },
+          gap: 4,
+          alignItems: 'start',
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <TabFilter
+            tabsData={tabs}
+            selectedValue={selectedTab}
+            onTabChange={handleTabChange}
+            tourId='document-tabs'
+            action={(helpTopics[selectedTab] ?? []).map((topic) => (
+              <HelpLink key={topic} topic={topic} />
+            ))}
+          />
+          {renderTabContent()}
+        </Box>
+        <DocumentSummaryCard onShowAuthors={() => handleTabChange('authors')} />
+      </Box>
     </Box>
   )
 }

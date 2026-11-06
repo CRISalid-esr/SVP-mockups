@@ -60,10 +60,8 @@ describe('LanguageSwitcher', () => {
   it('renders with the current selected locale label', () => {
     renderWithTheme(<LanguageSwitcher value={'fr' as ExtendedLanguageCode} />)
 
-    expect(screen.getByText('language_fr')).toBeInTheDocument()
-
-    // Also shows the language icon
-    expect(screen.getByAltText('language')).toBeInTheDocument()
+    // Forme compacte de la barre du haut : le code de la langue, à côté d'un globe.
+    expect(screen.getByText('fr')).toBeInTheDocument()
   })
 
   it('lists supported locales when opened (scoped to listbox)', () => {

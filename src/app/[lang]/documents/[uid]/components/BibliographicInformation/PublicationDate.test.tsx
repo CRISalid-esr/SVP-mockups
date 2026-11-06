@@ -85,7 +85,7 @@ describe('PublicationDate Component', () => {
     renderComponent()
 
     const expectedDate = dayjs('2024-03-15', 'YYYY-MM-DD').format(
-      LocaleDateFormats['lang'] || 'MM-DD-YYYY',
+      'MM-DD-YYYY',
     )
     expect(screen.getByText(expectedDate)).toBeInTheDocument()
   })

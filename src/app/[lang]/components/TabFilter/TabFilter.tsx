@@ -39,8 +39,8 @@ const TabFilter = ({
         alignItems: 'center',
         overflowX: 'auto',
         whiteSpace: 'nowrap',
-        borderBottom: '1px solid #DDE4E1',
-        marginBottom: theme.spacing(8),
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        marginBottom: theme.spacing(4),
       })}
     >
       <Tabs
@@ -69,8 +69,8 @@ const TabFilter = ({
                   alignItems: 'center',
                 }}
               >
-                <Typography sx={{ mr: 1 }}>{tab.label}</Typography>
-                {tab.numberOfItems && (
+                <Typography sx={{ mr: tab.numberOfItems ? 1 : 0, fontWeight: 'inherit' }}>{tab.label}</Typography>
+                {!!tab.numberOfItems && (
                   <Badge
                     sx={{
                       ' .MuiBadge-badge': {

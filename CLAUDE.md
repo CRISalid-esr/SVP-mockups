@@ -316,6 +316,24 @@ Moteur commun `PerspectivePicker` : couvre tous les chercheurs de la base et tou
 
 ---
 
+## Refonte du design (branche `refonte-design`)
+
+Test d'une interface plus claire, inspirée de malt.fr, en gardant le teal. Sur cette branche, ce qui suit remplace ce qui est décrit plus haut.
+
+- **Structure :** `layouts/shell.ts` (dimensions), menu blanc `Sidebar.tsx` (Tableau de bord, Publications, Activités de recherche, Profil recherche, Structures), barre du haut `appbar/Appbar.tsx` (aide, visite, langue, thème, compte). Profil recherche v1, Chercheurs et Droits sont retirés du menu, leurs fichiers restent.
+- **Thème :** police Inter, surfaces à bordure fine, jetons `navHover` / `navActive`, composants dans `theme/overrides/`. Mode clair par défaut ; le mode sombre doit seulement rester fonctionnel.
+- **Listes :** `components/ListTable/` (`listTableProps`, `ListFilterBar`) est partagé par les publications et les thèmes : filtres déroulants groupés, recherche, clic sur la ligne. Seules les publications ont une colonne Action. `src/mocks/queryMockDocuments.ts` applique filtres et tri en mode maquette.
+- **Fiche publication :** flèche + titre + statuts (`DocumentMeta`), carte Auteurs et Sources à partir de `xl` (`DocumentSummaryCard`).
+- **Profil recherche (`expertise-v2`) :** l'éditeur montre l'essentiel (intitulé, description, période de travail, diffusion) ; l'enrichissement est replié par sujet, avec un résumé sur la ligne (`EnrichSection`). Sollicitations visibles seulement pour un thème public.
+- **Graphe de parcours :** plus de frise (retirée car peu lisible). Canevas pleine largeur, thèmes placés par ordre chronologique (`journeyLayout.ts`) et déplaçables ; panneau affiché seulement à la sélection, modifications enregistrées au fil de l'eau. `JourneyGraph` étant stubbé dans `page.test.tsx`, seule la disposition a un test : vérifier les interactions dans le navigateur.
+- **Aperçu public :** une ligne « Voir comme » + thèmes masqués ; détail de chaque thème replié (`ThemePublicBlock` avec `collapsible`, le dialogue de la vue labo garde tout déplié).
+- **Atelier :** en-tête « Étape 1 sur 2 » ; `PublicationPicker` reprend `ListFilterBar` (aussi dans la fiche d'un thème) ; une carte courte par proposition, détail replié, choix rattacher ou créer visible.
+- **Vue labo (`Lab/LabView.tsx`) :** quatre indicateurs et quatre onglets (Sujets, Terrains, Expertises publiques, Membres) ; tables et filtres de `ListTable` (équipe, année, recherche). Plus de frise collective ni de curseur d'année.
+- **Mon compte (`account/`) :** titre, menu de rubriques à gauche (Identifiants, Affiliations, Notifications, Autorisations), cartes à droite. IdRef, HAL et ORCID : ajouter, modifier, supprimer avec confirmation ; « Lier mon compte » réservé à soi (simulé). `usePersonIdentifiers` conserve les modifications en localStorage `person-identifiers-v1-{slug}`, partagées avec `PersonIdentityCard`. Le crayon du Tableau de bord ouvre `/account?perspective=…` : identifiants et affiliations de la personne, modifiables. Les anciens `myProfile/` restent dans le dépôt, inutilisés sur cette branche.
+- **Pas encore simplifié :** Tableau de bord.
+
+---
+
 ## Fonctionnalités à développer (restant)
 
 ### 🔲 Activités de recherche

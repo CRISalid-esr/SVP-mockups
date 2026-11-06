@@ -15,6 +15,13 @@ import { IAgent } from '@/types/IAgent'
 import { useSearchParams } from 'next/navigation'
 import { SnackbarProvider } from 'notistack'
 import WebSocketListener from '@/lib/websocket/WebSocketListener'
+import {
+  CONTENT_MAX_WIDTH,
+  SIDEBAR_COLLAPSED_WIDTH,
+  SIDEBAR_WIDTH,
+  TOPBAR_HEIGHT,
+  TOPBAR_HEIGHT_MOBILE,
+} from './shell'
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = useState(true) // Determines if the drawer is expanded or collapsed
@@ -25,6 +32,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const searchParams = useSearchParams()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
+  // Sur mobile, le menu est un tiroir fermé par défaut.
+  useEffect(() => {
+    setOpen(!isMobile)
+  }, [isMobile])
 
   // La visite guidée présente des entrées du menu : il doit être déplié.
   const tourActive = useOnboarding((state) => state.active)
@@ -94,28 +106,30 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <PerspectivePicker />
         <OnboardingTour />
         <Box sx={{ display: 'flex', height: '100vh' }}>
-          {/* AppBar for mobile */}
-          {isMobile && <Appbar handleToggleDrawer={handleToggleDrawer} />}
-          {/* Sidebar */}
-          <Sidebar
-            handleToggleDrawerAction={handleToggleDrawer}
-            open={open}
+          <Appbar
+            handleToggleDrawer={handleToggleDrawer}
+            sidebarOpen={open}
             user={connectedUser}
           />
+          <Sidebar handleToggleDrawerAction={handleToggleDrawer} open={open} />
           {/* Main Content */}
           <Box
             component='main'
             sx={{
               flexGrow: 1,
-              padding: !isMobile ? '32px' : '24px 16px', // Add some padding on mobile
-              marginLeft: !isMobile && open ? '280px' : !isMobile ? '72px' : 0, // Adjust for Sidebar width
-              marginTop: isMobile ? '64px' : 0, // Adjust for AppBar height (typically 64px on mobile)
+              minWidth: 0,
+              padding: !isMobile ? '40px' : '24px 16px',
+              marginLeft: isMobile ? 0 : `${open ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH}px`,
+              marginTop: `${isMobile ? TOPBAR_HEIGHT_MOBILE : TOPBAR_HEIGHT}px`,
+              transition: 'margin-left 0.15s ease',
               overflowY: 'auto', // Allow scrolling if content overflows
               position: 'relative', // Ensure main is properly positioned
             }}
           >
-            <PerspectiveBanner />
-            {children}
+            <Box sx={{ maxWidth: CONTENT_MAX_WIDTH, mx: 'auto' }}>
+              <PerspectiveBanner />
+              {children}
+            </Box>
           </Box>
         </Box>
       </SnackbarProvider>

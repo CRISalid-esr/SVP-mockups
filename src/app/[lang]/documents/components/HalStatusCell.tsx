@@ -39,7 +39,7 @@ const HalStatusCell = ({ row }: { row: { original: Document } }) => {
 
   if (!halRecord) {
     if (isPendingModeration) {
-      return <HalStatusCellBadge type={HalStatusCellType.PendingModeration} />
+      return <HalStatusCellBadge type={HalStatusCellType.PendingModeration} isSingleLine />
     }
     return <HalStatusCellBadge type={HalStatusCellType.OutsideHal} />
   }

@@ -159,11 +159,12 @@ const BibliographicInformation = () => {
           flexDirection: 'column',
           alignItems: 'flex-start',
           gap: theme.spacing(4),
+          p: { xs: 0, sm: 2 },
         }}
       >
         <TableContainer>
-          <Table sx={{ minWidth: 300 }}>
-            <TableBody>
+          <Table sx={{ display: { xs: 'block', sm: 'table' } }}>
+            <TableBody sx={{ display: { xs: 'block', sm: 'table-row-group' } }}>
               {fieldsToDisplay.map((fieldKey) => {
                 const field = documentFields[fieldKey]
 

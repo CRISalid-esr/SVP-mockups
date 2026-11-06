@@ -20,7 +20,6 @@ export const getTourSteps = (): TourStep[] => [
   { id: 'profile', path: 'expertise-v2', target: 'profile-tabs', title: t`onboarding_profile_title`, body: t`onboarding_profile_body` },
   { id: 'activities', path: 'research-activities', target: 'activities-header', title: t`onboarding_activities_title`, body: t`onboarding_activities_body` },
   { id: 'structures', path: 'research-structures', target: 'structures-tabs', title: t`onboarding_structures_title`, body: t`onboarding_structures_body` },
-  { id: 'rights', path: 'rights', target: 'rights-tabs', title: t`onboarding_rights_title`, body: t`onboarding_rights_body` },
   { id: 'assistant', path: 'dashboard', target: 'assistant', title: t`onboarding_assistant_title`, body: t`onboarding_assistant_body` },
   { id: 'help', path: 'dashboard', target: 'help', title: t`onboarding_help_title`, body: t`onboarding_help_body` },
 ]

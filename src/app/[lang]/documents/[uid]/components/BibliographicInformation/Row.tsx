@@ -51,8 +51,12 @@ const Row = ({ field }: { field: DocumentField }) => {
   }
 
   return (
-    <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-      <TableCell component='th' scope='row'>
+    <TableRow sx={{ display: { xs: 'block', sm: 'table-row' }, '&:last-child td, &:last-child th': { border: 0 } }}>
+      <TableCell
+        component='th'
+        scope='row'
+        sx={{ display: { xs: 'block', sm: 'table-cell' }, borderBottom: { xs: 0, sm: undefined }, pb: { xs: 0, sm: 2 }, px: { xs: 0, sm: 2 } }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', gap: '2rem' }}>
           <RowLabel>{field.title}</RowLabel>
 
@@ -71,7 +75,7 @@ const Row = ({ field }: { field: DocumentField }) => {
         </Box>
       </TableCell>
 
-      <TableCell>
+      <TableCell sx={{ display: { xs: 'block', sm: 'table-cell' }, px: { xs: 0, sm: 2 } }}>
         {field.component && (
           <field.component content={content}></field.component>
         )}

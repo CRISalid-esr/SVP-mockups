@@ -1,6 +1,7 @@
 'use client'
 
-import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Box, Chip, Collapse, Link, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { CampaignOutlined, NewspaperOutlined } from '@mui/icons-material'
 import { AUDIENCES, AUDIENCE_CONFIG, Audience, ResearchTheme, TEAL, descriptionFor, formatPeriod } from '../types'
 import { RefChip } from './RefsPicker'
@@ -19,21 +20,18 @@ export function AudienceSwitcher({ value, onChange, size = 'small' }: {
       exclusive size={size} value={value ?? 'all'}
       onChange={(_e, v: Audience | 'all' | null) => { if (v) onChange(v === 'all' ? null : v) }}
       aria-label="Voir le portail comme"
-      sx={{ flexWrap: 'wrap', '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5, gap: 0.5 } }}
+      sx={{
+        flexWrap: 'wrap',
+        '& .MuiToggleButton-root': { px: 1.5, color: 'text.primary' },
+        '& .MuiToggleButton-root.Mui-selected, & .MuiToggleButton-root.Mui-selected:hover': {
+          bgcolor: 'navActive', color: 'text.primary', fontWeight: 600,
+        },
+      }}
     >
-      <ToggleButton value="all" sx={{ '&.Mui-selected': { bgcolor: `${TEAL}14`, color: TEAL, fontWeight: 700 } }}>
-        Description générale
-      </ToggleButton>
-      {AUDIENCES.map((a) => {
-        const c = AUDIENCE_CONFIG[a]
-        return (
-          <ToggleButton key={a} value={a}
-            sx={{ '&.Mui-selected': { bgcolor: c.bg, color: c.color, fontWeight: 700 } }}>
-            <c.Icon sx={{ fontSize: 16 }} />
-            {c.short}
-          </ToggleButton>
-        )
-      })}
+      <ToggleButton value="all">Tous</ToggleButton>
+      {AUDIENCES.map((a) => (
+        <ToggleButton key={a} value={a}>{AUDIENCE_CONFIG[a].short}</ToggleButton>
+      ))}
     </ToggleButtonGroup>
   )
 }
@@ -61,27 +59,24 @@ export function RefsSummary({ theme, size = 'small', dense = false }: { theme: R
 }
 
 /** Rendu d'un thème tel qu'il apparaît sur le portail, pour le public choisi. */
-export function ThemePublicBlock({ theme, audience, showPeriodColumn = true }: {
+export function ThemePublicBlock({ theme, audience, showPeriodColumn = true, collapsible = false }: {
   theme: ResearchTheme
   audience: Audience | null
   showPeriodColumn?: boolean
+  /** Résume le thème (intitulé, période, description) et replie le reste derrière un lien. */
+  collapsible?: boolean
 }) {
+  const [expanded, setExpanded] = useState(false)
   const text = descriptionFor(theme, audience)
-  const adapted = audience != null && Boolean(theme.variants[audience]?.trim())
-  const cfg = audience ? AUDIENCE_CONFIG[audience] : null
+  const missingVariant = audience != null && !theme.variants[audience]?.trim()
   const sol = [theme.acceptsPress ? 'Presse' : null, theme.acceptsEvents ? 'Événements grand public' : null].filter(Boolean)
+  const hasRefs = theme.places.length + theme.persons.length + theme.organizations.length > 0
+  const hasDetails = theme.keywords.length > 0 || hasRefs || sol.length > 0
+    || (collapsible && theme.studiedPeriods.length > 0)
 
-  const body = (
-    <Box>
-      <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.3 }}>{theme.label}</Typography>
-      {text && (
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.75 }}>{text}</Typography>
-      )}
-      {cfg && (
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: adapted ? cfg.color : 'text.disabled', fontStyle: adapted ? 'normal' : 'italic' }}>
-          {adapted ? `Version adaptée aux ${cfg.label.toLowerCase()}` : 'Description générale (pas de déclinaison pour ce public)'}
-        </Typography>
-      )}
+  const details = (
+    <>
+      {collapsible && <StudiedPeriodsLine theme={theme} />}
       {theme.keywords.length > 0 && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1.5 }}>
           {theme.keywords.map((k) => (
@@ -89,18 +84,57 @@ export function ThemePublicBlock({ theme, audience, showPeriodColumn = true }: {
           ))}
         </Box>
       )}
-      <Box sx={{ mt: 1.25 }}>
-        <RefsSummary theme={theme} dense />
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1.25, color: sol.length ? '#2E7D32' : 'text.disabled' }}>
-        {theme.acceptsPress && <NewspaperOutlined sx={{ fontSize: 15 }} />}
-        {theme.acceptsEvents && <CampaignOutlined sx={{ fontSize: 15 }} />}
-        <Typography variant="caption">{sol.length ? sol.join(' · ') : 'Pas de sollicitation'}</Typography>
-      </Box>
+      {hasRefs && (
+        <Box sx={{ mt: 1.25 }}>
+          <RefsSummary theme={theme} dense />
+        </Box>
+      )}
+      {sol.length > 0 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1.25, color: 'text.secondary' }}>
+          {theme.acceptsPress && <NewspaperOutlined sx={{ fontSize: 15 }} />}
+          {theme.acceptsEvents && <CampaignOutlined sx={{ fontSize: 15 }} />}
+          <Typography variant="body2">{sol.join(' · ')}</Typography>
+        </Box>
+      )}
+    </>
+  )
+
+  const body = (
+    <Box>
+      <Typography variant="h6" component="h4">{theme.label}</Typography>
+      {collapsible && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+          {formatPeriod(theme, 'aujourd’hui')}
+        </Typography>
+      )}
+      {text && (
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.75 }}>{text}</Typography>
+      )}
+      {missingVariant && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+          Description générale (pas de déclinaison pour ce public)
+        </Typography>
+      )}
+      {collapsible ? (
+        hasDetails && (
+          <>
+            <Link
+              component="button"
+              underline="hover"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((open) => !open)}
+              sx={{ mt: 1, fontSize: '0.875rem', fontWeight: 500 }}
+            >
+              {expanded ? 'Masquer le détail' : 'Voir le détail'}
+            </Link>
+            <Collapse in={expanded} unmountOnExit>{details}</Collapse>
+          </>
+        )
+      ) : details}
     </Box>
   )
 
-  if (!showPeriodColumn) return body
+  if (collapsible || !showPeriodColumn) return body
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '150px 1fr' }, gap: { xs: 0.5, sm: 3 } }}>
       <Box>

@@ -49,9 +49,8 @@ describe('DocumentDetailsHeader Component', () => {
   it('renders back button and title', () => {
     renderComponent()
 
-    expect(screen.getByRole('button')).toBeInTheDocument() // Ensures the button exists
     expect(
-      screen.getByText(i18n.t('document_details_page_back_to_my_publications')),
+      screen.getByRole('button', { name: i18n.t('document_details_page_back_to_my_publications') }),
     ).toBeInTheDocument()
   })
 

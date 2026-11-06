@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import { Avatar, Box, Card, IconButton, Tooltip, Typography } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -12,6 +12,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { IAgent } from '@/types/IAgent'
+import useStore from '@/stores/global_store'
+import { usePersonIdentifiers } from '@/app/[lang]/account/usePersonIdentifiers'
 
 const IDENTIFIERS_TO_SHOW: PersonIdentifierType[] = [
   PersonIdentifierType.ID_HAL_S,
@@ -29,163 +31,110 @@ const PersonIdentityCard = ({ person }: { person: IAgent }) => {
   if (!isPerson(person)) {
     throw new Error('PersonIdentityCard: agent is not a Person')
   }
-  const theme = useTheme()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const lang = (Lingui.i18n.locale || 'ul') as ExtendedLanguageCode
   const displayName = person.getDisplayName(lang) || ''
+  const { connectedUser } = useStore((state) => state.user)
+  const { identifiers } = usePersonIdentifiers(person)
+
+  // Ses propres identifiants sont dans Mon compte ; ceux d'une autre personne, sur sa page.
+  const editIdentifiers = () => {
+    const isOwn = connectedUser?.person?.uid === person.uid
+    const query = isOwn ? '' : `?perspective=${encodeURIComponent(person.slug ?? '')}`
+    router.push(`/${lang}/account${query}`)
+  }
 
   const navigateToPerspective = (slug: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('perspective', slug)
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
+
   const identifiersToDisplay = useMemo(() => {
-    return person
-      .getIdentifiers()
-      .filter((id) => IDENTIFIERS_TO_SHOW.includes(id.type))
-  }, [person.getIdentifiers()])
+    return identifiers.filter((id) => IDENTIFIERS_TO_SHOW.includes(id.type))
+  }, [identifiers])
+
+  const structures = person.memberships.filter(
+    (m) => m.researchStructure?.acronym && m.researchStructure?.slug,
+  )
 
   return (
-    <Card
-      sx={{
-        borderRadius: 1,
-        boxShadow: 1,
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <CardContent sx={{ flex: 1, display: 'flex', py: 3 }}>
-        <Stack
-          alignItems='center'
-          justifyContent='space-between'
-          sx={{ flex: 1 }}
-        >
-          <Stack spacing={2.2} alignItems='center' sx={{ width: '100%' }}>
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                bgcolor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: theme.utils.pxToRem(22),
-                userSelect: 'none',
-                mb: 0.5,
-              }}
-            >
-              {initialsFromDisplayName(displayName)}
-            </Box>
+    <Card sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
+      <Avatar aria-hidden sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontWeight: 700 }}>
+        {initialsFromDisplayName(displayName)}
+      </Avatar>
 
-            <Typography
-              align='center'
-              sx={{ fontWeight: 700, lineHeight: 1.25 }}
-            >
-              {displayName || 'N/C'}
-            </Typography>
-
-            {person.memberships.length > 0 && (
-              <Typography
-                align='center'
-                variant='body2'
-                sx={{
-                  color: theme.palette.text.secondary,
-                  lineHeight: 1.35,
-                  px: 1,
-                }}
-              >
-                {person.memberships
-                  .filter(
-                    (m) =>
-                      m.researchStructure?.acronym && m.researchStructure?.slug,
-                  )
-                  .map((m, index, arr) => {
-                    const rs = m.researchStructure!
-                    return (
-                      <Box
-                        key={rs.uid}
-                        component='span'
-                        sx={{
-                          cursor: 'pointer',
-                          fontWeight: 500,
-                          color: theme.palette.primary.main,
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                        }}
-                        onClick={() => navigateToPerspective(rs.slug!)}
-                      >
-                        {rs.acronym}
-                        {index < arr.length - 1 ? ', ' : ''}
-                      </Box>
-                    )
-                  })}
-              </Typography>
-            )}
-          </Stack>
-
-          <Stack
-            direction='row'
-            spacing={1}
-            justifyContent='center'
-            sx={{ pt: 2, flexWrap: 'wrap' }}
-          >
-            {identifiersToDisplay.map((id) => {
-              const href = id.getUrl()
-
-              const badge = (
+      <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
+        <Typography variant='body1' fontWeight={700}>
+          {displayName || 'N/C'}
+        </Typography>
+        {structures.length > 0 && (
+          <Typography variant='body2' color='text.secondary'>
+            {structures.map((m, index) => {
+              const rs = m.researchStructure!
+              return (
                 <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.75,
-                    px: 1.2,
-                    py: 0.4,
-                    mt: 0.8,
-                    borderRadius: 999,
-                    bgcolor: theme.palette.action.hover,
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'background-color 120ms ease',
-                    '&:hover': href
-                      ? { bgcolor: theme.palette.action.selected }
-                      : undefined,
-                  }}
+                  key={rs.uid}
+                  component='span'
+                  onClick={() => navigateToPerspective(rs.slug!)}
+                  sx={{ cursor: 'pointer', fontWeight: 500, color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
                 >
-                  <Image
-                    src={id.getIcon()}
-                    alt={id.getLabel()}
-                    width={18}
-                    height={18}
-                  />
-                  <Typography variant='caption' sx={{ whiteSpace: 'nowrap' }}>
-                    {id.value}
-                  </Typography>
+                  {rs.acronym}
+                  {index < structures.length - 1 ? ', ' : ''}
                 </Box>
               )
-
-              return href ? (
-                <Link
-                  key={`${id.type}:${id.value}`}
-                  href={href}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  style={{ textDecoration: 'none' }}
-                >
-                  {badge}
-                </Link>
-              ) : (
-                <Box key={`${id.type}:${id.value}`}>{badge}</Box>
-              )
             })}
-          </Stack>
-        </Stack>
-      </CardContent>
+          </Typography>
+        )}
+      </Box>
+
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+        {identifiersToDisplay.map((id) => {
+          const href = id.getUrl()
+          const badge = (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                color: 'text.primary',
+                '&:hover': href ? { bgcolor: 'navHover' } : undefined,
+              }}
+            >
+              <Image src={id.getIcon()} alt={id.getLabel()} width={18} height={18} />
+              <Typography variant='body2' sx={{ whiteSpace: 'nowrap' }}>
+                {id.value}
+              </Typography>
+            </Box>
+          )
+
+          return href ? (
+            <Link
+              key={`${id.type}:${id.value}`}
+              href={href}
+              target='_blank'
+              rel='noopener noreferrer'
+              style={{ textDecoration: 'none' }}
+            >
+              {badge}
+            </Link>
+          ) : (
+            <Box key={`${id.type}:${id.value}`}>{badge}</Box>
+          )
+        })}
+        <Tooltip title='Modifier les identifiants'>
+          <IconButton size='small' aria-label='Modifier les identifiants' onClick={editIdentifiers}>
+            <EditOutlinedIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+      </Box>
     </Card>
   )
 }

@@ -145,6 +145,24 @@ describe('PersonIdentityCard', () => {
     ).toBe('https://www.idref.fr/02725030X')
   })
 
+  it('opens the identifiers of the displayed person from the pencil', () => {
+    render(<PersonIdentityCard person={mkPerson()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier les identifiants' }))
+
+    expect(pushMock).toHaveBeenCalledWith(expect.stringContaining('/account?perspective=pascal-renard'))
+  })
+
+  it('shows an identifier changed on the account page', () => {
+    localStorage.setItem('person-identifiers-v1-pascal-renard', JSON.stringify({ IDREF: { value: '123456789' } }))
+
+    render(<PersonIdentityCard person={mkPerson()} />)
+
+    expect(screen.getByText('123456789')).toBeInTheDocument()
+    expect(screen.queryByText('02725030X')).not.toBeInTheDocument()
+    localStorage.clear()
+  })
+
   it('throws if a non-Person agent is provided', () => {
     const notPerson = { type: 'institution' } as IAgent
 

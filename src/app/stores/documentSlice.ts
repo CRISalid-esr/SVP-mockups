@@ -5,6 +5,7 @@ import { BaseQuery } from '@/types/BaseQuery'
 import { AgentType } from '@/types/IAgent'
 import { Concept } from '@/types/Concept'
 import { mockService } from '../../mocks/mockService'
+import { queryMockDocuments } from '../../mocks/queryMockDocuments'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -109,8 +110,9 @@ export const addDocumentSlice: StateCreator<
         if (USE_MOCK) {
           const mockData = mockService.getDocuments(queryObject.searchTerm)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          documents = mockData.documents.map((d: any) => Document.fromJson(d))
-          totalItems = mockData.totalItems
+          const allDocuments = mockData.documents.map((d: any) => Document.fromJson(d))
+          documents = queryMockDocuments(allDocuments, queryObject)
+          totalItems = documents.length
         } else {
           const response = await fetch(`/api/documents?${queryString}`)
           const jsonData = await response.json()

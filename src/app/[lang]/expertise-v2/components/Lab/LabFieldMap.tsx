@@ -101,7 +101,7 @@ export default function LabFieldMap({ entries, teamColor, onSelectPlace, height 
   }, [extent, locatedKey])
 
   return (
-    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden', bgcolor: 'background.paper' }}>
+    <Box sx={{ minWidth: 0 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Typography variant="caption" color="text.secondary">
           {located.length} terrain{located.length > 1 ? 's' : ''} localisé{located.length > 1 ? 's' : ''}
@@ -125,7 +125,6 @@ export default function LabFieldMap({ entries, teamColor, onSelectPlace, height 
           <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: `${TEAL}20`, border: `1.5px dashed ${TEAL}` }} />
           <Typography variant="caption" color="text.secondary">Région, département, espace</Typography>
         </Box>
-        <Typography variant="caption" color="text.secondary">Couleur = équipe (teal si plusieurs équipes). Clic sur un terrain : membres concernés.</Typography>
       </Box>
     </Box>
   )

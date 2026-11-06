@@ -15,6 +15,9 @@ import { useLingui } from '@lingui/react'
 import React, { useEffect, useMemo, useState } from 'react'
 import { CustomCard } from '@/components/Card'
 import { useDashboardData } from '@/app/[lang]/dashboard/components/DashboardViewContext'
+import PersonIdentityCard from '@/app/[lang]/dashboard/components/PersonIdentityCard'
+import useStore from '@/stores/global_store'
+import { isPerson } from '@/types/Person'
 import {
   aggregateOverview,
   getYearBounds,
@@ -34,6 +37,7 @@ const OverviewTab = () => {
 
   const { publications, authors, isResearcher, isOwn, structureLevel, researcherId } =
     useDashboardData()
+  const currentPerspective = useStore((state) => state.user.currentPerspective)
   const bounds = useMemo(() => getYearBounds(publications), [publications])
 
   const [overviewRange, setOverviewRange] = useState({
@@ -105,6 +109,8 @@ const OverviewTab = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {isPerson(currentPerspective) && <PersonIdentityCard person={currentPerspective} />}
+
       {/* ── Synthèse (jeu de démo, filtré selon la perspective) ───────────── */}
       <Box
         sx={{

@@ -177,7 +177,7 @@ describe('DocumentDetailsPage Component', () => {
       screen.getByText(i18n.t('document_details_keywords_tab')),
     ).toBeInTheDocument()
     expect(screen.getByText('document_details_domains_tab')).toBeInTheDocument()
-    expect(screen.getByText('document_details_authors_tab')).toBeInTheDocument()
-    expect(screen.getByText('document_details_sources_tab')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'document_details_authors_tab' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'document_details_sources_tab' })).toBeInTheDocument()
   })
 })

@@ -72,13 +72,13 @@ Pas de modale : l'éditeur remplace la liste, avec un fil d'Ariane (*Profil de r
 
 ### 2.3 Graphe de parcours ✅
 
-Même objectif que la vue Relations de la v1 (qualifier les liens entre thèmes), mais aéré :
-- **Canevas** à gauche (React Flow). Mode **Frise** par défaut : chaque thème est une barre placée à son année de début, de largeur proportionnelle à sa durée, empilée par couloirs ; axe des années en bas. Mode **Libre** : disposition manuelle, positions mémorisées.
-- Création d'une relation en glissant d'une poignée de thème vers un autre thème.
-- **Panneau de qualification** à droite (420 px, plus un bandeau étroit) : *Thème A*, **direction** en trois gros boutons (A → B, A ← B, A ↔ B), *Thème B*, champ *Qualifier la relation* avec suggestions (prolonge, s'appuie sur, nourrit, a conduit à, croise, méthodes partagées…), **phrase de prévisualisation** telle qu'elle sera affichée, *Supprimer* / *Enregistrer*.
-- Sous le formulaire : liste des autres relations, cliquables.
-- Un clic sur un thème affiche son résumé dans le panneau, avec un raccourci *Modifier ce thème* vers l'éditeur (les mots-clés se modifient dans l'éditeur, pas dans le graphe).
-- Les relations non qualifiées sont en pointillés gris.
+Même objectif que la vue Relations de la v1 (qualifier les liens entre thèmes), réduit à l'essentiel (la frise a été retirée, jugée peu lisible) :
+- **Canevas** pleine largeur (React Flow). Les thèmes se placent du plus ancien au plus récent ; on peut les déplacer, les positions sont mémorisées et *Réorganiser* revient à la disposition automatique.
+- Chaque thème n'affiche que son intitulé et sa période.
+- Deux façons de relier : tirer un trait d'un thème à l'autre (poignées au survol), ou cliquer sur un thème puis choisir *Relier à un autre thème*.
+- Le **panneau** n'apparaît qu'à la sélection. Sur un thème : *Modifier ce thème*, ses relations, *Relier à un autre thème*. Sur une relation : la phrase telle qu'elle sera affichée, *Nature du lien* avec suggestions (prolonge, s'appuie sur, nourrit, a conduit à, croise, méthodes partagées…), *Sens* (→, ←, ↔), *Supprimer la relation*.
+- Les modifications s'enregistrent au fil de l'eau, sans bouton.
+- Une relation non qualifiée porte la mention *À qualifier*.
 
 ### 2.4 Aperçu public ✅
 
@@ -86,20 +86,20 @@ Rendu « tel quel sur le portail » : en-tête du chercheur (nom, affiliation, b
 
 **Voir le portail comme : Description générale / Chercheurs / Partenaires / Presse / Grand public** ✅ — le texte de chaque thème bascule sur sa déclinaison (mention « Version adaptée aux journalistes » ou « Description générale (pas de déclinaison pour ce public) »). En vue Presse, les thèmes qui acceptent les sollicitations presse remontent en tête ; en vue Grand public, ceux qui acceptent les événements. Le bandeau indique combien de thèmes n'ont pas de déclinaison pour le public choisi.
 
-Bandeau en haut : nombre de thèmes masqués et pourquoi (établissement, privé, brouillon) + *Revenir à l'édition*.
+Allègement : chaque thème affiche son intitulé, sa période et sa description ; mots-clés, repères, période étudiée et sollicitations sont derrière *Voir le détail*. Au-dessus du portail, une seule ligne : *Voir comme* et le nombre de thèmes masqués, avec leur raison (établissement, privé, brouillon). La section Parcours disparaît s'il n'y a aucune relation entre thèmes publics.
 
 ### 2.5 Vue laboratoire ✅
 
 Affichée quand le sélecteur de perspective global pointe sur une **structure**. Lecture seule : le laboratoire ne saisit rien, il **agrège les thèmes datés de ses membres**. Règle de remontée : un thème est visible du laboratoire s'il est **validé** et en diffusion **établissement** ou **public** ; les thèmes privés et les brouillons n'apparaissent pas (le profil connecté est traité comme un membre, et un bandeau lui rappelle combien de ses thèmes sont invisibles ici).
 
 - **Regroupement** : deux thèmes de membres différents forment un même *sujet* s'ils partagent le même mot-clé contrôlé (RAMEAU, Wikidata, MeSH), sinon par intitulé normalisé. Un membre peut donc personnaliser l'intitulé (« Habitats partagés pour les aînés ») et rester regroupé avec « Habitat inclusif et politiques publiques ».
-- **Filtres** : équipe (3 équipes de démonstration), recherche texte, et surtout **curseur d'année** (« Le laboratoire en 2015 ») qui ne garde que les thèmes actifs cette année-là — la datation des thèmes permet de voir le laboratoire tel qu'il était.
-- **KPI** : membres, profils renseignés, sujets distincts, thèmes publics, membres joignables par la presse, terrains distincts.
-- **Frise des sujets** : une ligne par sujet (tag du vocabulaire, période cumulée, équipes, mention presse), un **trait par membre** sur l'axe commun des années (couleur = équipe, estompé si terminé), avatars et compteur. Clic → dialogue des membres et de leurs thèmes.
-- **Carte des terrains** ✅ (première version) : fond de carte OpenStreetMap atténué (bibliothèque Leaflet, tuiles standard sans clé), un cercle par terrain cité dans les thèmes visibles, taille proportionnelle au nombre de thèmes, couleur de l'équipe (teal si plusieurs équipes). Les régions, départements et espaces (littoral, Centre-Bretagne…) sont dessinés en cercles larges, clairs et pointillés ; les villes en cercles pleins. Survol : nombre de thèmes, membres. Clic sur un cercle ou sur la liste « Terrains les plus cités » à droite → dialogue des membres et de leurs thèmes, puis fiche détaillée. Deux étendues : *Grand Ouest* (défaut) et *Tous les terrains* (cadre sur l'ensemble, par exemple Paris, Sénégal). Les filtres d'équipe et d'année s'appliquent. Les coordonnées viennent d'une table locale (`placeCoords.ts`) ; en production, GeoNames les fournit avec la notice. Les terrains sans coordonnées restent listés à droite, marqués « non localisé ».
-- **Thèmes actifs par année** (ECharts, barres empilées par équipe, repère orange sur l'année choisie) et **Organisations, personnes** agrégées avec le nombre de thèmes qui les citent (tooltip : quels membres).
-- **Expertises publiques** : annuaire des thèmes publics (membre, équipe, thème, terrains, période, badges Presse / Événements), filtres *Accepte la presse* / *Événements grand public*. Clic → dialogue de détail avec le sélecteur **Voir comme** par public et un bouton *Mettre en relation* (simulé) actif si le thème accepte une sollicitation.
-- **Complétude des profils** : par équipe, chaque membre avec « N thèmes », « Brouillon seulement » ou « Profil vide » ; bouton *Relancer les N membres sans profil* (simulé).
+- **Filtres**, communs aux onglets : équipe, année (de… à…, ne garde que les thèmes travaillés sur cette plage) et recherche. L'onglet Expertises publiques ajoute *Sollicitations*.
+- **Quatre indicateurs** : profils renseignés, sujets distincts, thèmes publics, membres joignables par la presse.
+- **Quatre onglets**, une question chacun :
+  - **Sujets** : tableau des sujets (période cumulée, équipes, nombre de membres), clic vers les membres et leurs thèmes ; graphique *Thèmes actifs par année* dessous. La frise collective a été retirée, jugée peu lisible.
+  - **Terrains** : carte (fond OpenStreetMap atténué, Leaflet, un cercle par terrain, taille selon le nombre de thèmes, couleur de l'équipe) et liste des terrains ; *Organisations et personnes citées* dessous, avec le nombre de thèmes qui les citent.
+  - **Expertises publiques** : annuaire (expertise, membre, période, sollicitations). Clic : détail avec *Voir comme* et *Mettre en relation* (simulé) si le thème accepte les sollicitations.
+  - **Membres** : tableau de complétude (N thèmes, *Brouillon seulement*, *Profil vide*), clic vers le profil en lecture seule, *Relancer les N membres sans profil* (simulé).
 
 Données de démonstration : laboratoire fictif « Territoires, Habitat et Sociétés (THS) », 16 membres + le profil connecté, 22 sujets de géographie sociale (`components/Lab/labMock.ts`).
 
@@ -107,10 +107,10 @@ Données de démonstration : laboratoire fictif « Territoires, Habitat et Soci�
 
 Remplace l'« Import depuis HAL » de la première mouture, dont le libellé laissait croire à une copie de données HAL. La génération part bien des publications du chercheur, comme dans la v1, mais avec une ergonomie différente, à comparer avec celle de la v1 (colonne « Expertises » dans la liste des publications, puis retour dans la rubrique) :
 
-- **Pas de détour par la liste des documents** : l'atelier s'ouvre en pleine page dans la rubrique (fil d'Ariane *Profil de recherche 2 / Thèmes / Proposer des thèmes…*), avec un stepper à deux étapes et une barre d'actions fixe.
-- **Étape 1 — Choisir les publications.** Liste compacte des publications du chercheur **groupée par année** (case à cocher par année), recherche (titre, revue, année), filtre par type (Article, Chapitre, Communication, Thèse, Rapport…), lien HAL par ligne. Les publications **déjà rattachées à un thème** sont grisées et portent le nom de ce thème. Sélections rapides : *Non rattachées à un thème* (défaut), *cinq dernières années*, *Toutes*, *Aucune*. Compteur « N sélectionnées sur 28 · M non rattachées ».
-- **Étape 2 — Relire les thèmes proposés.** Après l'analyse (LLM simulé, 1,4 s), une carte par thème proposé : case « retenir », **intitulé retouchable**, description, mots-clés, **période de travail déduite des dates** (« 2020 → en cours, d'après 4 publications » ; « en cours » si une publication a moins de deux ans), **période étudiée détectée** dans les titres (« Porte sur : Trente Glorieuses »), et la liste des **publications à l'appui**, chacune retirable d'un clic (la période se recalcule). Les nouveaux thèmes viennent d'abord, les rattachements ensuite.
-- **Rattacher plutôt que dupliquer.** Quand la proposition recouvre un thème déjà décrit (même sujet, ou publications déjà rattachées), un encart bleu l'annonce — « Vous décrivez déjà ce sujet : « Mobilités résidentielles des retraités » (2009 → 2014) » — et propose par défaut de **rattacher les publications au thème existant**, en indiquant ce que cela change (« période étendue à 2009 → 2015 · période étudiée ajoutée : Trente Glorieuses »). L'autre option crée tout de même un nouveau thème.
+- **Pas de détour par la liste des documents** : l'atelier s'ouvre en pleine page dans la rubrique (flèche de retour, titre, mention « Étape 1 sur 2 ») avec une barre d'actions fixe.
+- **Étape 1 — Choisir les publications.** Liste **groupée par année** (case à cocher par année), avec la même barre de filtres que les autres listes (type, recherche) et trois sélections rapides : *Non rattachées*, *Toutes*, *Aucune*. Chaque ligne donne le titre, le type, la revue et, si besoin, le thème auquel la publication est déjà rattachée. Par défaut, seules les publications non rattachées sont sélectionnées.
+- **Étape 2 — Relire les thèmes proposés.** Après l'analyse (LLM simulé, 1,4 s), une carte courte par proposition : case « retenir », **intitulé retouchable**, **période de travail déduite des dates** et nombre de publications. *Voir le détail* déplie la description, les mots-clés, la période étudiée et les **publications à l'appui**, retirables une à une.
+- **Rattacher plutôt que dupliquer.** Quand la proposition recouvre un thème déjà décrit, la carte l'annonce toujours, sans clic : « Vous décrivez déjà ce sujet : « Mobilités résidentielles des retraités » (2009 → 2014) ». Elle propose par défaut de **rattacher** au thème, en précisant ce qui changera (période étendue, période étudiée ajoutée), ou de **créer un nouveau thème**.
 - **Appliquer** : « Ajouter N thèmes en brouillon et rattacher ». Les nouveaux thèmes arrivent en brouillon dans la liste (à compléter et valider) ; les thèmes existants sont enrichis sans changer de statut. Snackbar récapitulative.
 
 Jeu de démonstration : 28 publications (2010 → 2025) cohérentes avec le profil ; 16 sont rattachées aux 5 thèmes de démo, 12 ne le sont pas. Avec la sélection par défaut, l'atelier propose 3 nouveaux thèmes (*Précarité énergétique des ménages âgés*, *Gouvernance locale des politiques gérontologiques*, *Accès aux soins dans les campagnes vieillissantes*) et 2 rattachements (une publication de 2015 sur les Trente Glorieuses au thème de thèse, une publication de 2025 au thème *Habitat inclusif*).

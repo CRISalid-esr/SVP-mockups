@@ -37,7 +37,7 @@ const PerspectiveSwitcher: React.FC<{ compact?: boolean }> = ({ compact = false 
           aria-haspopup='menu'
           aria-expanded={Boolean(anchorEl)}
           onClick={(e) => openPicker(e.currentTarget)}
-          sx={{ borderRadius: '50%', mx: 'auto', display: 'flex', '&:focus-visible': { outline: `2px solid ${theme.palette.primaryContainer}`, outlineOffset: 2 } }}
+          sx={{ borderRadius: '50%', mx: 'auto', display: 'flex', '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 } }}
         >
           <PerspectiveAvatar kind={entry.kind} label={entry.label} size={40} />
         </ButtonBase>
@@ -60,17 +60,17 @@ const PerspectiveSwitcher: React.FC<{ compact?: boolean }> = ({ compact = false 
         p: 1.25,
         borderRadius: 2,
         textAlign: 'left',
-        color: theme.palette.primaryContainer,
-        border: `1px solid ${ownPerspective ? 'rgba(255,255,255,0.18)' : theme.palette.primaryContainer}`,
-        backgroundColor: ownPerspective ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.14)',
+        color: 'text.primary',
+        border: `1px solid ${ownPerspective ? theme.palette.divider : theme.palette.primary.main}`,
+        backgroundColor: ownPerspective ? 'transparent' : 'navActive',
         transition: 'background-color .15s',
-        '&:hover': { backgroundColor: 'rgba(255,255,255,0.18)' },
-        '&:focus-visible': { outline: `2px solid ${theme.palette.primaryContainer}`, outlineOffset: 2 },
+        '&:hover': { backgroundColor: ownPerspective ? 'navHover' : 'navActive' },
+        '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
       }}
     >
-      <PerspectiveAvatar kind={entry.kind} label={entry.label} size={40} />
+      <PerspectiveAvatar kind={entry.kind} label={entry.label} size={36} />
       <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-        <Typography variant='caption' component='div' sx={{ opacity: 0.75, lineHeight: 1.3 }}>
+        <Typography variant='caption' component='div' color='text.secondary' sx={{ lineHeight: 1.3 }}>
           {caption}
         </Typography>
         <Typography variant='body2' fontWeight={600} noWrap sx={{ lineHeight: 1.35 }}>

@@ -35,8 +35,8 @@ const PerspectiveBanner: React.FC = () => {
         py: 1.25,
         borderRadius: 2,
         borderLeft: `4px solid ${theme.palette.primary.main}`,
-        backgroundColor: theme.palette.primaryContainer,
-        color: theme.palette.onPrimaryContainer,
+        backgroundColor: 'navActive',
+        color: 'text.primary',
       }}
     >
       <PerspectiveAvatar kind={entry.kind} label={entry.label} size={32} />

@@ -1,7 +1,7 @@
 'use client'
 
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import { Avatar, Box, Button, Card, CardContent, Chip, Link, Typography } from '@mui/material'
+import { Avatar, Box, Button, Card, CardContent, Chip, Typography } from '@mui/material'
 import NextLink from 'next/link'
 import { PersonRaw, StructureRaw } from '../types'
 
@@ -34,17 +34,6 @@ export function MembresTab({ members, lang }: MembresTabProps) {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.5 }}>
-        <Link
-          component={NextLink}
-          href={`/${lang}/researchers`}
-          underline='hover'
-          variant='body2'
-          sx={{ color: 'success.main', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}
-        >
-          Voir tous les membres <ArrowForwardIcon sx={{ fontSize: 14 }} />
-        </Link>
-      </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {members.map((p) => (
           <Card

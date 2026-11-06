@@ -19,9 +19,6 @@ import { Literal } from '@/types/Literal'
 import { getLocalizedValue } from '@/utils/getLocalizedValue'
 import * as Lingui from '@lingui/core'
 
-import { LanguageChips } from '@/components/LanguageChips'
-import { LocaleDateFormats } from '@/types/LocaleDateFormats'
-import InfoIcon from '@mui/icons-material/Info'
 import {
   Alert,
   Box,
@@ -29,17 +26,16 @@ import {
   CircularProgress,
   IconButton,
   Link,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import {
-  MRT_ActionMenuItem,
   MRT_Column,
   MRT_ColumnDef,
   MRT_ColumnFiltersState,
+  MRT_ShowHideColumnsButton,
   MRT_SortingState,
 } from 'material-react-table'
 import Image from 'next/image'
@@ -63,8 +59,6 @@ import HalStatusCellBadge, {
 import { DocumentTypeIcons } from './components/DocumentTypeIcons'
 import { DocumentTypeLabels } from './components/DocumentTypeLabels'
 import SyncIcon from '@mui/icons-material/Sync'
-import Psychology from '@mui/icons-material/Psychology'
-import HighlighterWithEllipsis from '@/app/[lang]/documents/components/HighlighterWithEllipsis'
 import DocumentSyncDialog from '@/app/[lang]/documents/components/documentsSyncModal/DocumentSyncDialog'
 import { Trans, useLingui } from '@lingui/react'
 import { useSession } from 'next-auth/react'
@@ -83,6 +77,9 @@ import {
 } from '@/app/[lang]/documents/components/DocumentTable'
 import { OAStatus } from '@prisma/client'
 import OAStatusCellBadge from '@/app/[lang]/documents/components/OAStatusCellBadge'
+import ListFilterBar, { FilterDefinition } from '@/components/ListTable/ListFilterBar'
+import { listTableProps, listTitleSx } from '@/components/ListTable/listTableProps'
+import HalNextActionCell from '@/app/[lang]/documents/components/HalNextActionCell'
 
 dayjs.extend(utc)
 
@@ -96,6 +93,9 @@ const DEFAULT_PAGINATION = {
   pageIndex: 0,
   pageSize: 10,
 }
+// Le reste reste accessible par le choix des colonnes.
+const DEFAULT_COLUMN_VISIBILITY = { type: false, publishedIn: false, source: false }
+
 const DocumentsPage = () => {
   const { data: session } = useSession()
   const { _ } = useLingui()
@@ -120,10 +120,6 @@ const DocumentsPage = () => {
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
   const supportedLocales = process.env.NEXT_PUBLIC_SUPPORTED_LOCALES?.split(',')
 
-  const [selectedTitleLangs, setSelectedTitleLangs] = useState<
-    Record<string, string>
-  >({})
-
   const harvestings = useStore((state) => state.harvesting.harvestings)
   const currentPerspectiveHarvesting =
     harvestings[currentPerspective?.uid || '']
@@ -135,262 +131,190 @@ const DocumentsPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const expertisePubsKey = `expertise-selected-publications-${searchParams?.get('perspective') || 'default'}`
-  const [expertiseSelectedPubs, setExpertiseSelectedPubs] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const raw = localStorage.getItem(expertisePubsKey)
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
-  const toggleExpertisePub = useCallback((uid: string) => {
-    setExpertiseSelectedPubs((prev) => {
-      const next = prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
-      localStorage.setItem(expertisePubsKey, JSON.stringify(next))
-      return next
-    })
-  }, [expertisePubsKey])
-
-  const [expertiseMode, setExpertiseMode] = useState(false)
-  const [mrtRowSelection, setMrtRowSelection] = useState<Record<string, boolean>>({})
-
-  const enterExpertiseMode = useCallback((currentTableSelection: Record<string, boolean> = {}) => {
-    const selection: Record<string, boolean> = {}
-    expertiseSelectedPubs.forEach((uid) => { selection[uid] = true })
-    Object.assign(selection, currentTableSelection)
-    setMrtRowSelection(selection)
-    setExpertiseMode(true)
-  }, [expertiseSelectedPubs])
-
-  const confirmExpertiseSelection = useCallback(() => {
-    const selectedUids = Object.entries(mrtRowSelection).filter(([, v]) => v).map(([uid]) => uid)
-    localStorage.setItem(expertisePubsKey, JSON.stringify(selectedUids))
-    setExpertiseSelectedPubs(selectedUids)
-    setExpertiseMode(false)
-    const perspective = searchParams?.get('perspective') || 'default'
-    router.push(`/${lang}/expertise${perspective !== 'default' ? `?perspective=${perspective}` : ''}`)
-  }, [mrtRowSelection, expertisePubsKey, lang, router, searchParams])
-
-  const cancelExpertiseMode = useCallback(() => {
-    setExpertiseMode(false)
-    setMrtRowSelection({})
-  }, [])
-
   const navigateToDetailsPage = useCallback(
-    (documentUid: string) => {
+    (documentUid: string, tab = 'bibliographic_information') => {
       const params = new URLSearchParams(searchParams.toString())
-      params.set('tab', 'bibliographic_information')
+      params.set('tab', tab)
       router.push(`/${lang}/documents/${documentUid}?${params.toString()}`)
     },
     [lang, router, searchParams],
   )
 
-  const columns = useMemo<
-    MRT_ColumnDef<Document>[]
-  >((): MRT_ColumnDef<Document>[] => {
+  const filterDefinitions = useMemo<FilterDefinition[]>(() => {
     const acronyms = currentPerspective?.membershipAcronyms || []
-    const typeOptions = DocumentTypeService.toMenuTree()
-      .filter((n) => n.value !== DocumentType.Document)
-      .map(({ value, depth }) => {
-        const plainLabel = _(DocumentTypeLabels[value])
-        return {
-          value,
-          label: (
-            <Box
-              className='doc-type-option'
-              sx={{ display: 'flex', alignItems: 'center', pl: depth * 2 }}
-            >
-              <Box sx={{ mr: 1 }}>{DocumentTypeIcons[value]}</Box>
-              <Typography variant='body2' noWrap>
-                {plainLabel}
-              </Typography>
-            </Box>
-          ),
-          plainLabel,
-        }
-      })
     return [
       {
-        enableSorting: false,
-        accessorKey: 'type',
-        header: t`documents_page_type_column`,
-        Cell({ row }: { row: { original: { documentType: DocumentType } } }) {
-          return (
-            <Tooltip title={_(DocumentTypeLabels[row.original.documentType])}>
-              {DocumentTypeIcons[row.original.documentType]}
-            </Tooltip>
-          )
-        },
-        filterVariant: 'multi-select',
-        filterColumn: 'type',
-        //@ts-expect-error:  override filterSelectOptions to accept Element.jsx instead of Element
-        filterSelectOptions: typeOptions,
+        id: 'type',
+        label: t`documents_page_type_column`,
+        options: DocumentTypeService.toMenuTree()
+          .filter((node) => node.value !== DocumentType.Document)
+          .map(({ value, depth }) => ({
+            value,
+            depth,
+            label: (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {DocumentTypeIcons[value]}
+                {_(DocumentTypeLabels[value])}
+              </Box>
+            ),
+          })),
       },
       {
-        size: 200,
-        accessorKey: `titles`,
-        accessorFn: (row) => {
-          return row.titles
-        },
-        header: t`documents_page_title_column`,
-        Cell({
-          row,
-          column,
-        }: {
-          row: {
-            original: {
-              titles: Array<Literal>
-              uid: string
-              state: DocumentState
-            }
+        id: 'halStatus',
+        label: t`documents_page_halStatus_column`,
+        options: [
+          {
+            value: 'in_collection',
+            label: <HalStatusCellBadge type={HalStatusCellType.InCollection} isSingleLine />,
+          },
+          {
+            value: 'out_of_collection',
+            label: (
+              <HalStatusCellBadge
+                type={HalStatusCellType.OutOfCollection}
+                acronyms={acronyms}
+                isSingleLine
+              />
+            ),
+          },
+          {
+            value: 'pending_moderation',
+            label: <HalStatusCellBadge type={HalStatusCellType.PendingModeration} isSingleLine />,
+          },
+          {
+            value: 'outside_hal',
+            label: <HalStatusCellBadge type={HalStatusCellType.OutsideHal} isSingleLine />,
+          },
+        ],
+      },
+      {
+        id: 'oaStatus',
+        label: t`documents_page_oaStatus_column`,
+        options: [...Object.values(OAStatus), 'UNKNOWN' as const].map((value) => ({
+          value,
+          label: <OAStatusCellBadge type={value} />,
+        })),
+      },
+      {
+        id: 'source',
+        label: t`documents_page_source_column`,
+        options: Object.values(BibliographicPlatform).map((platform) => {
+          const metadata = BibliographicPlatformMetadata[platform]
+          return {
+            value: platform,
+            label: (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Image
+                  src={metadata?.icon || publicPath('/icons/default.png')}
+                  alt=''
+                  width={20}
+                  height={20}
+                />
+                {metadata?.name || platform}
+              </Box>
+            ),
           }
-          column: MRT_Column<Document>
-        }) {
-          const { titles, uid, state } = row.original
-          const isWaiting = state == DocumentState.waiting_for_update
-          const preferredRowLang = selectedTitleLangs[uid] || lang
-          const localizedTitle = getLocalizedValue(
+        }),
+      },
+    ]
+  }, [currentPerspective?.membershipAcronyms, _])
+
+  const columns = useMemo<MRT_ColumnDef<Document>[]>(() => {
+    const searchWords = (column: MRT_Column<Document>) => [
+      globalFilter,
+      column.getFilterValue() as string,
+    ]
+    return [
+      {
+        accessorKey: 'titles',
+        accessorFn: (row) => row.titles,
+        header: t`documents_page_title_column`,
+        size: 260,
+        grow: true,
+        Cell({ row, column }) {
+          const { titles, documentType, journal } = row.original
+          const title = getLocalizedValue(
             titles,
-            preferredRowLang,
+            lang,
             supportedLocales,
             t`no_title_available`,
-          )
+          ).value
           return (
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Box
-                onClick={() => {
-                  if (isWaiting) return
-                  const documentUid = row.original.uid
-                  navigateToDetailsPage(documentUid)
-                }}
-                sx={{
-                  cursor: isWaiting ? 'progress' : 'pointer',
-                  color: 'primary.main',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: 'primary.dark',
-                  },
-                }}
+            <Box sx={{ minWidth: 0, width: '100%' }}>
+              {/* Le clic remonte à la ligne : ce bouton la rend accessible au clavier. */}
+              <Link
+                component='button'
+                underline='hover'
+                title={title}
+                sx={listTitleSx}
               >
                 <Highlighter
                   highlightClassName='highlight'
-                  searchWords={[
-                    globalFilter,
-                    column.getFilterValue() as string,
-                  ]}
+                  searchWords={searchWords(column)}
                   autoEscape
-                  textToHighlight={localizedTitle.value}
+                  textToHighlight={title}
                 />
-              </Box>
-              <LanguageChips
-                texts={titles}
-                selectedLang={localizedTitle.language}
-                onLanguageSelect={(newLang) =>
-                  setSelectedTitleLangs((prev) => ({
-                    ...prev,
-                    [uid]: newLang,
-                  }))
-                }
-              />
+              </Link>
+              <Typography variant='body2' color='text.secondary' noWrap sx={{ mt: 0.25 }}>
+                <span>{_(DocumentTypeLabels[documentType])}</span>
+                {journal?.title && (
+                  <>
+                    {' · '}
+                    <span>{journal.title}</span>
+                  </>
+                )}
+              </Typography>
             </Box>
           )
         },
       },
       {
         enableSorting: false,
-        accessorFn: (row) => {
-          return row.contributions
-        },
         accessorKey: 'contributions',
+        accessorFn: (row) => row.contributions,
         header: t`documents_page_contributors_column`,
-        Cell({
-          row,
-          column,
-        }: {
-          row: { original: { contributions: Array<Contribution> } }
-          column: MRT_Column<Document>
-        }) {
-          const contributors = row.original.contributions
-            .map((contribution: Contribution) => {
-              const person = contribution.person
-              const { firstName, lastName } = person
-              let name = [firstName, lastName].filter(Boolean).join(' ')
-              if (name.match(/^\s*$/)) {
-                name = person.getDisplayName()
-              }
-              return name
+        size: 140,
+        Cell({ row, column }) {
+          const names = row.original.contributions
+            .map(({ person }: Contribution) => {
+              const name = [person.firstName, person.lastName].filter(Boolean).join(' ')
+              return name.trim() ? name : person.getDisplayName()
             })
             .filter(Boolean)
-            .join(', ')
-          const filterValue = column.getFilterValue()
-
+          const [first, ...others] = names
           return (
-            <HighlighterWithEllipsis
-              searchWords={[globalFilter, filterValue as string]}
-              text={contributors}
-            />
+            <Typography variant='body1' noWrap title={names.join(', ')} sx={{ fontSize: '0.875rem' }}>
+              <Highlighter
+                highlightClassName='highlight'
+                searchWords={searchWords(column)}
+                autoEscape
+                textToHighlight={first ?? ''}
+              />
+              {others.length > 0 && (
+                <Box component='span' sx={{ color: 'text.secondary' }}>
+                  {` +${others.length}`}
+                </Box>
+              )}
+            </Typography>
           )
         },
       },
       {
-        size: 100,
         accessorKey: 'date',
-        header: t`documents_page_publication_date_column`,
-        Cell({ row }: { row: { original: Document } }) {
-          const dateStr = row.original?.publicationDate
-          if (!dateStr) {
-            return t`documents_page_publication_date_column_no_date_available`
-          }
-          const dateFormat = LocaleDateFormats['lang'] || 'MM-DD-YYYY'
-          if (!dayjs(dateStr, 'YYYY-MM-DD').isValid()) {
-            return (
-              <Highlighter
-                highlightClassName='highlight'
-                searchWords={[globalFilter]}
-                autoEscape
-                textToHighlight={dateStr}
-              />
-            )
-          }
-          const localizedDate = dayjs(dateStr, 'YYYY-MM-DD').format(dateFormat)
-
-          return (
-            <Highlighter
-              highlightClassName='highlight'
-              searchWords={[globalFilter]}
-              autoEscape
-              textToHighlight={localizedDate}
-            />
-          )
-        },
-        filterVariant: 'date-range',
-        muiTableHeadCellProps: {
-          sx: { '& .MuiBox-root': { gridTemplateColumns: '1fr' } },
-        },
-      },
-      {
-        accessorKey: 'publishedIn',
-        header: t`documents_page_publishedIn_column`,
-        Cell({ row, column }) {
-          const { journal } = row.original
-          const title = journal?.title
-
-          return (
-            title && (
-              <Highlighter
-                highlightClassName='highlight'
-                searchWords={[globalFilter, column.getFilterValue() as string]}
-                autoEscape
-                textToHighlight={title}
-              />
-            )
-          )
+        header: t`documents_page_year_column`,
+        size: 115,
+        Cell({ row }) {
+          const date = row.original.publicationDate
+          if (!date) return '—'
+          const parsed = dayjs(date, 'YYYY-MM-DD')
+          return parsed.isValid() ? parsed.format('YYYY') : date
         },
       },
       {
         enableSorting: false,
         accessorKey: 'halStatus',
         header: t`documents_page_halStatus_column`,
+        size: 205,
         Header: () => (
           <>
             {t`documents_page_halStatus_column`}
@@ -400,181 +324,93 @@ const DocumentsPage = () => {
         Cell({ row }) {
           return <HalStatusCell row={row} />
         },
-        filterVariant: 'multi-select',
-        filterSelectOptions: [
-          {
-            // @ts-expect-error: so that label accepts an Element
-            label: (
-              <HalStatusCellBadge
-                type={HalStatusCellType.InCollection}
-                isSingleLine
-              />
-            ),
-            value: 'in_collection',
-          },
-          {
-            // @ts-expect-error: so that label accepts an Element
-            label: (
-              <HalStatusCellBadge
-                type={HalStatusCellType.OutOfCollection}
-                acronyms={acronyms}
-                isSingleLine
-              />
-            ),
-            value: 'out_of_collection',
-          },
-          {
-            // @ts-expect-error: so that label accepts an Element
-            label: (
-              <HalStatusCellBadge
-                type={HalStatusCellType.OutsideHal}
-                isSingleLine
-              />
-            ),
-            value: 'outside_hal',
-          },
-        ],
       },
       {
         enableSorting: false,
-        accessorFn: (row) =>
-          row.upwOAStatus
-            ? row.upwOAStatus
-            : row.oaStatus
-              ? row.oaStatus
-              : 'UNKNOWN',
+        accessorFn: (row) => row.upwOAStatus ?? row.oaStatus ?? 'UNKNOWN',
         accessorKey: 'oaStatus',
         header: t`documents_page_oaStatus_column`,
-        Header: () => (
-          <>
-            {t`documents_page_oaStatus_column`}
-            <HelpLink topic='statuses' />
-          </>
-        ),
+        size: 170,
         Cell({ row }) {
           return <OAStatusCell row={row} />
         },
-        filterVariant: 'multi-select',
-        filterSelectOptions: [
-          //@ts-expect-error:  override filterSelectOptions to accept Element.jsx instead of Element
-          ...Object.values(OAStatus).map((option) => {
-            return {
-              label: <OAStatusCellBadge type={option} />,
-              value: option,
-            }
-          }),
-          {
-            // @ts-expect-error: so that label accepts an Element
-            label: <OAStatusCellBadge type={'UNKNOWN'} />,
-            value: 'UNKNOWN',
-          },
-        ],
+      },
+      ...(ownPerspective
+        ? [
+            {
+              id: 'nextAction',
+              enableSorting: false,
+              header: 'Action',
+              size: 170,
+              Cell({ row }: { row: { original: Document } }) {
+                return (
+                  <HalNextActionCell
+                    document={row.original}
+                    onDeposit={() => navigateToDetailsPage(row.original.uid, 'hal_deposit')}
+                  />
+                )
+              },
+            },
+          ]
+        : []),
+      {
+        accessorKey: 'publishedIn',
+        header: t`documents_page_publishedIn_column`,
+        size: 200,
+        Cell({ row }) {
+          return row.original.journal?.title ?? ''
+        },
+      },
+      {
+        accessorKey: 'type',
+        enableSorting: false,
+        header: t`documents_page_type_column`,
+        size: 80,
+        Cell({ row }) {
+          return DocumentTypeIcons[row.original.documentType]
+        },
       },
       {
         enableSorting: false,
         accessorKey: 'source',
         header: t`documents_page_source_column`,
-        Cell({ row }: { row: { original: Document } }) {
-          const orderedPlatforms = Object.values(BibliographicPlatform)
-
+        size: 130,
+        Cell({ row }) {
           return (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
-              {orderedPlatforms.reduce<ReactElement[]>((acc, platform) => {
-                const record = row.original.records.find(
-                  (record) => record.platform === platform,
-                )
-                if (record) {
-                  const metadata =
-                    BibliographicPlatformMetadata[record.platform]
-                  const imageElement = (
-                    <Image
-                      src={metadata?.icon || publicPath('/icons/default.png')}
-                      alt={metadata?.name || 'Unknown Source'}
-                      width={24}
-                      height={24}
-                      priority
-                      title={metadata?.name || 'Unknown Source'} // Tooltip on hover
-                    />
-                  )
-
-                  acc.push(
-                    record.url ? (
-                      <IconButton
-                        key={record.platform}
-                        component='a'
-                        href={record.url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        sx={{ padding: 0 }}
-                      >
-                        {imageElement}
-                      </IconButton>
-                    ) : (
-                      <Box key={record.platform}>{imageElement}</Box>
-                    ),
-                  )
-                }
-                return acc
-              }, [])}
-            </Box>
-          )
-        },
-        filterVariant: 'multi-select',
-        filterColumn: 'source',
-        //@ts-expect-error:  override filterSelectOptions to accept Element.jsx instead of Element
-        filterSelectOptions: Object.values(BibliographicPlatform).map(
-          (platform) => {
-            const metadata = BibliographicPlatformMetadata[platform]
-            return {
-              value: platform,
-              label: (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                  }}
-                >
-                  <Typography>{metadata?.name || platform}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {Object.values(BibliographicPlatform).reduce<ReactElement[]>((acc, platform) => {
+                const record = row.original.records.find((r) => r.platform === platform)
+                if (!record) return acc
+                const metadata = BibliographicPlatformMetadata[platform]
+                const image = (
                   <Image
                     src={metadata?.icon || publicPath('/icons/default.png')}
                     alt={metadata?.name || 'Unknown Source'}
+                    title={metadata?.name || 'Unknown Source'}
                     width={24}
                     height={24}
-                    priority
                   />
-                </Box>
-              ),
-            }
-          },
-        ),
-      },
-      {
-        id: 'expertise',
-        header: 'Expertises',
-        size: 52,
-        enableSorting: false,
-        enableColumnFilter: false,
-        Header: () => (
-          <Tooltip title="Inclure dans le calcul des expertises">
-            <Psychology fontSize="small" sx={{ color: 'text.secondary', display: 'block' }} />
-          </Tooltip>
-        ),
-        Cell({ row }: { row: { original: { uid: string } } }) {
-          const isSelected = expertiseSelectedPubs.includes(row.original.uid)
-          return (
-            <Tooltip title={isSelected ? 'Retirer du calcul des expertises' : 'Inclure dans le calcul des expertises'}>
-              <IconButton size="small" onClick={() => toggleExpertisePub(row.original.uid)}>
-                <Psychology fontSize="small" sx={{ color: isSelected ? '#006A61' : 'text.disabled', transition: 'color 0.2s' }} />
-              </IconButton>
-            </Tooltip>
+                )
+                acc.push(
+                  record.url ? (
+                    <IconButton
+                      key={platform}
+                      component='a'
+                      href={record.url}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      onClick={(event) => event.stopPropagation()}
+                      sx={{ padding: 0 }}
+                    >
+                      {image}
+                    </IconButton>
+                  ) : (
+                    <Box key={platform}>{image}</Box>
+                  ),
+                )
+                return acc
+              }, [])}
+            </Box>
           )
         },
       },
@@ -582,13 +418,10 @@ const DocumentsPage = () => {
   }, [
     lang,
     globalFilter,
-    selectedTitleLangs,
     supportedLocales,
     navigateToDetailsPage,
-    currentPerspective?.membershipAcronyms,
+    ownPerspective,
     _,
-    expertiseSelectedPubs,
-    toggleExpertisePub,
   ])
 
   const {
@@ -846,27 +679,29 @@ const DocumentsPage = () => {
       <DocumentTable<Document>
         columns={columns}
         data={documents}
-        enableRowActions
-        enableRowSelection={expertiseMode ? true : (row) => {
+        defaultColumnVisibility={DEFAULT_COLUMN_VISIBILITY}
+        {...listTableProps}
+        enableRowSelection={(row) => {
           if (!isDocument(row.original)) return false
           const canMerge = ability.can(PermissionAction.merge, row.original)
           return canMerge && row.original.state == DocumentState.default
         }}
-        {...(expertiseMode ? { rowSelection: mrtRowSelection, onRowSelectionChange: setMrtRowSelection as never } : {})}
         manualFiltering
         manualPagination
         manualSorting
         muiTableBodyRowProps={({ row }) => {
-          const isWaiting = row.original.state === 'waiting_for_update'
+          const isWaiting = row.original.state === DocumentState.waiting_for_update
           return {
             className: isWaiting ? 'mrt-row-waiting' : '',
+            onClick: () => {
+              if (!isWaiting) navigateToDetailsPage(row.original.uid)
+            },
+            sx: { cursor: isWaiting ? 'progress' : 'pointer' },
           }
         }}
-        onColumnFiltersChange={setColumnFilters}
         onGlobalFilterChange={setGlobalFilter}
         onPaginationChange={setPagination}
         onSortingChange={setSorting}
-        positionActionsColumn='last'
         rowCount={totalItems}
         state={{
           columnFilters,
@@ -875,80 +710,37 @@ const DocumentsPage = () => {
           pagination,
           sorting: sorting || DEFAULT_SORTING,
         }}
-        renderTopToolbarCustomActions={({ table }) => (
-          <Box sx={{ display: 'flex', gap: '1rem', p: '4px', alignItems: 'center' }}>
-            {expertiseMode ? (
-              <>
-                <Typography variant="body2" sx={{ color: '#006A61', fontWeight: 600 }}>
-                  {`${Object.values(mrtRowSelection).filter(Boolean).length} publication(s) sélectionnée(s)`}
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={confirmExpertiseSelection}
-                  sx={{ bgcolor: '#006A61', '&:hover': { bgcolor: '#004d47' }, textTransform: 'none' }}
-                >
-                  Confirmer la sélection
-                </Button>
-                <Button variant="outlined" onClick={cancelExpertiseMode} sx={{ textTransform: 'none' }}>
-                  Annuler
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  color='secondary'
-                  disabled={table.getSelectedRowModel().rows.length < 2}
-                  onClick={async () => {
-                    await onMergeDocuments(
-                      table.getSelectedRowModel().rows.map((row) => row.original.uid),
-                    )
-                    table.resetRowSelection()
-                  }}
-                  variant='contained'
-                >
-                  {t`documents_page_merge_selected_documents_button`}
-                </Button>
-                <HelpLink topic='merge' sx={{ ml: -1.5 }} />
-                <Button
-                  variant="outlined"
-                  startIcon={<Psychology fontSize="small" />}
-                  onClick={() => enterExpertiseMode(table.getState().rowSelection)}
-                  sx={{
-                    color: '#006A61', borderColor: '#006A61', textTransform: 'none',
-                    '&:hover': { borderColor: '#004d47', bgcolor: '#006A611a' },
-                  }}
-                >
-                  {'Sélectionner pour les expertises'}
-                  {expertiseSelectedPubs.length > 0 && (
-                    <Box component="span" sx={{
-                      ml: 0.75, bgcolor: '#006A61', color: 'white',
-                      borderRadius: '10px', fontSize: '0.7rem', px: 0.75, lineHeight: '18px',
-                    }}>
-                      {expertiseSelectedPubs.length}
-                    </Box>
-                  )}
-                </Button>
-              </>
-            )}
-          </Box>
-        )}
-        renderRowActionMenuItems={({ row, table }) => {
-          const isWaiting =
-            row.original.state === DocumentState.waiting_for_update
-          if (isWaiting) return []
-          return [
-            <Box sx={{ display: 'flex' }} key={row.original.uid}>
-              <MRT_ActionMenuItem
-                icon={<InfoIcon />}
-                key='edit'
-                label={t`documents_page_action_column_details`}
-                onClick={() => {
-                  navigateToDetailsPage(row.original.uid)
-                }}
-                table={table}
-              />
-            </Box>,
-          ]
+        renderTopToolbar={({ table }) => {
+          const selectedRows = table.getSelectedRowModel().rows
+          return (
+            <ListFilterBar
+              filters={filterDefinitions}
+              dateFilterId='date'
+              dateFilterLabel={t`documents_page_year_column`}
+              columnFilters={columnFilters}
+              onColumnFiltersChange={setColumnFilters}
+              globalFilter={globalFilter}
+              onGlobalFilterChange={setGlobalFilter}
+              endActions={<MRT_ShowHideColumnsButton table={table} />}
+            >
+              {selectedRows.length > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+                  <Button
+                    size='small'
+                    variant='outlined'
+                    disabled={selectedRows.length < 2}
+                    onClick={async () => {
+                      await onMergeDocuments(selectedRows.map((row) => row.original.uid))
+                      table.resetRowSelection()
+                    }}
+                  >
+                    {t`documents_page_merge_selected_documents_button`}
+                  </Button>
+                  <HelpLink topic='merge' />
+                </Box>
+              )}
+            </ListFilterBar>
+          )
         }}
       />
       </Box>

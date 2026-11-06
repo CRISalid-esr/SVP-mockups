@@ -38,6 +38,8 @@ dayjs.extend(utc)
 
 type DocumentTableProps<T extends MRT_RowData> = MaterialReactTableProps<T> & {
   columns: MRT_ColumnDef<T>[]
+  /** Colonnes masquées tant que l'utilisateur n'a rien choisi. */
+  defaultColumnVisibility?: MRT_VisibilityState
 }
 
 export const DEFAULT_PAGINATION = {
@@ -108,6 +110,7 @@ export const normalizeDateFilters = (
 
 export const DocumentTable = <T extends MRT_RowData>({
   columns,
+  defaultColumnVisibility = {},
   initialState,
   state,
   ...props
@@ -144,15 +147,18 @@ export const DocumentTable = <T extends MRT_RowData>({
       const raw = sessionStorage.getItem(
         'mrt_columnVisibility_publication_table',
       )
-      if (!raw) return {} // all visible by default
+      if (!raw) return defaultColumnVisibility
       const parsed = JSON.parse(raw) as MRT_VisibilityState
       const valid = new Set(getColumnIds(columns))
       // keep only known columns
-      return Object.fromEntries(
-        Object.entries(parsed).filter(([id]) => valid.has(id)),
-      )
+      return {
+        ...defaultColumnVisibility,
+        ...Object.fromEntries(
+          Object.entries(parsed).filter(([id]) => valid.has(id)),
+        ),
+      }
     } catch {
-      return {}
+      return defaultColumnVisibility
     }
   }
 
@@ -179,10 +185,10 @@ export const DocumentTable = <T extends MRT_RowData>({
 
   return (
     <MaterialReactTable<T>
-      {...props}
-      columns={columns}
       enableColumnFilters
       enableColumnResizing
+      {...props}
+      columns={columns}
       enablePagination
       enableToolbarInternalActions
       getRowId={(row) => {

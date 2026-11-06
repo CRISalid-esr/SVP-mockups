@@ -3,9 +3,11 @@
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Alert, Box, Button, Snackbar, Tab, Tabs, Typography,
+  Alert, Box, Button, IconButton, ListItemIcon, Menu, MenuItem, Snackbar, Typography,
 } from '@mui/material'
-import { AccountTree, PersonSearch, RestartAlt, ViewList, VisibilityOutlined } from '@mui/icons-material'
+import { Add, AutoAwesome, MoreHoriz, PersonSearch, RestartAlt } from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
+import { TabFilter } from '@/components/TabFilter'
 import * as Lingui from '@lingui/core'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import useStore from '@/stores/global_store'
@@ -22,7 +24,7 @@ import LabView from './components/Lab/LabView'
 import MemberProfileView from './components/MemberProfile/MemberProfileView'
 import { LAB_INFO, LabMember, memberForPerson } from './components/Lab/labMock'
 import { loadProfile, resetProfile, saveProfile } from './storage'
-import { EMPTY_PROFILE, ResearchProfile, ResearchTheme, TEAL, ThemeRelation, blankTheme } from './types'
+import { EMPTY_PROFILE, ResearchProfile, ResearchTheme, ThemeRelation, blankTheme } from './types'
 
 const JourneyGraph = dynamic(() => import('./components/JourneyGraph'), {
   ssr: false,
@@ -41,6 +43,7 @@ interface EditingState {
 }
 
 export default function ExpertiseV2Page() {
+  const muiTheme = useTheme()
   const { currentPerspective, connectedUser } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
   const displayName = currentPerspective?.getDisplayName(lang) || 'Jean Dupont'
@@ -58,6 +61,7 @@ export default function ExpertiseV2Page() {
   const [editing, setEditing] = useState<EditingState | null>(null)
   const [workshopOpen, setWorkshopOpen] = useState(false)
   const [snackbar, setSnackbar] = useState('')
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   /** Membre ouvert depuis la vue laboratoire, en lecture seule. */
   const [labMember, setLabMember] = useState<LabMember | null>(null)
 
@@ -174,21 +178,49 @@ export default function ExpertiseV2Page() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <DocumentHeader perspectiveName={labMember ? labMember.name : displayName} pageName="Profil de recherche 2">
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {/* Même moteur de recherche que le sélecteur d'espace, proposé là où on en a besoin. */}
-          <Button size="small" variant="outlined" startIcon={<PersonSearch />} onClick={(e) => openPicker(e.currentTarget)}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}>
-            Consulter le profil d’un·e collègue
-          </Button>
-          {scope === 'own' && (
-            <Button size="small" startIcon={<RestartAlt />} onClick={handleReset}
-              sx={{ textTransform: 'none', color: 'text.secondary' }}>
-              Réinitialiser la démo
+      {/* Le thème ouvert et l'atelier ont leur propre en-tête. */}
+      {!editing && !workshopOpen && (
+        <DocumentHeader perspectiveName={labMember ? labMember.name : displayName} pageName="Profil recherche">
+          {scope === 'own' ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {tab === 'themes' && mounted && themeCount > 0 && (
+                <>
+                  <Button variant="outlined" startIcon={<AutoAwesome />} onClick={() => setWorkshopOpen(true)}>
+                    Proposer des thèmes d’après mes publications
+                  </Button>
+                  <Button variant="contained" startIcon={<Add />} onClick={() => setEditing({ theme: blankTheme(), isNew: true })}>
+                    Ajouter un thème
+                  </Button>
+                </>
+              )}
+              <IconButton aria-label="Plus d’actions" onClick={(e) => setMenuAnchor(e.currentTarget)} sx={{ color: 'text.primary' }}>
+                <MoreHoriz />
+              </IconButton>
+              <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={() => setMenuAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              >
+                {/* Même moteur de recherche que le sélecteur d'espace. */}
+                <MenuItem onClick={() => { if (menuAnchor) openPicker(menuAnchor); setMenuAnchor(null) }}>
+                  <ListItemIcon><PersonSearch fontSize="small" /></ListItemIcon>
+                  Consulter le profil d’un·e collègue
+                </MenuItem>
+                <MenuItem onClick={() => { setMenuAnchor(null); handleReset() }}>
+                  <ListItemIcon><RestartAlt fontSize="small" /></ListItemIcon>
+                  Réinitialiser la démo
+                </MenuItem>
+              </Menu>
+            </Box>
+          ) : (
+            <Button variant="outlined" startIcon={<PersonSearch />} onClick={(e) => openPicker(e.currentTarget)} sx={{ whiteSpace: 'nowrap' }}>
+              Consulter le profil d’un·e collègue
             </Button>
           )}
-        </Box>
-      </DocumentHeader>
+        </DocumentHeader>
+      )}
 
       {consultedPerson && mounted && (
         <Box sx={{ flex: 1, overflow: 'auto' }}>
@@ -215,7 +247,6 @@ export default function ExpertiseV2Page() {
             initialTeam={structureLevelOf(currentPerspective?.uid) === 'team' ? LAB_INFO.teams[demoIndex(slug, LAB_INFO.teams.length)] : 'all'}
             researcherName={ownName}
             ownProfile={profile}
-            labName={displayName}
             includeOwn={isMyStructure}
             onOpenMember={openMember}
           />
@@ -223,27 +254,19 @@ export default function ExpertiseV2Page() {
       )}
 
       {scope === 'own' && !editing && !workshopOpen && (
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, bgcolor: 'background.paper' }}>
-          <Tabs
-            data-tour='profile-tabs'
-            value={tab}
-            onChange={(_e, v: TabKey) => setTab(v)}
-            sx={{
-              '& .MuiTab-root': { textTransform: 'none', fontWeight: 500, minHeight: 52 },
-              '& .Mui-selected': { color: TEAL },
-              '& .MuiTabs-indicator': { bgcolor: TEAL },
-            }}
-          >
-            <Tab value="themes" iconPosition="start" icon={<ViewList fontSize="small" />}
-              label={`Thèmes${mounted && themeCount ? ` (${themeCount})` : ''}`} />
-            <Tab value="graph" iconPosition="start" icon={<AccountTree fontSize="small" />} label="Graphe de parcours" />
-            <Tab value="preview" iconPosition="start" icon={<VisibilityOutlined fontSize="small" />}
-              label={`Aperçu public${mounted && publicCount ? ` (${publicCount})` : ''}`} />
-          </Tabs>
-        </Box>
+        <TabFilter
+          tourId='profile-tabs'
+          selectedValue={tab}
+          onTabChange={(value) => setTab(value as TabKey)}
+          tabsData={[
+            { label: 'Thèmes', value: 'themes', numberOfItems: mounted ? themeCount : undefined, color: muiTheme.palette.primary.main },
+            { label: 'Graphe de parcours', value: 'graph' },
+            { label: 'Aperçu public', value: 'preview', numberOfItems: mounted ? publicCount : undefined, color: muiTheme.palette.primary.main },
+          ]}
+        />
       )}
 
-      {scope === 'own' && <Box sx={{ flex: 1, overflow: 'auto' }}>
+      {scope === 'own' && <Box sx={{ flex: 1, overflow: editing || workshopOpen ? 'visible' : 'auto' }}>
         {!mounted ? null : workshopOpen ? (
           <ThemeProposalsWorkshop profile={profile} onBack={() => setWorkshopOpen(false)} onApply={applyWorkshop} />
         ) : editing ? (
@@ -277,7 +300,6 @@ export default function ExpertiseV2Page() {
             profile={profile}
             researcherName={displayName}
             affiliation={labName}
-            onBack={() => setTab('themes')}
           />
         )}
       </Box>}

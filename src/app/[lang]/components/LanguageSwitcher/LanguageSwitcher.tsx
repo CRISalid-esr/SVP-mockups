@@ -1,8 +1,7 @@
 'use client'
 
 import { t } from '@lingui/core/macro'
-import Image from 'next/image'
-import { publicPath } from '@/utils/publicPath'
+import LanguageIcon from '@mui/icons-material/Language'
 import { Box } from '@mui/system'
 import {
   ListItemText,
@@ -10,7 +9,6 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 
@@ -19,7 +17,6 @@ type Props = {
 }
 
 const LanguageSwitcher = ({ value }: Props) => {
-  const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -49,52 +46,30 @@ const LanguageSwitcher = ({ value }: Props) => {
     <Select
       aria-label='Language switcher'
       name='language switcher'
-      variant='outlined'
-      fullWidth
+      variant='standard'
+      disableUnderline
+      IconComponent={() => null}
       value={value}
       onChange={handleLangChange}
       inputProps={{ 'aria-label': 'Language switcher' }}
       renderValue={(val) => (
-        <Box sx={{ display: 'flex' }}>
-          <Image
-            src={publicPath('/icons/language.svg')}
-            alt='language'
-            width={24}
-            height={24}
-            priority
-          />
-          <Box
-            component='span'
-            sx={{
-              ml: 1,
-              color: theme.palette.primaryContainer,
-              fontSize: theme.utils.pxToRem(16),
-              lineHeight: theme.typography.lineHeight.lineHeight24px,
-              fontWeight: theme.typography.fontWeightRegular,
-            }}
-          >
-            {localeTranslations[val as ExtendedLanguageCode] ?? String(val)}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <LanguageIcon sx={{ fontSize: 22 }} aria-hidden />
+          <Box component='span' sx={{ fontSize: '0.875rem', textTransform: 'uppercase' }}>
+            {String(val)}
           </Box>
         </Box>
       )}
       sx={{
-        '& .MuiOutlinedInput-notchedOutline': {
-          border: '1px solid transparent',
-        },
-        '& :focus-visible': {
-          outline: '2px solid #fff',
-          border: '2px solid #000',
-        },
-        '& .MuiSelect-icon': { color: theme.palette.white },
-        '& .MuiOutlinedInput-root': {
-          fontSize: theme.utils.pxToRem(16),
-          '& fieldset': { border: 0 },
-        },
-        '& .MuiInputBase-input': {
-          fontWeight: theme.typography.fontWeightRegular,
-          color: theme.palette.white,
-          opacity: 1,
-          lineHeight: theme.typography.lineHeight.lineHeight24px,
+        color: 'text.primary',
+        borderRadius: 2,
+        '&:hover': { backgroundColor: 'navHover' },
+        '& .MuiSelect-select.MuiSelect-select': {
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px',
+          borderRadius: 2,
+          backgroundColor: 'transparent',
         },
       }}
     >

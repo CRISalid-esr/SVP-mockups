@@ -12,8 +12,8 @@ const PerspectiveVariantSwitch: React.FC = () => {
   const { variant, setVariant } = usePerspectiveUi()
 
   return (
-    <Box sx={{ color: theme.palette.primaryContainer, mb: 1.5 }}>
-      <Typography variant='caption' component='div' sx={{ opacity: 0.8, mb: 0.5 }}>
+    <Box>
+      <Typography variant='caption' component='div' color='text.secondary' sx={{ mb: 0.5 }}>
         {t`perspective_variant_label`}
       </Typography>
       <ToggleButtonGroup
@@ -25,14 +25,12 @@ const PerspectiveVariantSwitch: React.FC = () => {
         aria-label={t`perspective_variant_label`}
         sx={{
           '& .MuiToggleButton-root': {
-            color: 'inherit',
-            textTransform: 'none',
+            color: 'text.secondary',
             py: 0.25,
-            borderColor: 'rgba(255,255,255,0.3)',
           },
           '& .MuiToggleButton-root.Mui-selected, & .MuiToggleButton-root.Mui-selected:hover': {
             color: theme.palette.primary.main,
-            backgroundColor: theme.palette.primaryContainer,
+            backgroundColor: 'navActive',
           },
         }}
       >

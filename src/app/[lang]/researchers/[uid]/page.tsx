@@ -379,12 +379,12 @@ export default function ResearcherDetailPage() {
       {/* Back button */}
       <Button
         component={Link}
-        href={`/${lang}/researchers`}
+        href={`/${lang}/research-structures`}
         startIcon={<ArrowBackIcon />}
         variant='text'
         sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}
       >
-        Chercheurs
+        Structures
       </Button>
 
       {/* Hero */}

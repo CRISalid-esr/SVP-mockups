@@ -83,7 +83,7 @@ const fontSize = {
  */
 export const figmaTypography = {
   fontFamily:
-    'Roboto, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+    'Inter, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   fontWeight,
   heading: {
     h1: {
@@ -238,30 +238,13 @@ const muiTypography = {
   fontWeightRegular: figmaTypography.fontWeight.normal,
   fontWeightMedium: figmaTypography.fontWeight.medium,
   fontWeightBold: figmaTypography.fontWeight.bold,
-  h1: {
-    fontWeight: figmaTypography.heading.h1.fontWeight,
-    fontSize: figmaTypography.heading.h1.fontSize,
-  },
-  h2: {
-    fontWeight: figmaTypography.heading.h2.fontWeight,
-    fontSize: figmaTypography.heading.h2.fontSize,
-  },
-  h3: {
-    fontWeight: figmaTypography.heading.h3.fontWeight,
-    fontSize: figmaTypography.heading.h3.fontSize,
-  },
-  h4: {
-    fontWeight: figmaTypography.heading.h4.fontWeight,
-    fontSize: figmaTypography.heading.h4.fontSize,
-  },
-  h5: {
-    fontWeight: figmaTypography.heading.h5.fontWeight,
-    fontSize: figmaTypography.heading.h5.fontSize,
-  },
-  h6: {
-    fontWeight: figmaTypography.heading.h6.fontWeight,
-    fontSize: figmaTypography.heading.h6.fontSize,
-  },
+  // Titres resserrés et en gras : la hiérarchie vient de la graisse plutôt que de la taille.
+  h1: { fontWeight: fontWeight.bold, fontSize: fontSize.rem34px, lineHeight: 1.2 },
+  h2: { fontWeight: fontWeight.bold, fontSize: fontSize.rem32px, lineHeight: 1.2 },
+  h3: { fontWeight: fontWeight.bold, fontSize: fontSize.rem28px, lineHeight: 1.25 },
+  h4: { fontWeight: fontWeight.bold, fontSize: fontSize.rem24px, lineHeight: 1.25 },
+  h5: { fontWeight: fontWeight.medium, fontSize: fontSize.rem20px, lineHeight: 1.3 },
+  h6: { fontWeight: fontWeight.medium, fontSize: pxToRem(18), lineHeight: 1.3 },
   body1: {
     // This will be applied as default on html body tag
     fontWeight: figmaTypography.body.medium.fontWeight,

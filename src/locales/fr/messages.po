@@ -1575,7 +1575,7 @@ msgstr "Décrivez vos thèmes de recherche, reliez-les dans un graphe de parcour
 
 #: src/app/[lang]/components/Onboarding/tourSteps.ts:20
 msgid "onboarding_profile_title"
-msgstr "Profil de recherche 2"
+msgstr "Profil recherche"
 
 #: src/app/[lang]/components/Onboarding/tourSteps.ts:23
 msgid "onboarding_rights_body"
@@ -1992,3 +1992,29 @@ msgstr "C'est bientôt prêt !"
 #: src/app/[lang]/components/WordStream/WordStream.tsx:187
 msgid "wordstream_no_data_to_display"
 msgstr "Aucune donnée à afficher"
+
+#: src/app/[lang]/components/appbar/Appbar.tsx
+msgid "topbar_logout"
+msgstr "Se déconnecter"
+
+#: src/app/[lang]/components/appbar/Appbar.tsx
+msgid "topbar_theme"
+msgstr "Thème"
+
+msgid "documents_page_reset_filters"
+msgstr "Réinitialiser les filtres"
+
+msgid "documents_page_search_placeholder"
+msgstr "Chercher"
+
+msgid "documents_page_year_column"
+msgstr "Année"
+
+msgid "documents_page_year_from"
+msgstr "De"
+
+msgid "documents_page_year_to"
+msgstr "À"
+
+msgid "document_details_summary_all_authors"
+msgstr "Voir tous les auteurs"

@@ -28,15 +28,14 @@ describe('ThemeProvider', () => {
     })
   })
 
-  it('renders with the default theme as system', () => {
+  it('renders with the light theme by default', () => {
     render(
       <ThemeProvider>
         <TestComponent />
       </ThemeProvider>
     )
 
-    // Initially, the system preference is checked, and should be set to dark based on our mock
-    expect(screen.getByText(/Current Theme:/i)).toHaveTextContent('Current Theme: system')
+    expect(screen.getByText(/Current Theme:/i)).toHaveTextContent('Current Theme: light')
   })
 
   it('switches to light theme when setTheme is called with "light"', async () => {

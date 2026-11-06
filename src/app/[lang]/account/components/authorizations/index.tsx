@@ -1,65 +1,25 @@
-import { CustomCard } from '@/components/Card'
 import { Trans } from '@lingui/react'
-import {
-  CardContent,
-  Checkbox,
-  FormControlLabel,
-  Typography,
-} from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { Box } from '@mui/system'
+import { Box, Card, Checkbox, FormControlLabel, Typography } from '@mui/material'
 
-const AuthorizationsPage = () => {
-  const theme = useTheme()
-
-  return (
-    <Box>
-      <CustomCard
-        header={
-          <Typography
-            sx={{
-              color: theme.palette.primary.main,
-              fontSize: theme.utils.pxToRem(20),
-              fontStyle: 'normal',
-              fontWeight: theme.typography.fontWeightRegular,
-              lineHeight: 'normal',
-            }}
-          >
-            <Trans id='authorizations_page_authorizations_title' />
-          </Typography>
-        }
-      >
-        <CardContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: theme.spacing(4),
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: theme.utils.pxToRem(16),
-              fontStyle: 'normal',
-              fontWeight: theme.typography.fontWeightMedium,
-              lineHeight: theme.typography.lineHeight.lineHeight24px,
-              letterSpacing: '0.5px',
-              color: theme.palette.textSecondary,
-            }}
-          >
-            <Trans id='authorizations_page_description' />
-          </Typography>
-          <FormControlLabel
-            control={<Checkbox defaultChecked />}
-            label={<Trans id='authorizations_page_list_publications' />}
-          />
-          <FormControlLabel
-            control={<Checkbox defaultChecked />}
-            label={<Trans id='authorizations_page_my_expertise' />}
-          />
-        </CardContent>
-      </CustomCard>
+const AuthorizationsPage = () => (
+  <Card sx={{ p: 3 }}>
+    <Typography variant='h6' component='h2'>
+      <Trans id='authorizations_page_authorizations_title' />
+    </Typography>
+    <Typography variant='body1' color='text.secondary' sx={{ mt: 0.5, mb: 2 }}>
+      <Trans id='authorizations_page_description' />
+    </Typography>
+    <Box sx={{ display: 'grid', gap: 0.5 }}>
+      <FormControlLabel
+        control={<Checkbox defaultChecked />}
+        label={<Trans id='authorizations_page_list_publications' />}
+      />
+      <FormControlLabel
+        control={<Checkbox defaultChecked />}
+        label={<Trans id='authorizations_page_my_expertise' />}
+      />
     </Box>
-  )
-}
+  </Card>
+)
+
 export default AuthorizationsPage

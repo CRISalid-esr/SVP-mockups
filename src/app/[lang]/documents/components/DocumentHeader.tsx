@@ -22,14 +22,16 @@ const DocumentHeader: FC<DocumentHeaderProps> = ({
   const variant = usePerspectiveUi((state) => state.variant)
   return (
     <Box
-      mb={3}
+      mb={4}
       sx={{
         display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
         justifyContent: 'space-between',
         alignItems: 'center',
       }}
     >
-      <Typography variant='h4' gutterBottom>
+      <Typography variant='h4'>
         {pageName} :{' '}
         {variant === 'title' ? <PerspectiveTitle name={perspectiveName} /> : perspectiveName}
         {helpTopic && <HelpLink topic={helpTopic} sx={{ ml: 0.5 }} />}

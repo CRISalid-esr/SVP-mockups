@@ -34,7 +34,7 @@ const PerspectiveTitle: React.FC<{ name: string }> = ({ name }) => {
           verticalAlign: 'baseline',
           borderBottom: `2px dashed ${theme.palette.primary.main}`,
           borderRadius: 0.5,
-          '&:hover': { backgroundColor: theme.palette.primaryContainer },
+          '&:hover': { backgroundColor: 'navActive' },
           '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
         }}
       >

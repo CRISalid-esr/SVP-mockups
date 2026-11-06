@@ -29,8 +29,8 @@ const PerspectiveAvatar: React.FC<{
       height: size,
       fontSize: size * 0.4,
       fontWeight: 600,
-      bgcolor: kind === 'person' ? 'primaryContainer' : 'secondaryContainer',
-      color: kind === 'person' ? 'onPrimaryContainer' : 'onSecondaryContainer',
+      bgcolor: kind === 'person' ? 'navActive' : 'secondaryContainer',
+      color: kind === 'person' ? 'primary.main' : 'onSecondaryContainer',
       ...sx,
     }}
   >

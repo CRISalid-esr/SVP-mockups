@@ -1,13 +1,12 @@
 'use client'
 
-import { Avatar, Box, Card, CardContent, CardHeader, Chip, LinearProgress, Link, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material'
+import { Avatar, Box, Card, CardContent, CardHeader, Chip, LinearProgress, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material'
 import NextLink from 'next/link'
 import { PersonRaw } from '../types'
 
 type Props = {
   members: PersonRaw[]
   lang: string
-  structureUid: string
 }
 
 function initials(displayName: string): string {
@@ -30,7 +29,7 @@ const STATUT_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'succe
   'Ingé.': 'default',
 }
 
-export default function MembersTable({ members, lang, structureUid }: Props) {
+export default function MembersTable({ members, lang }: Props) {
   if (members.length === 0) return null
 
   const sorted = [...members]
@@ -44,17 +43,6 @@ export default function MembersTable({ members, lang, structureUid }: Props) {
           <Typography variant='subtitle1' fontWeight='bold'>
             Membres les plus actifs
           </Typography>
-        }
-        action={
-          <Link
-            component={NextLink}
-            href={`/${lang}/researchers?structure=${structureUid}`}
-            underline='hover'
-            variant='body2'
-            sx={{ color: 'success.main', fontWeight: 500 }}
-          >
-            Voir tous les membres →
-          </Link>
         }
         subheader={`${members.length} membre${members.length > 1 ? 's' : ''} au total`}
         sx={{ pb: 0 }}

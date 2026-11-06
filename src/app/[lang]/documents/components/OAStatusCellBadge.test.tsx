@@ -1,3 +1,4 @@
+import { alpha } from '@mui/material/styles'
 import { OAStatus } from '@prisma/client'
 import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
@@ -22,7 +23,7 @@ describe('OAStatusCellBadge Component', () => {
     let chip = screen.getByText('CLOSED')
     expect(chip).toBeInTheDocument()
     let chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#f23427' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#f23427', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -33,7 +34,7 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText('UNKNOWN')
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#81888f' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#81888f', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -54,7 +55,7 @@ describe('OAStatusCellBadge Component', () => {
     let chip = screen.getByText('DIAMOND')
     expect(chip).toBeInTheDocument()
     let chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#5595d9' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#5595d9', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -64,7 +65,7 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText('GOLD')
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#f5b01b' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#f5b01b', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -74,7 +75,7 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText(OAStatus.BRONZE)
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#eb8036' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#eb8036', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -84,7 +85,7 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText('GREEN')
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#2fb028' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#2fb028', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -94,7 +95,7 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText('HYBRID')
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#7b28bf' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#7b28bf', 0.12) })
 
     rerender(
       <I18nProvider i18n={i18n}>
@@ -104,6 +105,6 @@ describe('OAStatusCellBadge Component', () => {
     chip = screen.getByText('OTHER')
     expect(chip).toBeInTheDocument()
     chiproot = chip.closest('.MuiChip-root')
-    expect(chiproot).toHaveStyle({ backgroundColor: '#eb6580' })
+    expect(chiproot).toHaveStyle({ backgroundColor: alpha('#eb6580', 0.12) })
   })
 })

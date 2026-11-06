@@ -577,7 +577,7 @@ msgstr "ISSN: <0>{0}</0>"
 #. js-lingui-explicit-id
 #: src/app/[lang]/components/Sidebar/Sidebar.tsx:580
 msgid "side_bar_research_activities"
-msgstr ""
+msgstr "Research activities"
 
 #: src/app/[lang]/account/components/myProfile/components/identifiers/OrcidLoginButton.tsx:58
 msgid "authenticate_tooltip"
@@ -1992,3 +1992,29 @@ msgstr "Coming soon !"
 #: src/app/[lang]/components/WordStream/WordStream.tsx:187
 msgid "wordstream_no_data_to_display"
 msgstr "No data to display"
+
+#: src/app/[lang]/components/appbar/Appbar.tsx
+msgid "topbar_logout"
+msgstr "Log out"
+
+#: src/app/[lang]/components/appbar/Appbar.tsx
+msgid "topbar_theme"
+msgstr "Theme"
+
+msgid "documents_page_reset_filters"
+msgstr "Reset filters"
+
+msgid "documents_page_search_placeholder"
+msgstr "Search"
+
+msgid "documents_page_year_column"
+msgstr "Year"
+
+msgid "documents_page_year_from"
+msgstr "From"
+
+msgid "documents_page_year_to"
+msgstr "To"
+
+msgid "document_details_summary_all_authors"
+msgstr "See all authors"

@@ -1,73 +1,92 @@
 'use client'
 
-import { BaseEdge, EdgeLabelRenderer, EdgeProps, getBezierPath, useReactFlow } from '@xyflow/react'
-import { Box, Typography } from '@mui/material'
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, InternalNode, Position, getBezierPath, useInternalNode } from '@xyflow/react'
+import { ButtonBase } from '@mui/material'
 import { RelationDirection, TEAL } from '../types'
 
-export const EDGE_COLOR_LABELED = TEAL
-export const EDGE_COLOR_UNLABELED = '#94a3b8'
-export const ARROW_COLORS = [EDGE_COLOR_LABELED, EDGE_COLOR_UNLABELED]
+const EDGE_COLOR = '#A9B6B3'
+export const ARROW_COLORS = [EDGE_COLOR, TEAL]
 
 export interface JourneyEdgeData {
   label: string
   direction: RelationDirection
+  onSelect: (id: string) => void
   [key: string]: unknown
 }
 
-export default function JourneyEdge({
-  id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, selected, data,
-}: EdgeProps) {
-  const { setEdges } = useReactFlow()
-  const edgeData = (data ?? { label: '', direction: 'forward' }) as JourneyEdgeData
-  const label = edgeData.label?.trim() ?? ''
-  const hasLabel = label.length > 0
-  const color = hasLabel ? EDGE_COLOR_LABELED : EDGE_COLOR_UNLABELED
+/** Point d'accroche : le milieu du bord tourné vers l'autre thème, pour que le trait ne contourne jamais une carte. */
+function anchor(node: InternalNode, other: InternalNode) {
+  const { x, y } = node.internals.positionAbsolute
+  const width = node.measured.width ?? 0
+  const height = node.measured.height ?? 0
+  const otherCenterX = other.internals.positionAbsolute.x + (other.measured.width ?? 0) / 2
+  const otherCenterY = other.internals.positionAbsolute.y + (other.measured.height ?? 0) / 2
+  const centerX = x + width / 2
+  const centerY = y + height / 2
+
+  if (Math.abs(otherCenterX - centerX) > width) {
+    return otherCenterX > centerX
+      ? { x: x + width, y: centerY, position: Position.Right }
+      : { x, y: centerY, position: Position.Left }
+  }
+  return otherCenterY > centerY
+    ? { x: centerX, y: y + height, position: Position.Bottom }
+    : { x: centerX, y, position: Position.Top }
+}
+
+export default function JourneyEdge({ id, source, target, selected, data }: EdgeProps) {
+  const sourceNode = useInternalNode(source)
+  const targetNode = useInternalNode(target)
+  const { label: rawLabel, direction, onSelect } = data as JourneyEdgeData
+  const label = rawLabel?.trim()
+  const color = selected ? TEAL : EDGE_COLOR
   const markerId = `url(#journey-arrow-${color.replace('#', '')})`
 
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition,
-  })
+  if (!sourceNode || !targetNode) return null
+  const start = anchor(sourceNode, targetNode)
+  const end = anchor(targetNode, sourceNode)
 
-  const select = () => setEdges((eds) => eds.map((e) => ({ ...e, selected: e.id === id })))
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX: start.x,
+    sourceY: start.y,
+    sourcePosition: start.position,
+    targetX: end.x,
+    targetY: end.y,
+    targetPosition: end.position,
+  })
 
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        style={{
-          stroke: color,
-          strokeWidth: selected ? 3 : 2,
-          strokeDasharray: hasLabel ? undefined : '6 4',
-          filter: selected ? `drop-shadow(0 0 4px ${color}88)` : undefined,
-        }}
-        markerEnd={edgeData.direction !== 'backward' ? markerId : undefined}
-        markerStart={edgeData.direction !== 'forward' ? markerId : undefined}
+        style={{ stroke: color, strokeWidth: selected ? 2 : 1.5 }}
+        markerEnd={direction !== 'backward' ? markerId : undefined}
+        markerStart={direction !== 'forward' ? markerId : undefined}
       />
       <EdgeLabelRenderer>
-        <Box
+        <ButtonBase
           className="nodrag nopan"
-          onClick={select}
+          onClick={() => onSelect(id)}
           sx={{
             position: 'absolute',
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: 'all', cursor: 'pointer',
-            px: 1.25, py: 0.4, borderRadius: '999px',
-            bgcolor: selected ? color : 'rgba(255,255,255,0.95)',
-            border: `1.5px solid ${color}`,
-            boxShadow: selected ? `0 0 0 3px ${color}33` : '0 1px 3px rgba(0,0,0,0.1)',
-            transition: 'all 0.15s ease',
-            '&:hover': { bgcolor: selected ? color : `${color}18` },
+            pointerEvents: 'all',
+            px: 1,
+            py: 0.25,
+            borderRadius: 2,
+            fontSize: '0.75rem',
+            fontStyle: label ? 'normal' : 'italic',
+            whiteSpace: 'nowrap',
+            color: selected ? 'primary.main' : 'text.secondary',
+            bgcolor: selected ? 'navActive' : 'background.paper',
+            border: '1px solid',
+            borderColor: selected ? 'primary.main' : 'divider',
+            '&:hover': { borderColor: 'primary.main' },
           }}
         >
-          <Typography variant="caption" sx={{
-            fontSize: '0.74rem', whiteSpace: 'nowrap',
-            fontWeight: hasLabel ? 700 : 400, fontStyle: hasLabel ? 'normal' : 'italic',
-            color: selected ? '#fff' : color,
-          }}>
-            {hasLabel ? label : 'Qualifier cette relation'}
-          </Typography>
-        </Box>
+          {label || 'À qualifier'}
+        </ButtonBase>
       </EdgeLabelRenderer>
     </>
   )

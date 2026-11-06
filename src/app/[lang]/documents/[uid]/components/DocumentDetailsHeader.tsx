@@ -1,7 +1,6 @@
-import { Trans } from '@lingui/react/macro'
+import { t } from '@lingui/core/macro'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { IconButton, Typography } from '@mui/material'
-import { Box } from '@mui/system'
+import { IconButton, Tooltip } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useStore from '@/stores/global_store'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
@@ -19,31 +18,17 @@ const DocumentDetailsHeader = () => {
     router.push(`/${lang}/documents?${params.toString()}`)
   }
 
+  const label =
+    connectedUser?.person?.uid !== currentPerspective?.uid
+      ? `${t`document_details_page_back_to_publications`} : ${currentPerspective?.getDisplayName(lang) || ''}`
+      : t`document_details_page_back_to_my_publications`
+
   return (
-    <Box
-      mb={3}
-      onClick={() => backToPublicationList()}
-      sx={{
-        display: 'flex',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        cursor: 'pointer',
-      }}
-    >
-      <IconButton>
+    <Tooltip title={label}>
+      <IconButton aria-label={label} onClick={backToPublicationList} sx={{ color: 'text.primary', mt: -0.5 }}>
         <ArrowBackIcon />
       </IconButton>
-      <Typography>
-        {connectedUser?.person?.uid !== currentPerspective?.uid ? (
-          <>
-            <Trans>document_details_page_back_to_publications</Trans> :{' '}
-            {currentPerspective?.getDisplayName(lang) || ''}
-          </>
-        ) : (
-          <Trans>document_details_page_back_to_my_publications</Trans>
-        )}
-      </Typography>
-    </Box>
+    </Tooltip>
   )
 }
 

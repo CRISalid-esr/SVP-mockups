@@ -14,8 +14,8 @@ const Divider = (theme: Theme) => ({
     defaultProps: {},
     styleOverrides: {
       root: {
-        color: theme.palette.outlineVariant,
-        borderColor: theme.palette.outlineVariant,
+        color: theme.palette.divider,
+        borderColor: theme.palette.divider,
         fontSize: '2px',
         '&::before': {
           position: 'inherit',

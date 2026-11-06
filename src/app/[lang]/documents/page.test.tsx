@@ -302,17 +302,46 @@ describe('DocumentsPage Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Title')).toBeInTheDocument()
       expect(screen.getByText('John Doe')).toBeInTheDocument()
-      expect(screen.getByText('01-01-2024')).toBeInTheDocument()
+      expect(screen.getByText('2024')).toBeInTheDocument()
       expect(screen.getByText('Test journal')).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'HAL' })).toHaveAttribute(
-        'href',
-        'https://url-to-record-1/',
-      )
-      expect(screen.getByRole('link', { name: 'OpenAlex' })).toHaveAttribute(
-        'href',
-        'https://url-to-record-2/',
+    })
+    // Sources : colonne masquée par défaut, disponible dans le choix des colonnes.
+    expect(screen.queryByRole('link', { name: 'HAL' })).not.toBeInTheDocument()
+  })
+
+  it('applies a filter chosen in the filter bar, then resets it', async () => {
+    renderComponent()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: i18n.t('documents_page_source_column') }),
+    )
+    fireEvent.click(await screen.findByRole('menuitem', { name: /HAL/ }))
+
+    await waitFor(() => {
+      expect(mockFetchDocuments).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          columnFilters: JSON.stringify([{ id: 'source', value: ['hal'] }]),
+        }),
       )
     })
+
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+    fireEvent.click(
+      screen.getByRole('button', { name: i18n.t('documents_page_reset_filters') }),
+    )
+
+    await waitFor(() => {
+      expect(mockFetchDocuments).toHaveBeenLastCalledWith(
+        expect.objectContaining({ columnFilters: JSON.stringify([]) }),
+      )
+    })
+  })
+
+  it('opens the publication when its row is clicked, once', async () => {
+    renderComponent()
+
+    fireEvent.click(await screen.findByText('Test journal'))
+    expect(pushMock).toHaveBeenCalledTimes(1)
   })
 
   it('navigate to the document page if the user clicks on the title', async () => {
@@ -373,9 +402,8 @@ describe('DocumentsPage Component', () => {
     let mergeBtn = screen.queryByRole('button', {
       name: i18n.t('documents_page_merge_selected_documents_button'),
     })
-    // default : button is present but not enabled
-    expect(mergeBtn).toBeInTheDocument()
-    expect(mergeBtn).toBeDisabled()
+    // default : no merge action until a row is selected
+    expect(mergeBtn).not.toBeInTheDocument()
 
     const checkboxes = screen.getAllByRole('checkbox')
 

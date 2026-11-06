@@ -3,6 +3,7 @@ import useStore from '@/stores/global_store'
 import { LocaleDateFormats } from '@/types/LocaleDateFormats'
 import { Typography } from '@mui/material'
 import dayjs from 'dayjs'
+import * as Lingui from '@lingui/core'
 
 const PublicationDate = () => {
   const { selectedDocument = null } = useStore((state) => state.document)
@@ -14,7 +15,7 @@ const PublicationDate = () => {
         : !dayjs(selectedDocument.publicationDate, 'YYYY-MM-DD').isValid()
           ? selectedDocument.publicationDate
           : dayjs(selectedDocument.publicationDate, 'YYYY-MM-DD').format(
-              LocaleDateFormats['lang'] || 'MM-DD-YYYY',
+              LocaleDateFormats[Lingui.i18n.locale] || 'MM-DD-YYYY',
             )}
     </Typography>
   )

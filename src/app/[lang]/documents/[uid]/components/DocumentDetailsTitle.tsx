@@ -15,7 +15,7 @@ const DocumentDetailsTitle = () => {
     supportedLocales,
     t`no_title_available`,
   )
-  return <Typography variant='h5'>{localizedTitle.value}</Typography>
+  return <Typography variant='h4' component='h1'>{localizedTitle.value}</Typography>
 }
 
 export default DocumentDetailsTitle

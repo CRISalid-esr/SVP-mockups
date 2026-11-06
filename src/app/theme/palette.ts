@@ -59,6 +59,11 @@ const light: Theme = {
   cardBorder: colors.cardBorder,
   textSecondary: colors.textSecondary,
   lightSecondaryContainer: colors.lightSecondaryContainer,
+  background: { default: '#FBFCFC', paper: '#FFFFFF' },
+  text: { primary: '#26302E', secondary: '#5F6B68' },
+  divider: '#E3EAE7',
+  navHover: '#F3F7F6',
+  navActive: '#E6F2F0',
   primary: {
     main: colors.primary40,
     light: colors.primary40,
@@ -126,6 +131,10 @@ const dark: Theme = {
   white: colors.white,
   cardBorder: colors.cardBorder,
   lightSecondaryContainer: colors.lightSecondaryContainer,
+  background: { default: colors.neutral6, paper: colors.neutral10 },
+  divider: 'rgba(255, 255, 255, 0.12)',
+  navHover: 'rgba(255, 255, 255, 0.05)',
+  navActive: 'rgba(255, 255, 255, 0.1)',
   primary: {
     main: colors.primary80,
     light: colors.primary40,

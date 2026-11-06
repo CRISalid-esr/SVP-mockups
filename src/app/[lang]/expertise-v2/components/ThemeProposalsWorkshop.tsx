@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from 'react'
 import {
-  Box, Breadcrumbs, Button, Checkbox, Chip, CircularProgress, FormControlLabel, IconButton, Link, Radio, RadioGroup,
-  Step, StepLabel, Stepper, TextField, Tooltip, Typography,
+  Box, Button, Card, Checkbox, Chip, CircularProgress, Collapse, FormControlLabel, IconButton, Link, Radio, RadioGroup,
+  TextField, Tooltip, Typography,
 } from '@mui/material'
+import { ArrowBack, AutoAwesome, Close, OpenInNew } from '@mui/icons-material'
 import {
-  ArrowBack, AutoAwesome, Close, HistoryEdu, LinkOutlined, OpenInNew, ScheduleOutlined,
-} from '@mui/icons-material'
-import {
-  CURRENT_YEAR, ResearchProfile, ResearchTheme, StudiedPeriod, TEAL, TEAL_DARK, VOCAB_CONFIG, blankTheme, formatPeriod,
+  CURRENT_YEAR, ResearchProfile, ResearchTheme, StudiedPeriod, blankTheme, formatPeriod,
 } from '../types'
 import {
   PUBLICATIONS, Publication, ThemeProposal, coverageMap, halUrl, periodFromPublications, proposeThemes,
@@ -19,14 +17,12 @@ import PublicationPicker from './PublicationPicker'
 import { StudiedPeriodChip } from './StudiedPeriodPicker'
 
 // ─── Atelier « Proposer des thèmes d'après mes publications » ────────────────
-// Remplace l'« Import depuis HAL » de la première mouture. Deux étapes dans la
-// rubrique elle-même, sans passer par la liste des documents :
+// Deux étapes dans la rubrique elle-même :
 //   1. choisir les publications (celles qui ne sont rattachées à aucun thème
 //      sont pré-sélectionnées) ;
-//   2. relire les thèmes proposés : intitulé retouchable, période de travail
-//      déduite des dates, période étudiée détectée, publications à l'appui
-//      retirables une à une, et — quand un thème existant couvre déjà le
-//      sujet — rattachement à ce thème plutôt que création d'un doublon.
+//   2. relire les thèmes proposés : une carte courte par proposition, le détail
+//      à la demande. Quand un thème existant couvre déjà le sujet, le choix
+//      « rattacher ou créer » reste visible : c'est la décision à prendre.
 
 /** Rattachement de publications à un thème déjà décrit. */
 export interface ThemeAttachment {
@@ -56,26 +52,23 @@ interface Decision {
   publicationIds: string[]
 }
 
-const STEPS = ['Choisir les publications', 'Relire les thèmes proposés']
-
-function PublicationLine({ pub, onRemove }: { pub: Publication; onRemove?: () => void }) {
+function PublicationLine({ pub, onRemove }: { pub: Publication; onRemove: () => void }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-      <Typography variant="caption" sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary', width: 36, flexShrink: 0 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums', width: 36, flexShrink: 0 }}>
         {pub.year}
       </Typography>
-      <Typography variant="body2" sx={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>{pub.title}</Typography>
-      <Link href={halUrl(pub.halId)} target="_blank" rel="noopener" aria-label={`Voir ${pub.halId} dans HAL`}
-        sx={{ display: 'inline-flex', color: 'text.disabled', '&:hover': { color: TEAL } }}>
-        <OpenInNew sx={{ fontSize: 14 }} />
-      </Link>
-      {onRemove && (
-        <Tooltip title="Retirer cette publication de la proposition">
-          <IconButton size="small" onClick={onRemove} aria-label={`Retirer ${pub.title}`} sx={{ p: 0.25 }}>
-            <Close sx={{ fontSize: 15 }} />
-          </IconButton>
-        </Tooltip>
-      )}
+      <Typography variant="body1" sx={{ flex: 1, minWidth: 0 }}>{pub.title}</Typography>
+      <Tooltip title="Voir dans HAL">
+        <IconButton size="small" component="a" href={halUrl(pub.halId)} target="_blank" rel="noopener" aria-label={`Voir ${pub.halId} dans HAL`}>
+          <OpenInNew sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Retirer cette publication de la proposition">
+        <IconButton size="small" onClick={onRemove} aria-label={`Retirer ${pub.title}`}>
+          <Close sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
     </Box>
   )
 }
@@ -86,12 +79,15 @@ function ProposalCard({ proposal, decision, existing, onChange }: {
   existing?: ResearchTheme
   onChange: (d: Partial<Decision>) => void
 }) {
-  const pubs = decision.publicationIds.map(publicationById).filter((p): p is Publication => Boolean(p))
+  const [expanded, setExpanded] = useState(false)
+  const pubs = decision.publicationIds
+    .map(publicationById)
+    .filter((p): p is Publication => Boolean(p))
+    .sort((a, b) => a.year - b.year)
   const period = periodFromPublications(pubs)
   const studied = studiedPeriodsFromPublications(pubs)
   const attach = existing && decision.mode === 'attach'
   const empty = pubs.length === 0
-  const disabled = !decision.keep || empty
 
   // Ce que le rattachement changerait au thème existant.
   const extension: string[] = []
@@ -103,105 +99,93 @@ function ProposalCard({ proposal, decision, existing, onChange }: {
     if (newStudied.length) extension.push(`période étudiée ajoutée : ${newStudied.map((s) => s.label).join(', ')}`)
   }
 
+  const summary = empty
+    ? 'Aucune publication : cette proposition ne sera pas retenue'
+    : `${formatPeriod(period)} · ${pubs.length} publication${pubs.length > 1 ? 's' : ''}`
+
   return (
-    <Box sx={{
-      border: '1px solid', borderColor: disabled ? 'divider' : attach ? '#90CAF9' : TEAL,
-      borderLeft: `4px solid ${disabled ? '#CFD8DC' : attach ? '#1565C0' : TEAL}`,
-      borderRadius: 2, bgcolor: 'background.paper', opacity: disabled ? 0.6 : 1, transition: 'opacity 0.15s',
-    }}>
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, p: 2, pb: 1.5 }}>
-        <Checkbox checked={decision.keep && !empty} disabled={empty} onChange={(e) => onChange({ keep: e.target.checked })}
+    <Card sx={{ p: 2.5, opacity: decision.keep && !empty ? 1 : 0.6, transition: 'opacity 0.15s' }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+        <Checkbox
+          checked={decision.keep && !empty}
+          disabled={empty}
+          onChange={(e) => onChange({ keep: e.target.checked })}
           inputProps={{ 'aria-label': `Retenir la proposition ${proposal.label}` }}
-          sx={{ p: 0.5, mt: 0.25, '&.Mui-checked': { color: TEAL } }} />
+          sx={{ p: 0.5 }}
+        />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {attach ? (
-            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.3 }}>{existing.label}</Typography>
+            <Typography variant="h6" component="h2">{existing.label}</Typography>
           ) : (
             <TextField
-              variant="standard" fullWidth value={decision.label} disabled={!decision.keep}
+              variant="standard"
+              fullWidth
+              value={decision.label}
+              disabled={!decision.keep}
               onChange={(e) => onChange({ label: e.target.value })}
-              inputProps={{ 'aria-label': `Intitulé proposé : ${proposal.label}`, style: { fontSize: '1.05rem', fontWeight: 700 } }}
+              slotProps={{ htmlInput: { 'aria-label': `Intitulé proposé : ${proposal.label}`, style: { fontSize: '1.125rem', fontWeight: 600 } } }}
             />
           )}
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{proposal.description}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{summary}</Typography>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {proposal.keywords.map((k) => (
-              <Chip key={`${k.vocabulary}-${k.label}`} size="small" label={k.label}
-                sx={{
-                  height: 22, fontSize: '0.72rem',
-                  bgcolor: `${VOCAB_CONFIG[k.vocabulary].color}10`, color: VOCAB_CONFIG[k.vocabulary].color,
-                  border: `1px solid ${VOCAB_CONFIG[k.vocabulary].color}30`,
-                }} />
-            ))}
-          </Box>
-
-          {/* Périodes */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mt: 1.5 }}>
-            <Tooltip title="Déduite des dates des publications retenues : du premier au dernier article, « en cours » si une publication a moins de deux ans">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <ScheduleOutlined sx={{ fontSize: 16, color: TEAL }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                  {empty ? 'Période de travail : —' : `Période de travail : ${formatPeriod(period)}`}
-                </Typography>
-                {!empty && (
-                  <Typography variant="caption" color="text.secondary">
-                    (d’après {pubs.length} publication{pubs.length > 1 ? 's' : ''})
-                  </Typography>
-                )}
-              </Box>
-            </Tooltip>
-            {studied.length > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                <HistoryEdu sx={{ fontSize: 16, color: '#7B5E2A' }} />
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Porte sur :</Typography>
-                {studied.map((s) => <StudiedPeriodChip key={s.label} value={s} size="small" />)}
-              </Box>
-            )}
-          </Box>
-
-          {/* Rattachement à un thème existant */}
           {existing && (
-            <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 1.5, bgcolor: '#E3F2FD', border: '1px solid #90CAF9' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-                <LinkOutlined sx={{ fontSize: 16, color: '#1565C0' }} />
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0D47A1' }}>
-                  Vous décrivez déjà ce sujet : « {existing.label} » ({formatPeriod(existing)})
-                </Typography>
-              </Box>
+            <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 2, bgcolor: 'navHover' }}>
+              <Typography variant="body1" fontWeight={600}>
+                Vous décrivez déjà ce sujet : « {existing.label} » ({formatPeriod(existing)})
+              </Typography>
               <RadioGroup value={decision.mode} onChange={(e) => onChange({ mode: e.target.value as Decision['mode'] })}>
-                <FormControlLabel value="attach" control={<Radio size="small" sx={{ '&.Mui-checked': { color: '#1565C0' } }} />}
+                <FormControlLabel
+                  value="attach"
+                  control={<Radio size="small" />}
                   label={
-                    <Typography variant="body2">
-                      Rattacher ces publications au thème existant
-                      {extension.length > 0 && <Typography component="span" variant="caption" color="text.secondary"> — {extension.join(' · ')}</Typography>}
+                    <Typography variant="body1">
+                      Rattacher à ce thème
+                      {extension.length > 0 && (
+                        <Typography component="span" variant="body2" color="text.secondary"> — {extension.join(' · ')}</Typography>
+                      )}
                     </Typography>
-                  } />
-                <FormControlLabel value="create" control={<Radio size="small" sx={{ '&.Mui-checked': { color: '#1565C0' } }} />}
-                  label={<Typography variant="body2">Créer tout de même un nouveau thème</Typography>} />
+                  }
+                />
+                <FormControlLabel value="create" control={<Radio size="small" />} label="Créer un nouveau thème" />
               </RadioGroup>
             </Box>
           )}
+
+          <Link
+            component="button"
+            underline="hover"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((open) => !open)}
+            sx={{ display: 'block', mt: 1, fontSize: '0.875rem', fontWeight: 500 }}
+          >
+            {expanded ? 'Masquer le détail' : 'Voir le détail'}
+          </Link>
+
+          <Collapse in={expanded} unmountOnExit>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5 }}>{proposal.description}</Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1.5 }}>
+              {proposal.keywords.map((k) => (
+                <Chip key={`${k.vocabulary}-${k.label}`} size="small" variant="outlined" label={k.label} />
+              ))}
+            </Box>
+            {studied.length > 0 && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.75, mt: 1.5 }}>
+                <Typography variant="body2" color="text.secondary">Porte sur</Typography>
+                {studied.map((s) => <StudiedPeriodChip key={s.label} value={s} size="small" />)}
+              </Box>
+            )}
+            <Typography variant="body1" fontWeight={600} sx={{ mt: 2, mb: 0.5 }}>Publications à l’appui</Typography>
+            {pubs.map((p) => (
+              <PublicationLine
+                key={p.id}
+                pub={p}
+                onRemove={() => onChange({ publicationIds: decision.publicationIds.filter((id) => id !== p.id) })}
+              />
+            ))}
+          </Collapse>
         </Box>
       </Box>
-
-      {/* Publications à l'appui */}
-      <Box sx={{ px: 2, pb: 1.5, pl: 6.5 }}>
-        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Publications à l’appui
-        </Typography>
-        {empty ? (
-          <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic', mt: 0.5 }}>
-            Toutes les publications ont été retirées : cette proposition ne sera pas retenue.
-          </Typography>
-        ) : (
-          pubs.sort((a, b) => a.year - b.year).map((p) => (
-            <PublicationLine key={p.id} pub={p}
-              onRemove={() => onChange({ publicationIds: decision.publicationIds.filter((id) => id !== p.id) })} />
-          ))
-        )}
-      </Box>
-    </Box>
+    </Card>
   )
 }
 
@@ -268,31 +252,21 @@ export default function ThemeProposalsWorkshop({ profile, onBack, onApply }: Pro
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <Box sx={{ p: 3, pb: 12, maxWidth: 1100, mx: 'auto', width: '100%' }}>
-        {/* Fil d'Ariane */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <IconButton size="small" onClick={onBack} aria-label="Retour à la liste des thèmes">
-            <ArrowBack fontSize="small" />
-          </IconButton>
-          <Breadcrumbs separator="/" sx={{ '& .MuiBreadcrumbs-separator': { mx: 1 } }}>
-            <Link component="button" underline="hover" color="inherit" onClick={onBack} sx={{ font: 'inherit' }}>Profil de recherche 2</Link>
-            <Link component="button" underline="hover" color="inherit" onClick={onBack} sx={{ font: 'inherit' }}>Thèmes</Link>
-            <Typography color="text.primary" sx={{ fontWeight: 600 }}>Proposer des thèmes d’après mes publications</Typography>
-          </Breadcrumbs>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap', mb: 3 }}>
-          <Box sx={{ maxWidth: 620 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>Proposer des thèmes d’après mes publications</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+      <Box sx={{ pb: 4, maxWidth: 1000, mx: 'auto', width: '100%' }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 4 }}>
+          <Tooltip title="Retour à la liste des thèmes">
+            <IconButton onClick={onBack} aria-label="Retour à la liste des thèmes" sx={{ color: 'text.primary', mt: -0.5 }}>
+              <ArrowBack />
+            </IconButton>
+          </Tooltip>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h4" component="h1">Proposer des thèmes d’après mes publications</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
               {step === 0
-                ? 'Choisissez les publications à analyser. Les publications déjà rattachées à un thème sont signalées : par défaut, seules celles qui ne le sont pas encore sont sélectionnées.'
-                : 'L’IA a regroupé vos publications en thèmes. Retouchez les intitulés, retirez les publications hors sujet, puis ajoutez les thèmes retenus en brouillon : vous les compléterez et les validerez ensuite.'}
+                ? 'Étape 1 sur 2 · Choisir les publications'
+                : 'Étape 2 sur 2 · Relire les thèmes proposés, qui seront ajoutés en brouillon'}
             </Typography>
           </Box>
-          <Stepper activeStep={step} sx={{ minWidth: 320, '& .MuiStepIcon-root.Mui-active, & .MuiStepIcon-root.Mui-completed': { color: TEAL } }}>
-            {STEPS.map((s) => <Step key={s}><StepLabel>{s}</StepLabel></Step>)}
-          </Stepper>
         </Box>
 
         {step === 0 && (
@@ -301,51 +275,55 @@ export default function ThemeProposalsWorkshop({ profile, onBack, onApply }: Pro
 
         {step === 1 && loading && (
           <Box sx={{ py: 8, textAlign: 'center' }}>
-            <CircularProgress sx={{ color: TEAL }} />
-            <Typography variant="body1" sx={{ mt: 2, fontWeight: 600 }}>Analyse de {selected.length} publications…</Typography>
-            <Typography variant="body2" color="text.secondary">Regroupement par sujet, lecture des dates et des périodes étudiées.</Typography>
+            <CircularProgress />
+            <Typography variant="body1" sx={{ mt: 2 }}>Analyse de {selected.length} publications…</Typography>
           </Box>
         )}
 
         {step === 1 && !loading && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'grid', gap: 2 }}>
             {proposals.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              <Typography variant="body1" color="text.secondary">
                 Aucun thème n’a pu être proposé à partir de cette sélection.
               </Typography>
             )}
             {proposals.map((p) => (
-              <ProposalCard key={p.id} proposal={p} decision={decisions[p.id]} existing={themeById(p.existingThemeId)}
-                onChange={(d) => setDecisions((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...d } }))} />
+              <ProposalCard
+                key={p.id}
+                proposal={p}
+                decision={decisions[p.id]}
+                existing={themeById(p.existingThemeId)}
+                onChange={(d) => setDecisions((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...d } }))}
+              />
             ))}
           </Box>
         )}
       </Box>
 
-      {/* Barre d'actions */}
+      {/* Barre d'actions, comme la fiche d'un thème */}
       <Box sx={{
-        position: 'sticky', bottom: 0, mt: 'auto', px: 3, py: 1.5, bgcolor: 'background.paper',
-        borderTop: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.05)', zIndex: 2,
+        position: 'sticky', bottom: 16, zIndex: 2, mt: 'auto', width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box',
+        // À droite, on laisse la place au bouton de l'assistant.
+        pl: 3, pr: { xs: 3, sm: 11 }, py: 1.5,
+        bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 3,
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5, flexWrap: 'wrap',
       }}>
-        <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 200 }}>
-          {step === 0
-            ? `${selected.length} publication${selected.length > 1 ? 's' : ''} sélectionnée${selected.length > 1 ? 's' : ''}`
-            : loading ? '' : summary.length ? summary.join(' · ') : 'Aucune proposition retenue'}
-        </Typography>
+        {step === 1 && !loading && (
+          <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto' }}>
+            {summary.length ? summary.join(' · ') : 'Aucune proposition retenue'}
+          </Typography>
+        )}
         {step === 0 ? (
           <>
-            <Button onClick={onBack} sx={{ textTransform: 'none' }}>Annuler</Button>
-            <Button variant="contained" startIcon={<AutoAwesome />} disabled={selected.length === 0} onClick={generate}
-              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
-              Proposer des thèmes d’après {selected.length} publication{selected.length > 1 ? 's' : ''}
+            <Button onClick={onBack}>Annuler</Button>
+            <Button variant="contained" startIcon={<AutoAwesome />} disabled={selected.length === 0} onClick={generate}>
+              {`Proposer des thèmes d’après ${selected.length} publication${selected.length > 1 ? 's' : ''}`}
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={() => setStep(0)} disabled={loading} sx={{ textTransform: 'none' }}>Modifier la sélection</Button>
-            <Button variant="contained" disabled={loading || retained.length === 0} onClick={apply}
-              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
+            <Button onClick={() => setStep(0)} disabled={loading}>Modifier la sélection</Button>
+            <Button variant="contained" disabled={loading || retained.length === 0} onClick={apply}>
               {toCreate.length > 0
                 ? `Ajouter ${toCreate.length} thème${toCreate.length > 1 ? 's' : ''} en brouillon${toAttach.length ? ' et rattacher' : ''}`
                 : toAttach.length > 0 ? 'Rattacher les publications' : 'Appliquer'}

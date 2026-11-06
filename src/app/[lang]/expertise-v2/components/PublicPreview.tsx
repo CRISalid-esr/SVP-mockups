@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Avatar, Box, Button, Chip, Divider, Typography } from '@mui/material'
-import { CampaignOutlined, EditOutlined, NewspaperOutlined, VisibilityOutlined } from '@mui/icons-material'
-import { AUDIENCE_CONFIG, Audience, ResearchProfile, ResearchTheme, TEAL, relationSentence, variantCount } from '../types'
+import { Avatar, Box, Card, Divider, Typography } from '@mui/material'
+import { Audience, ResearchProfile, ResearchTheme, relationSentence } from '../types'
 import { sortThemes } from './ThemesList'
 import { AudienceSwitcher, ThemePublicBlock } from './ThemeDetail'
 
@@ -11,7 +10,6 @@ interface Props {
   profile: ResearchProfile
   researcherName: string
   affiliation: string
-  onBack: () => void
 }
 
 function initials(name: string): string {
@@ -22,7 +20,7 @@ export function publicThemes(themes: ResearchTheme[]): ResearchTheme[] {
   return sortThemes(themes.filter((t) => t.visibility === 'public' && t.status === 'validated'))
 }
 
-export default function PublicPreview({ profile, researcherName, affiliation, onBack }: Props) {
+export default function PublicPreview({ profile, researcherName, affiliation }: Props) {
   const [audience, setAudience] = useState<Audience | null>(null)
 
   const shown = publicThemes(profile.themes)
@@ -31,11 +29,7 @@ export default function PublicPreview({ profile, researcherName, affiliation, on
   const hiddenInstitution = hidden.filter((t) => t.status === 'validated' && t.visibility === 'institution').length
   const hiddenPrivate = hidden.filter((t) => t.status === 'validated' && t.visibility === 'private').length
   const hiddenDraft = hidden.filter((t) => t.status === 'draft').length
-  const acceptsPress = shown.some((t) => t.acceptsPress)
-  const acceptsEvents = shown.some((t) => t.acceptsEvents)
   const publicRelations = profile.relations.filter((r) => shownIds.has(r.source) && shownIds.has(r.target))
-  const withoutVariant = audience ? shown.filter((t) => !t.variants[audience]?.trim()).length : 0
-  const anyVariant = shown.some((t) => variantCount(t) > 0)
 
   // Pour la presse et les événements, les thèmes qui acceptent la sollicitation remontent en tête.
   const ordered = audience === 'media'
@@ -50,98 +44,65 @@ export default function PublicPreview({ profile, researcherName, affiliation, on
     hiddenDraft ? `${hiddenDraft} brouillon${hiddenDraft > 1 ? 's' : ''}` : null,
   ].filter(Boolean)
 
-  const audienceCfg = audience ? AUDIENCE_CONFIG[audience] : null
+  const solicitations = [
+    shown.some((t) => t.acceptsPress) ? 'Accepte les sollicitations presse' : null,
+    shown.some((t) => t.acceptsEvents) ? 'Intervient en événements grand public' : null,
+  ].filter(Boolean)
 
   return (
-    <Box sx={{ p: 3, maxWidth: 960, mx: 'auto' }}>
-      <Box sx={{
-        display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 2,
-        px: 2, py: 1.25, borderRadius: 2, bgcolor: '#FFF8E1', border: '1px solid #FFE082',
-      }}>
-        <VisibilityOutlined sx={{ color: '#8D6E00' }} />
-        <Typography variant="body2" sx={{ flex: 1, minWidth: 240, color: '#5D4300' }}>
-          <strong>Aperçu</strong> — affiché tel quel sur le portail public
-          {hidden.length > 0 && ` · ${hidden.length} thème${hidden.length > 1 ? 's' : ''} masqué${hidden.length > 1 ? 's' : ''} (${hiddenParts.join(', ')})`}
-        </Typography>
-        <Button size="small" startIcon={<EditOutlined />} onClick={onBack} sx={{ textTransform: 'none', color: '#5D4300' }}>
-          Revenir à l’édition
-        </Button>
-      </Box>
-
-      {/* Déclinaison par public */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 3 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>Voir le portail comme :</Typography>
+    <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
+        <Typography variant="body1" fontWeight={600}>Voir comme</Typography>
         <AudienceSwitcher value={audience} onChange={setAudience} />
+        {hidden.length > 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ ml: { md: 'auto' } }}>
+            {`${hidden.length} thème${hidden.length > 1 ? 's' : ''} masqué${hidden.length > 1 ? 's' : ''} (${hiddenParts.join(', ')})`}
+          </Typography>
+        )}
       </Box>
-      {audienceCfg && (
-        <Typography variant="caption" sx={{ display: 'block', mb: 2, mt: -2, color: 'text.secondary' }}>
-          {audienceCfg.label} — {audienceCfg.question}
-          {withoutVariant > 0 && ` · ${withoutVariant} thème${withoutVariant > 1 ? 's' : ''} sans déclinaison pour ce public (description générale affichée)`}
-        </Typography>
-      )}
-      {!audience && !anyVariant && shown.length > 0 && (
-        <Typography variant="caption" sx={{ display: 'block', mb: 2, mt: -2, color: 'text.secondary' }}>
-          Aucun thème public n’a encore de déclinaison : tous les publics voient la description générale.
-        </Typography>
-      )}
 
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, overflow: 'hidden', bgcolor: 'background.paper' }}>
-        {/* En-tête du portail */}
-        <Box sx={{ p: 4, display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap', bgcolor: `${TEAL}08` }}>
-          <Avatar sx={{ width: 88, height: 88, bgcolor: TEAL, fontSize: '1.75rem', fontWeight: 700 }}>
+      <Card sx={{ p: { xs: 3, sm: 4 } }}>
+        <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'center' }}>
+          <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: '1.25rem', fontWeight: 700 }}>
             {initials(researcherName)}
           </Avatar>
-          <Box sx={{ flex: 1, minWidth: 240 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{researcherName}</Typography>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h4" component="h2">{researcherName}</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>{affiliation}</Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.5 }}>
-              {acceptsPress && (
-                <Chip size="small" icon={<NewspaperOutlined sx={{ fontSize: 14 }} />} label="Accepte les sollicitations presse"
-                  sx={{ bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 600, '& .MuiChip-icon': { color: '#2E7D32' } }} />
-              )}
-              {acceptsEvents && (
-                <Chip size="small" icon={<CampaignOutlined sx={{ fontSize: 14 }} />} label="Intervient en événements grand public"
-                  sx={{ bgcolor: '#E3F2FD', color: '#1565C0', fontWeight: 600, '& .MuiChip-icon': { color: '#1565C0' } }} />
-              )}
-              <Chip size="small" variant="outlined" label="ORCID · IdRef · HAL" sx={{ color: 'text.secondary' }} />
-            </Box>
+            {solicitations.length > 0 && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{solicitations.join(' · ')}</Typography>
+            )}
           </Box>
-          {audienceCfg && (
-            <Chip icon={<audienceCfg.Icon sx={{ fontSize: 16 }} />} label={`Vue ${audienceCfg.label.toLowerCase()}`}
-              sx={{ bgcolor: audienceCfg.bg, color: audienceCfg.color, fontWeight: 700, '& .MuiChip-icon': { color: audienceCfg.color } }} />
-          )}
         </Box>
 
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>Expertises</Typography>
+        <Divider sx={{ my: 4 }} />
 
-          {shown.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              Aucun thème public validé : ce profil n’affiche rien sur le portail pour l’instant.
-            </Typography>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
-              {ordered.map((t) => <ThemePublicBlock key={t.id} theme={t} audience={audience} />)}
-            </Box>
-          )}
-
-          <Divider sx={{ my: 4 }} />
-
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5 }}>Parcours</Typography>
-          {publicRelations.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              Aucune relation entre thèmes publics.
-            </Typography>
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              {publicRelations.map((r) => relationSentence(r, profile.themes)).join(' · ')}.
-            </Typography>
-          )}
-          <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1 }}>
-            Seules les relations entre thèmes publics sont affichées.
+        <Typography variant="h5" component="h3" sx={{ mb: 3 }}>Expertises</Typography>
+        {shown.length === 0 ? (
+          <Typography variant="body1" color="text.secondary">
+            Aucun thème public validé : ce profil n’affiche rien sur le portail pour l’instant.
           </Typography>
-        </Box>
-      </Box>
+        ) : (
+          <Box sx={{ display: 'grid', gap: 4 }}>
+            {ordered.map((t) => <ThemePublicBlock key={t.id} theme={t} audience={audience} collapsible />)}
+          </Box>
+        )}
+
+        {/* Sur un portail public, une section vide n'a rien à dire au lecteur. */}
+        {publicRelations.length > 0 && (
+          <>
+            <Divider sx={{ my: 4 }} />
+            <Typography variant="h5" component="h3" sx={{ mb: 2 }}>Parcours</Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2.5, display: 'grid', gap: 1 }}>
+              {publicRelations.map((r) => (
+                <Typography key={r.id} component="li" variant="body1" color="text.secondary">
+                  {relationSentence(r, profile.themes)}
+                </Typography>
+              ))}
+            </Box>
+          </>
+        )}
+      </Card>
     </Box>
   )
 }

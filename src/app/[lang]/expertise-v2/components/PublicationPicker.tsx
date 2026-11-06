@@ -1,18 +1,17 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Box, Checkbox, Chip, InputAdornment, Link, TextField, Tooltip, Typography } from '@mui/material'
-import { LinkOutlined, OpenInNew, Search } from '@mui/icons-material'
-import { CURRENT_YEAR, ResearchTheme, TEAL } from '../types'
-import { PUBLICATION_TYPES, Publication, PublicationType, halUrl } from '../mockPublications'
+import { Box, Checkbox, IconButton, Link, Tooltip, Typography } from '@mui/material'
+import { OpenInNew } from '@mui/icons-material'
+import { MRT_ColumnFiltersState } from 'material-react-table'
+import ListFilterBar, { FilterDefinition } from '@/components/ListTable/ListFilterBar'
+import { ResearchTheme } from '../types'
+import { PUBLICATION_TYPES, Publication, halUrl } from '../mockPublications'
 
 // ─── Sélecteur de publications ───────────────────────────────────────────────
-// Liste compacte des publications du chercheur, groupée par année, avec
-// recherche, filtre par type et sélections rapides. Les publications déjà
-// rattachées à un thème sont signalées (nom du thème) et grisées, pour que le
-// chercheur voie d'un coup d'œil ce qui reste à décrire.
-
-type QuickPick = 'uncovered' | 'recent' | 'all' | 'none'
+// Liste des publications du chercheur, groupée par année, avec la même barre de
+// filtres que les autres listes. Les publications déjà rattachées à un thème sont
+// signalées, pour montrer d'un coup d'œil ce qui reste à décrire.
 
 interface Props {
   publications: Publication[]
@@ -25,16 +24,22 @@ interface Props {
   maxHeight?: number | string
 }
 
-const TYPE_COLORS: Record<PublicationType, string> = {
-  Article: '#1565C0', Chapitre: '#6A1B9A', Communication: '#00838F', Ouvrage: '#4E342E', Thèse: '#AD1457', Rapport: '#558B2F',
-}
-
 export default function PublicationPicker({ publications, selected, onChange, coveredBy, themes, maxHeight = 460 }: Props) {
   const [query, setQuery] = useState('')
-  const [types, setTypes] = useState<PublicationType[]>([])
+  const [filters, setFilters] = useState<MRT_ColumnFiltersState>([])
 
   const themeLabel = (id: string) => themes.find((t) => t.id === id)?.label ?? 'un thème'
   const selectedSet = useMemo(() => new Set(selected), [selected])
+
+  const filterDefinitions: FilterDefinition[] = useMemo(() => [{
+    id: 'type',
+    label: 'Type',
+    options: PUBLICATION_TYPES
+      .filter((type) => publications.some((p) => p.type === type))
+      .map((type) => ({ value: type, label: type })),
+  }], [publications])
+
+  const types = (filters.find((f) => f.id === 'type')?.value as string[] | undefined) ?? []
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -51,12 +56,6 @@ export default function PublicationPicker({ publications, selected, onChange, co
   }, [visible])
 
   const uncovered = publications.filter((p) => !coveredBy[p.id])
-  const quick = (pick: QuickPick) => {
-    if (pick === 'none') return onChange([])
-    if (pick === 'all') return onChange(publications.map((p) => p.id))
-    if (pick === 'recent') return onChange(publications.filter((p) => p.year >= CURRENT_YEAR - 4).map((p) => p.id))
-    onChange(uncovered.map((p) => p.id))
-  }
 
   const toggle = (id: string) => {
     onChange(selectedSet.has(id) ? selected.filter((s) => s !== id) : [...selected, id])
@@ -67,51 +66,35 @@ export default function PublicationPicker({ publications, selected, onChange, co
     onChange(allIn ? selected.filter((s) => !ids.includes(s)) : [...new Set([...selected, ...ids])])
   }
 
-  const quickChip = (pick: QuickPick, label: string) => (
-    <Chip key={pick} size="small" label={label} variant="outlined" onClick={() => quick(pick)}
-      sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }} />
+  const quickLink = (label: string, ids: string[]) => (
+    <Link component="button" type="button" underline="hover" onClick={() => onChange(ids)} sx={{ fontSize: '0.875rem' }}>
+      {label}
+    </Link>
   )
 
   return (
-    <Box>
-      {/* Barre d'outils */}
-      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 1.5 }}>
-        <TextField
-          size="small" placeholder="Rechercher un titre, une revue, une année…" value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          inputProps={{ 'aria-label': 'Rechercher une publication' }}
-          InputProps={{ startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment> }}
-          sx={{ flex: 1, minWidth: 240 }}
-        />
-        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-          {PUBLICATION_TYPES.filter((t) => publications.some((p) => p.type === t)).map((t) => {
-            const on = types.includes(t)
-            return (
-              <Chip key={t} size="small" label={t} clickable
-                onClick={() => setTypes(on ? types.filter((x) => x !== t) : [...types, t])}
-                sx={{
-                  height: 24, fontSize: '0.72rem',
-                  bgcolor: on ? TYPE_COLORS[t] : 'transparent', color: on ? '#fff' : TYPE_COLORS[t],
-                  border: `1px solid ${TYPE_COLORS[t]}${on ? '' : '60'}`,
-                  '&:hover': { bgcolor: on ? TYPE_COLORS[t] : `${TYPE_COLORS[t]}14` },
-                }} />
-            )
-          })}
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflow: 'hidden', bgcolor: 'background.paper' }}>
+      <ListFilterBar
+        filters={filterDefinitions}
+        columnFilters={filters}
+        onColumnFiltersChange={setFilters}
+        globalFilter={query}
+        onGlobalFilterChange={setQuery}
+      >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mt: 1.5 }}>
+          <Typography variant="body2" color="text.secondary">Sélectionner :</Typography>
+          {quickLink(`Non rattachées (${uncovered.length})`, uncovered.map((p) => p.id))}
+          {quickLink(`Toutes (${publications.length})`, publications.map((p) => p.id))}
+          {quickLink('Aucune', [])}
+          <Typography variant="body2" color="text.secondary" sx={{ ml: { sm: 'auto' } }}>
+            {`${selected.length} publication${selected.length > 1 ? 's' : ''} sélectionnée${selected.length > 1 ? 's' : ''} sur ${publications.length}`}
+          </Typography>
         </Box>
-      </Box>
+      </ListFilterBar>
 
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1.5 }}>
-        <Typography variant="caption" color="text.secondary">Sélection rapide :</Typography>
-        {quickChip('uncovered', `Non rattachées à un thème (${uncovered.length})`)}
-        {quickChip('recent', `${CURRENT_YEAR - 4} → aujourd’hui`)}
-        {quickChip('all', `Toutes (${publications.length})`)}
-        {quickChip('none', 'Aucune')}
-      </Box>
-
-      {/* Liste groupée par année */}
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, maxHeight, overflow: 'auto', bgcolor: 'background.paper' }}>
+      <Box sx={{ maxHeight, overflow: 'auto' }}>
         {byYear.length === 0 && (
-          <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center', fontStyle: 'italic' }}>
+          <Typography variant="body1" color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>
             Aucune publication ne correspond à ces critères.
           </Typography>
         )}
@@ -120,53 +103,59 @@ export default function PublicationPicker({ publications, selected, onChange, co
           return (
             <Box key={year}>
               <Box sx={{
-                display: 'flex', alignItems: 'center', gap: 1, px: 1, py: 0.25,
-                bgcolor: '#F8FAFB', borderBottom: '1px solid', borderTop: '1px solid', borderColor: 'divider',
+                display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 0.5,
+                bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider',
                 position: 'sticky', top: 0, zIndex: 1,
               }}>
-                <Checkbox size="small" checked={count === pubs.length} indeterminate={count > 0 && count < pubs.length}
-                  onChange={() => toggleYear(pubs)} inputProps={{ 'aria-label': `Sélectionner les publications de ${year}` }}
-                  sx={{ p: 0.5, '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: TEAL } }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{year}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {count}/{pubs.length} sélectionnée{pubs.length > 1 ? 's' : ''}
-                </Typography>
+                <Checkbox
+                  size="small"
+                  checked={count === pubs.length}
+                  indeterminate={count > 0 && count < pubs.length}
+                  onChange={() => toggleYear(pubs)}
+                  inputProps={{ 'aria-label': `Sélectionner les publications de ${year}` }}
+                  sx={{ p: 0.5 }}
+                />
+                <Typography variant="body1" fontWeight={600} sx={{ fontVariantNumeric: 'tabular-nums' }}>{year}</Typography>
               </Box>
               {pubs.map((p) => {
                 const covered = coveredBy[p.id]
                 const checked = selectedSet.has(p.id)
                 return (
-                  <Box key={p.id}
+                  <Box
+                    key={p.id}
                     onClick={() => toggle(p.id)}
                     sx={{
-                      display: 'flex', alignItems: 'flex-start', gap: 1, px: 1, py: 1, cursor: 'pointer',
+                      display: 'flex', alignItems: 'flex-start', gap: 1.5, px: 2, py: 1.25, cursor: 'pointer',
                       borderBottom: '1px solid', borderColor: 'divider',
-                      bgcolor: checked ? `${TEAL}08` : 'transparent',
-                      opacity: covered && !checked ? 0.6 : 1,
-                      '&:hover': { bgcolor: checked ? `${TEAL}10` : '#FAFAFA' },
-                    }}>
-                    <Checkbox size="small" checked={checked} tabIndex={-1}
-                      inputProps={{ 'aria-label': p.title }}
-                      sx={{ p: 0.5, '&.Mui-checked': { color: TEAL } }} />
+                      '&:hover': { bgcolor: 'navHover' },
+                    }}
+                  >
+                    <Checkbox size="small" checked={checked} tabIndex={-1} inputProps={{ 'aria-label': p.title }} sx={{ p: 0.5 }} />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.35 }}>{p.title}</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mt: 0.35 }}>
-                        <Chip size="small" label={p.type}
-                          sx={{ height: 18, fontSize: '0.66rem', fontWeight: 600, bgcolor: `${TYPE_COLORS[p.type]}14`, color: TYPE_COLORS[p.type] }} />
-                        <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: 360 }}>{p.venue}</Typography>
-                        <Link href={halUrl(p.halId)} target="_blank" rel="noopener" underline="hover" variant="caption"
-                          onClick={(e) => e.stopPropagation()}
-                          sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: TEAL }}>
-                          {p.halId}<OpenInNew sx={{ fontSize: 11 }} />
-                        </Link>
-                      </Box>
+                      <Typography variant="body1" fontWeight={500}>{p.title}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                        {p.type} · {p.venue}
+                        {covered && (
+                          <>
+                            {' · Déjà rattachée à '}
+                            <span>{themeLabel(covered)}</span>
+                          </>
+                        )}
+                      </Typography>
                     </Box>
-                    {covered && (
-                      <Tooltip title={`Déjà rattachée au thème « ${themeLabel(covered)} »`}>
-                        <Chip size="small" icon={<LinkOutlined sx={{ fontSize: 13 }} />} label={themeLabel(covered)}
-                          sx={{ height: 22, maxWidth: 220, fontSize: '0.68rem', bgcolor: '#F5F5F5', color: 'text.secondary', flexShrink: 0 }} />
-                      </Tooltip>
-                    )}
+                    <Tooltip title="Voir dans HAL">
+                      <IconButton
+                        size="small"
+                        component="a"
+                        href={halUrl(p.halId)}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label={`Voir ${p.halId} dans HAL`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <OpenInNew sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 )
               })}
@@ -174,11 +163,6 @@ export default function PublicationPicker({ publications, selected, onChange, co
           )
         })}
       </Box>
-
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        {selected.length} publication{selected.length > 1 ? 's' : ''} sélectionnée{selected.length > 1 ? 's' : ''} sur {publications.length}
-        {uncovered.length > 0 && ` · ${uncovered.length} non rattachée${uncovered.length > 1 ? 's' : ''} à un thème`}
-      </Typography>
     </Box>
   )
 }
