@@ -4,12 +4,20 @@ on:
   push:
     branches:
       - main
+      - refonte-design
 
 permissions:
   contents: write
 
+# Deux branches publient sur gh-pages : une seule publication à la fois.
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # main à la racine du site, la branche de refonte dans /refonte/.
+  SITE_PATH: ${{ github.ref_name == 'main' && '/SVP-mockups' || '/SVP-mockups/refonte' }}
 
 jobs:
   deploy:
@@ -34,16 +42,16 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_USE_MOCK: "true"
-          NEXT_PUBLIC_BASE_PATH: "/SVP-mockups"
+          NEXT_PUBLIC_BASE_PATH: ${{ env.SITE_PATH }}
           NEXT_PUBLIC_SUPPORTED_LOCALES: "fr,en"
-          NEXT_PUBLIC_BASE_URL: "https://crisalid-esr.github.io/SVP-mockups"
+          NEXT_PUBLIC_BASE_URL: "https://crisalid-esr.github.io${{ env.SITE_PATH }}"
           NEXT_PUBLIC_CAS_URL: "https://localhost/cas"
           NEXT_PUBLIC_INSTITUTION_NAME: "Mock Institution"
           ORCID_URL: "https://orcid.org"
           ORCID_SCOPES: "/read-limited"
           ORCID_CLIENT_ID: "APP-MOCK"
           NEXTAUTH_SECRET: "mock-secret-for-build"
-          NEXTAUTH_URL: "https://crisalid-esr.github.io/SVP-mockups"
+          NEXTAUTH_URL: "https://crisalid-esr.github.io${{ env.SITE_PATH }}"
           DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
 
       - name: Deploy to gh-pages
@@ -52,3 +60,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           publish_branch: gh-pages
+          destination_dir: ${{ github.ref_name != 'main' && 'refonte' || '' }}
+          # Sans cela, chaque publication de main effacerait le dossier /refonte/.
+          keep_files: true
