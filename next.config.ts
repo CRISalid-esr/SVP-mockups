@@ -16,7 +16,8 @@ const nextConfig: NextConfig = {
   },
   ...(isStaticBuild && {
     output: 'export',
-    basePath: '/SVP-mockups',
+    // La branche de refonte est publiée dans un sous-dossier : voir .github/workflows/deploy.yml.
+    basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? '/SVP-mockups',
     trailingSlash: true,
   }),
   images: { unoptimized: true },
