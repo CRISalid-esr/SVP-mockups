@@ -1,37 +1,47 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   Box,
   Button,
-  Chip,
-  Grid2 as Grid,
-  MenuItem,
-  Stack,
-  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Typography,
 } from '@mui/material'
 import { Add } from '@mui/icons-material'
+import { MRT_ColumnFiltersState } from 'material-react-table'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
+import ListFilterBar, { FilterDefinition } from '@/components/ListTable/ListFilterBar'
 import useStore from '@/stores/global_store'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { Activity, ActivityType } from '@/types/Activity'
 import ActivityCard from './components/ActivityCard'
 import ActivityDialog from './components/ActivityDialog'
+import { ACTIVITY_TYPES, isPunctual } from './components/activityTypes'
 
-const TEAL = '#006A61'
+const TYPE_FILTER: FilterDefinition[] = [{
+  id: 'type',
+  label: 'Type',
+  options: (Object.keys(ACTIVITY_TYPES) as ActivityType[]).map((type) => ({
+    value: type,
+    label: (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box aria-hidden sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: ACTIVITY_TYPES[type].main }} />
+        {ACTIVITY_TYPES[type].plural}
+      </Box>
+    ),
+  })),
+}]
 
-const TYPE_LABELS: Record<ActivityType | 'all', string> = {
-  all: 'Tous les types',
-  projet: 'Projets',
-  encadrement: 'Encadrement',
-  brevet: 'Brevets',
-  conference: 'Conférences',
-  enseignement: 'Enseignement',
-  editorial: 'Éditorial',
-  distinction: 'Distinctions',
-  mediation: 'Médiation',
+/** L'activité s'est-elle déroulée pendant cette plage d'années ? */
+const overlaps = (activity: Activity, from?: string | null, to?: string | null) => {
+  const start = activity.startDate.slice(0, 10)
+  const end = activity.endDate?.slice(0, 10) ?? (isPunctual(activity.type) ? start : '9999-12-31')
+  return (!to || start <= to.slice(0, 10)) && (!from || end >= from.slice(0, 10))
 }
 
 const initialActivities: Activity[] = [
@@ -126,28 +136,22 @@ const ResearchActivitiesPage = () => {
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
 
   const [activities, setActivities] = useState<Activity[]>(initialActivities)
-  const [filterType, setFilterType] = useState<ActivityType | 'all'>('all')
-  const [filterYear, setFilterYear] = useState<string>('all')
+  const [filters, setFilters] = useState<MRT_ColumnFiltersState>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
+  const [toDelete, setToDelete] = useState<Activity | null>(null)
 
-  const years = [
-    'all',
-    ...Array.from(
-      new Set(activities.map((a) => a.startDate.substring(0, 4))),
-    ).sort((a, b) => b.localeCompare(a)),
-  ]
-
-  const filteredActivities = activities.filter((activity) => {
-    const matchesType = filterType === 'all' || activity.type === filterType
-    const matchesYear =
-      filterYear === 'all' || activity.startDate.startsWith(filterYear)
-    const matchesSearch =
-      activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.description.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesType && matchesYear && matchesSearch
-  })
+  const filteredActivities = useMemo(() => {
+    const types = (filters.find(({ id }) => id === 'type')?.value as string[] | undefined) ?? []
+    const [from, to] = (filters.find(({ id }) => id === 'date')?.value as (string | null)[] | undefined) ?? []
+    const term = searchQuery.trim().toLowerCase()
+    return activities.filter((activity) =>
+      (types.length === 0 || types.includes(activity.type))
+      && overlaps(activity, from, to)
+      && (!term || activity.title.toLowerCase().includes(term) || activity.description.toLowerCase().includes(term)),
+    )
+  }, [activities, filters, searchQuery])
 
   const handleSaveActivity = (data: Partial<Activity>) => {
     if (editingActivity) {
@@ -167,12 +171,6 @@ const ResearchActivitiesPage = () => {
     setEditingActivity(null)
   }
 
-  const handleDeleteActivity = (activity: Activity) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) {
-      setActivities(activities.filter((a) => a.id !== activity.id))
-    }
-  }
-
   const handleEditActivity = (activity: Activity) => {
     setEditingActivity(activity)
     setIsDialogOpen(true)
@@ -183,141 +181,79 @@ const ResearchActivitiesPage = () => {
       <DocumentHeader
         perspectiveName={currentPerspective?.getDisplayName(lang) || ''}
         pageName={'Activités de recherche'}
-      />
+      >
+        <Button
+          variant='contained'
+          startIcon={<Add />}
+          onClick={() => {
+            setEditingActivity(null)
+            setIsDialogOpen(true)
+          }}
+          sx={{ whiteSpace: 'nowrap' }}
+        >
+          {'Ajouter une activité'}
+        </Button>
+      </DocumentHeader>
 
-      <Box sx={{ p: 3 }}>
-        {/* Titre + bouton */}
+      <Box
+        data-tour='activities-header'
+        sx={{ mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, overflow: 'hidden', bgcolor: 'background.paper' }}
+      >
+        <ListFilterBar
+          filters={TYPE_FILTER}
+          dateFilterId='date'
+          dateFilterLabel='Année'
+          columnFilters={filters}
+          onColumnFiltersChange={setFilters}
+          globalFilter={searchQuery}
+          onGlobalFilterChange={setSearchQuery}
+        />
+      </Box>
+
+      {filteredActivities.length === 0 ? (
+        <Box sx={{ py: 10, textAlign: 'center' }}>
+          <Typography color='text.secondary'>{'Aucune activité ne correspond à ces filtres.'}</Typography>
+        </Box>
+      ) : (
         <Box
-          data-tour='activities-header'
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            mb: 4,
+            display: 'grid',
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))', xl: 'repeat(3, minmax(0, 1fr))' },
+            gap: 3,
           }}
         >
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 600, mb: 0.5 }}>
-              {'Activités de recherche'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {'Gérez vos projets, encadrements et autres activités scientifiques'}
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => {
-              setEditingActivity(null)
-              setIsDialogOpen(true)
-            }}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
-          >
-            {'Ajouter une activité'}
-          </Button>
-        </Box>
-
-        {/* Filtres */}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
-          <TextField
-            placeholder="Rechercher une activité…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            size="small"
-            sx={{ flexGrow: 1 }}
-          />
-          <TextField
-            select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as ActivityType | 'all')}
-            size="small"
-            label="Type"
-            sx={{ minWidth: 180 }}
-          >
-            {(Object.keys(TYPE_LABELS) as Array<ActivityType | 'all'>).map((k) => (
-              <MenuItem key={k} value={k}>
-                {TYPE_LABELS[k]}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-            size="small"
-            label="Année"
-            sx={{ minWidth: 140 }}
-          >
-            {years.map((y) => (
-              <MenuItem key={y} value={y}>
-                {y === 'all' ? 'Toutes les années' : y}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Stack>
-
-        {/* Compteur + chips de type actif */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <Typography variant="body2" color="text.secondary">
-            {filteredActivities.length === 0
-              ? 'Aucune activité'
-              : filteredActivities.length === 1
-                ? '1 activité'
-                : `${filteredActivities.length} activités`}
-          </Typography>
-          {filterType !== 'all' && (
-            <Chip
-              label={TYPE_LABELS[filterType]}
-              size="small"
-              onDelete={() => setFilterType('all')}
-              sx={{ bgcolor: `${TEAL}15`, color: TEAL, fontWeight: 600 }}
-            />
-          )}
-          {filterYear !== 'all' && (
-            <Chip
-              label={filterYear}
-              size="small"
-              onDelete={() => setFilterYear('all')}
-              sx={{ bgcolor: `${TEAL}15`, color: TEAL, fontWeight: 600 }}
-            />
-          )}
-        </Box>
-
-        {/* Grille */}
-        <Grid container spacing={3}>
           {filteredActivities.map((activity) => (
-            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={activity.id}>
-              <ActivityCard
-                activity={activity}
-                onEdit={handleEditActivity}
-                onDelete={handleDeleteActivity}
-              />
-            </Grid>
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              onEdit={handleEditActivity}
+              onDelete={setToDelete}
+            />
           ))}
-          {filteredActivities.length === 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Box sx={{ textAlign: 'center', py: 10 }}>
-                <Typography color="text.secondary" sx={{ mb: 2 }}>
-                  {'Aucune activité trouvée.'}
-                </Typography>
-                {(filterType !== 'all' || filterYear !== 'all' || searchQuery) && (
-                  <Button
-                    variant="text"
-                    onClick={() => {
-                      setFilterType('all')
-                      setFilterYear('all')
-                      setSearchQuery('')
-                    }}
-                    sx={{ color: TEAL, textTransform: 'none' }}
-                  >
-                    {'Réinitialiser les filtres'}
-                  </Button>
-                )}
-              </Box>
-            </Grid>
-          )}
-        </Grid>
-      </Box>
+        </Box>
+      )}
+
+      <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)} maxWidth='xs' fullWidth>
+        <DialogTitle>{'Supprimer cette activité ?'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`« ${toDelete?.title ?? ''} » sera retirée de vos activités.`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setToDelete(null)}>{'Annuler'}</Button>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={() => {
+              setActivities(activities.filter((a) => a.id !== toDelete?.id))
+              setToDelete(null)
+            }}
+          >
+            {'Supprimer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ActivityDialog
         open={isDialogOpen}
