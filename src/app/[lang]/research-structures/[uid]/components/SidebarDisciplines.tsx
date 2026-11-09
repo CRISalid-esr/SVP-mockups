@@ -11,7 +11,7 @@ export default function SidebarDisciplines({ disciplines }: Props) {
   const top5 = disciplines.slice(0, 5)
 
   return (
-    <Card variant='outlined'>
+    <Card>
       <CardHeader
         title={<Typography variant='subtitle2' fontWeight='bold'>Disciplines</Typography>}
         sx={{ pb: 0 }}

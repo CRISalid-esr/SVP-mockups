@@ -15,7 +15,7 @@ export default function SidebarSources({ sources }: Props) {
   if (sources.length === 0) return null
 
   return (
-    <Card variant='outlined'>
+    <Card>
       <CardHeader
         title={<Typography variant='subtitle2' fontWeight='bold'>Couverture des sources</Typography>}
         sx={{ pb: 0 }}

@@ -78,7 +78,7 @@ export default function SidebarIdentifiers({ structure }: Props) {
   const ids = structure.identifiers ?? {}
 
   return (
-    <Card variant='outlined'>
+    <Card>
       <CardHeader
         title={<Typography variant='subtitle2' fontWeight='bold'>Identifiants</Typography>}
         sx={{ pb: 0 }}

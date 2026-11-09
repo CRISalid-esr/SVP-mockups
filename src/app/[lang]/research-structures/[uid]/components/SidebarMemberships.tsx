@@ -19,7 +19,7 @@ export default function SidebarMemberships({ structure, allStructures, lang }: P
   if (members.length === 0) return null
 
   return (
-    <Card variant='outlined'>
+    <Card>
       <CardHeader
         title={
           <Typography variant='subtitle2' fontWeight='bold'>

@@ -2,49 +2,36 @@
 
 import * as Lingui from '@lingui/core'
 import { HelpLink } from '@/app/[lang]/components/HelpLink'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CallMadeIcon from '@mui/icons-material/CallMade'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
-import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import TableRowsIcon from '@mui/icons-material/TableRows'
 import {
   Box,
   Button,
-  Chip,
   LinearProgress,
-  Tab,
-  Tabs,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useTheme, Theme } from '@mui/material/styles'
-import {
-  MaterialReactTable,
-  MRT_ColumnDef,
-  MRT_ShowHideColumnsButton,
-  MRT_ToggleDensePaddingButton,
-  MRT_ToggleFiltersButton,
-  MRT_ToggleFullScreenButton,
-  MRT_ToggleGlobalFilterButton,
-  useMaterialReactTable,
-} from 'material-react-table'
-import Link from 'next/link'
+import { MaterialReactTable, MRT_ColumnDef, MRT_ColumnFiltersState } from 'material-react-table'
 import { useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { mockService } from '@/mocks/mockService'
 import { Localization } from '@/types/Localization'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
+import ListFilterBar, { FilterDefinition } from '@/components/ListTable/ListFilterBar'
+import { listTableProps, listTitleSx } from '@/components/ListTable/listTableProps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 const GENERIC_TYPE_LABELS: Record<string, string> = {
-  institution: 'Institution',
+  institution: 'Établissement',
   institution_subdivision: 'Composante',
   unit: 'Unité de recherche',
   team: 'Équipe',
 }
-
 
 type Structure = {
   uid: string
@@ -65,37 +52,38 @@ type Structure = {
   subRows?: Structure[]
 }
 
+type View = 'list' | 'tree'
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function RateBar({ value, color }: { value: number; color: string }) {
+const typeLabel = (structure: Structure) =>
+  structure.nationalType ?? GENERIC_TYPE_LABELS[structure.genericType] ?? structure.genericType
+
+/** Taux en pourcentage, avec une barre fine : le nombre porte l'information. */
+function RateCell({ value }: { value: number }) {
+  if (value <= 0) return <Typography variant='body2' color='text.secondary'>—</Typography>
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Box sx={{ width: 54 }}>
-        <LinearProgress
-          variant='determinate'
-          value={value}
-          sx={{
-            height: 6,
-            borderRadius: 3,
-            backgroundColor: 'action.disabledBackground',
-            '& .MuiLinearProgress-bar': { backgroundColor: color },
-          }}
-        />
-      </Box>
-      <Typography variant='caption' fontWeight='bold'>
-        {value > 0 ? `${value} %` : '—'}
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+      <Typography variant='body2' sx={{ width: 40, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+        {`${value} %`}
       </Typography>
+      <LinearProgress
+        variant='determinate'
+        value={value}
+        aria-hidden
+        sx={{ flex: 1, maxWidth: 64, height: 4, borderRadius: 2, bgcolor: 'action.hover' }}
+      />
     </Box>
   )
 }
 
-function exportToCsv(rows: { original: Structure }[]) {
+function exportToCsv(rows: Structure[]) {
   const headers = ['Acronyme', 'Nom', 'Type', 'Tutelles', 'Membres', 'Publications (24 mois)', 'OA %', 'HAL %']
-  const lines = rows.map(({ original: d }) =>
+  const lines = rows.map((d) =>
     [
       d.acronym,
       `"${d.name.replace(/"/g, '""')}"`,
-      d.nationalType ?? GENERIC_TYPE_LABELS[d.genericType] ?? d.genericType,
+      typeLabel(d),
       `"${d.institutionNames.join(' / ')}"`,
       d.membersCount,
       d.publicationsCount,
@@ -118,13 +106,12 @@ function buildTree(flat: Structure[]): Structure[] {
   const roots: Structure[] = []
 
   for (const node of byUid.values()) {
-    // Place under primary parent
     if (node.parentUid && byUid.has(node.parentUid)) {
       byUid.get(node.parentUid)!.subRows!.push(node)
     } else {
       roots.push(node)
     }
-    // Place a reference node under each secondary parent
+    // Une structure en co-tutelle apparaît aussi, en renvoi, sous ses autres tutelles.
     for (const secUid of node.secondaryParentUids) {
       if (byUid.has(secUid)) {
         byUid.get(secUid)!.subRows!.push({
@@ -147,369 +134,39 @@ function buildTree(flat: Structure[]): Structure[] {
   return clean(roots)
 }
 
-// ─── Name cell (shared between flat and tree views) ──────────────────────────
+const fold = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
 
-function NameCell({ row, onNavigate }: { row: Structure; onNavigate: (uid: string) => void }) {
-  const { acronym, name, nationalType, isReference, originalUid } = row
-  const targetUid = originalUid ?? row.uid
+// ─── Cellule « Structure » ───────────────────────────────────────────────────
 
-  if (isReference) {
-    return (
-      <Box
-        sx={{ cursor: 'pointer', opacity: 0.65 }}
-        onClick={() => onNavigate(targetUid)}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <CallMadeIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
-          <Typography
-            variant='body2'
-            fontStyle='italic'
-            color='text.secondary'
-            sx={{ '&:hover': { textDecoration: 'underline' } }}
-          >
-            {acronym}
-          </Typography>
-          {nationalType && (
-            <Chip label={nationalType} size='small' sx={{ height: 14, fontSize: 10 }} />
-          )}
-          <Chip label='co-tutelle' size='small' variant='outlined' sx={{ height: 14, fontSize: 10, borderStyle: 'dashed' }} />
-        </Box>
-        <Typography variant='caption' color='text.disabled' fontStyle='italic'
-          sx={{ display: 'block', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-        >
-          {name}
-        </Typography>
-      </Box>
-    )
-  }
-
+function NameCell({ row }: { row: Structure }) {
   return (
-    <Box sx={{ cursor: 'pointer' }} onClick={() => onNavigate(targetUid)}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-        <Typography
-          variant='body2'
-          fontWeight='bold'
-          color='primary'
-          sx={{ '&:hover': { textDecoration: 'underline' } }}
-        >
-          {acronym}
+    <Box sx={{ minWidth: 0, opacity: row.isReference ? 0.7 : 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        {row.isReference && <CallMadeIcon sx={{ fontSize: 14, color: 'text.secondary' }} aria-hidden />}
+        <Typography sx={{ ...listTitleSx, width: 'auto', fontWeight: 600 }}>{row.acronym}</Typography>
+        <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
+          {row.isReference ? `${typeLabel(row)} · en co-tutelle` : typeLabel(row)}
         </Typography>
-        {nationalType && (
-          <Chip label={nationalType} size='small' sx={{ height: 16, fontSize: 10 }} />
-        )}
       </Box>
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{
-          display: 'block',
-          maxWidth: 320,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {name}
+      <Typography variant='body2' color='text.secondary' noWrap sx={{ fontSize: '0.8125rem' }}>
+        {row.name}
       </Typography>
     </Box>
   )
-}
-
-// ─── Flat table ──────────────────────────────────────────────────────────────
-
-function FlatTable({ data, lang, theme, onNavigate }: {
-  data: Structure[]
-  lang: ExtendedLanguageCode
-  theme: Theme
-  onNavigate: (uid: string) => void
-}) {
-  const allInstitutions = useMemo(
-    () => [...new Set(data.flatMap((d) => d.institutionNames))].sort(),
-    [data],
-  )
-
-  const columns = useMemo<MRT_ColumnDef<Structure>[]>(
-    () => [
-      {
-        accessorKey: 'acronym',
-        header: 'Structure',
-        size: 260,
-        grow: 2,
-        filterFn: (row, _id, filterValue: string) => {
-          const q = filterValue.toLowerCase()
-          return (
-            row.original.acronym.toLowerCase().includes(q) ||
-            row.original.name.toLowerCase().includes(q)
-          )
-        },
-        Cell({ row }) {
-          return <NameCell row={row.original} onNavigate={onNavigate} />
-        },
-      },
-      {
-        accessorKey: 'institutionNames',
-        header: 'Tutelles',
-        size: 200,
-        grow: 1,
-        accessorFn: (row) => row.institutionNames.join(', '),
-        filterVariant: 'multi-select',
-        filterSelectOptions: allInstitutions,
-        filterFn: (row, _id, filterValue: string[]) => {
-          if (!filterValue || filterValue.length === 0) return true
-          return row.original.institutionNames.some((inst) => filterValue.includes(inst))
-        },
-        Cell({ row }) {
-          return (
-            <Typography variant='body2'>
-              {row.original.institutionNames.join(', ') || '—'}
-            </Typography>
-          )
-        },
-      },
-      {
-        accessorKey: 'membersCount',
-        header: 'Membres',
-        size: 100,
-        muiTableHeadCellProps: { align: 'right' },
-        muiTableBodyCellProps: { align: 'right' },
-        Cell({ row }) {
-          return (
-            <Typography variant='body2' fontWeight='bold'>
-              {row.original.membersCount.toLocaleString('fr-FR')}
-            </Typography>
-          )
-        },
-      },
-      {
-        accessorKey: 'publicationsCount',
-        header: 'Publications',
-        size: 120,
-        muiTableHeadCellProps: { align: 'right' },
-        muiTableBodyCellProps: { align: 'right' },
-        Cell({ row }) {
-          return (
-            <Tooltip title='24 derniers mois'>
-              <Typography variant='body2' fontWeight='bold'>
-                {row.original.publicationsCount > 0
-                  ? row.original.publicationsCount.toLocaleString('fr-FR')
-                  : '—'}
-              </Typography>
-            </Tooltip>
-          )
-        },
-      },
-      {
-        accessorKey: 'oaRate',
-        header: 'OA',
-        size: 120,
-        Cell({ row }) {
-          return <RateBar value={row.original.oaRate} color={theme.palette.success.main} />
-        },
-      },
-      {
-        accessorKey: 'halRate',
-        header: 'HAL',
-        size: 120,
-        Cell({ row }) {
-          return <RateBar value={row.original.halRate} color={theme.palette.primary.main} />
-        },
-      },
-      {
-        id: 'detail',
-        header: '',
-        enableSorting: false,
-        enableColumnFilter: false,
-        size: 100,
-        Cell({ row }) {
-          return (
-            <Button
-              component={Link}
-              href={`/${lang}/research-structures/${row.original.uid}`}
-              size='small'
-              endIcon={<ArrowForwardIcon />}
-              variant='text'
-            >
-              Détail
-            </Button>
-          )
-        },
-      },
-    ],
-    [lang, theme, allInstitutions, onNavigate],
-  )
-
-  const table = useMaterialReactTable({
-    columns,
-    data,
-    enableColumnResizing: true,
-    enablePagination: true,
-    enableRowSelection: true,
-    enableGlobalFilter: true,
-    enableColumnFilters: true,
-    layoutMode: 'grid',
-    localization: Localization[lang],
-    initialState: {
-      showColumnFilters: false,
-      pagination: { pageIndex: 0, pageSize: 25 },
-    },
-    muiSelectCheckboxProps: { color: 'secondary' },
-    muiTablePaperProps: { sx: { width: '100%' } },
-    muiTableContainerProps: { sx: { width: '100%' } },
-    renderToolbarInternalActions: ({ table }) => (
-      <Box>
-        <MRT_ToggleGlobalFilterButton table={table} />
-        <MRT_ToggleFiltersButton table={table} />
-        <MRT_ToggleDensePaddingButton table={table} />
-        <MRT_ToggleFullScreenButton table={table} />
-        <MRT_ShowHideColumnsButton table={table} />
-        <Tooltip title='Réinitialiser les filtres'>
-          <span>
-            <Button
-              size='small'
-              sx={{ minWidth: 0, px: 1 }}
-              onClick={() => table.resetColumnFilters()}
-            >
-              <FilterAltOffIcon fontSize='small' />
-            </Button>
-          </span>
-        </Tooltip>
-      </Box>
-    ),
-  })
-
-  return <MaterialReactTable table={table} />
-}
-
-// ─── Tree table ──────────────────────────────────────────────────────────────
-
-function TreeTable({ data, lang, theme, onNavigate }: {
-  data: Structure[]
-  lang: ExtendedLanguageCode
-  theme: Theme
-  onNavigate: (uid: string) => void
-}) {
-  const treeData = useMemo(() => buildTree(data), [data])
-
-  const columns = useMemo<MRT_ColumnDef<Structure>[]>(
-    () => [
-      {
-        accessorKey: 'acronym',
-        header: 'Structure',
-        size: 300,
-        grow: 2,
-        Cell({ row }) {
-          return <NameCell row={row.original} onNavigate={onNavigate} />
-        },
-      },
-      {
-        accessorKey: 'membersCount',
-        header: 'Membres',
-        size: 100,
-        muiTableHeadCellProps: { align: 'right' },
-        muiTableBodyCellProps: { align: 'right' },
-        Cell({ row }) {
-          return (
-            <Typography variant='body2' fontWeight='bold'>
-              {row.original.membersCount.toLocaleString('fr-FR')}
-            </Typography>
-          )
-        },
-      },
-      {
-        accessorKey: 'publicationsCount',
-        header: 'Publications',
-        size: 120,
-        muiTableHeadCellProps: { align: 'right' },
-        muiTableBodyCellProps: { align: 'right' },
-        Cell({ row }) {
-          return (
-            <Tooltip title='24 derniers mois'>
-              <Typography variant='body2' fontWeight='bold'>
-                {row.original.publicationsCount > 0
-                  ? row.original.publicationsCount.toLocaleString('fr-FR')
-                  : '—'}
-              </Typography>
-            </Tooltip>
-          )
-        },
-      },
-      {
-        accessorKey: 'oaRate',
-        header: 'OA',
-        size: 120,
-        Cell({ row }) {
-          return <RateBar value={row.original.oaRate} color={theme.palette.success.main} />
-        },
-      },
-      {
-        accessorKey: 'halRate',
-        header: 'HAL',
-        size: 120,
-        Cell({ row }) {
-          return <RateBar value={row.original.halRate} color={theme.palette.primary.main} />
-        },
-      },
-      {
-        id: 'detail',
-        header: '',
-        enableSorting: false,
-        enableColumnFilter: false,
-        size: 100,
-        Cell({ row }) {
-          return (
-            <Button
-              component={Link}
-              href={`/${lang}/research-structures/${row.original.uid}`}
-              size='small'
-              endIcon={<ArrowForwardIcon />}
-              variant='text'
-            >
-              Détail
-            </Button>
-          )
-        },
-      },
-    ],
-    [lang, theme, onNavigate],
-  )
-
-  const table = useMaterialReactTable({
-    columns,
-    data: treeData,
-    enableExpanding: true,
-    getSubRows: (row) => row.subRows,
-    enableColumnResizing: true,
-    enablePagination: false,
-    enableGlobalFilter: true,
-    enableColumnFilters: false,
-    layoutMode: 'grid',
-    localization: Localization[lang],
-    initialState: {
-      expanded: true,
-    },
-    muiTablePaperProps: { sx: { width: '100%' } },
-    muiTableContainerProps: { sx: { width: '100%', maxHeight: '70vh' } },
-    enableStickyHeader: true,
-    renderToolbarInternalActions: ({ table }) => (
-      <Box>
-        <MRT_ToggleGlobalFilterButton table={table} />
-        <MRT_ToggleDensePaddingButton table={table} />
-        <MRT_ToggleFullScreenButton table={table} />
-        <MRT_ShowHideColumnsButton table={table} />
-      </Box>
-    ),
-  })
-
-  return <MaterialReactTable table={table} />
 }
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 const ResearchStructuresPage = () => {
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
-  const theme = useTheme()
   const router = useRouter()
-  const [tab, setTab] = useState(0)
+  const [view, setView] = useState<View>('list')
+  const [filters, setFilters] = useState<MRT_ColumnFiltersState>([])
+  const [query, setQuery] = useState('')
 
   const data = useMemo<Structure[]>(() => {
     const { researchStructures } = mockService.getResearchStructures()
@@ -538,50 +195,188 @@ const ResearchStructuresPage = () => {
   }, [lang])
 
   const navigateToDetail = useCallback(
-    (uid: string) => router.push(`/${lang}/research-structures/${uid}`),
+    (structure: Structure) => router.push(`/${lang}/research-structures/${structure.originalUid ?? structure.uid}`),
     [lang, router],
   )
 
-  const flatData = useMemo(() => data, [data])
+  const filterDefinitions = useMemo<FilterDefinition[]>(
+    () => [
+      {
+        id: 'type',
+        label: 'Type',
+        options: Object.entries(GENERIC_TYPE_LABELS)
+          .filter(([value]) => data.some((d) => d.genericType === value))
+          .map(([value, label]) => ({ value, label })),
+      },
+      {
+        id: 'institution',
+        label: 'Tutelles',
+        options: [...new Set(data.flatMap((d) => d.institutionNames))].sort().map((name) => ({ value: name, label: name })),
+      },
+    ],
+    [data],
+  )
 
-  const tableProps = { data: flatData, lang, theme, onNavigate: navigateToDetail }
+  const selected = (id: string) => (filters.find((f) => f.id === id)?.value as string[] | undefined) ?? []
+  const types = selected('type')
+  const institutions = selected('institution')
+  const q = fold(query.trim())
+
+  const matches = useCallback(
+    (d: Structure) =>
+      (types.length === 0 || types.includes(d.genericType)) &&
+      (institutions.length === 0 || d.institutionNames.some((name) => institutions.includes(name))) &&
+      (!q || fold(`${d.acronym} ${d.name}`).includes(q)),
+    [types, institutions, q],
+  )
+
+  const filtered = useMemo(() => data.filter(matches), [data, matches])
+  // L'arborescence garde les parents d'une structure trouvée, pour qu'on voie où elle se situe.
+  const treeData = useMemo(() => {
+    if (filtered.length === data.length) return buildTree(data)
+    const keep = new Set<string>()
+    const byUid = new Map(data.map((d) => [d.uid, d]))
+    for (const d of filtered) {
+      let current: Structure | undefined = d
+      while (current && !keep.has(current.uid)) {
+        keep.add(current.uid)
+        current = current.parentUid ? byUid.get(current.parentUid) : undefined
+      }
+    }
+    return buildTree(data.filter((d) => keep.has(d.uid)).map((d) => ({ ...d, secondaryParentUids: d.secondaryParentUids.filter((uid) => keep.has(uid)) })))
+  }, [data, filtered])
+
+  const columns = useMemo<MRT_ColumnDef<Structure>[]>(
+    () => [
+      {
+        accessorKey: 'acronym',
+        header: 'Structure',
+        size: 320,
+        Cell: ({ row }) => <NameCell row={row.original} />,
+      },
+      {
+        id: 'institutions',
+        accessorFn: (row) => row.institutionNames.join(', '),
+        header: 'Tutelles',
+        size: 200,
+        Cell: ({ row }) => (
+          <Typography variant='body2' color={row.original.institutionNames.length ? 'text.primary' : 'text.secondary'} sx={{ fontSize: '0.875rem' }}>
+            {row.original.institutionNames.join(', ') || '—'}
+          </Typography>
+        ),
+      },
+      {
+        accessorKey: 'membersCount',
+        header: 'Membres',
+        size: 110,
+        muiTableHeadCellProps: { align: 'right' },
+        muiTableBodyCellProps: { align: 'right', sx: { justifyContent: 'flex-end' } },
+        Cell: ({ row }) => row.original.membersCount.toLocaleString('fr-FR'),
+      },
+      {
+        accessorKey: 'publicationsCount',
+        header: 'Publications',
+        size: 130,
+        muiTableHeadCellProps: { align: 'right' },
+        muiTableBodyCellProps: { align: 'right', sx: { justifyContent: 'flex-end' } },
+        Cell: ({ row }) => (
+          <Tooltip title='24 derniers mois'>
+            <span>{row.original.publicationsCount > 0 ? row.original.publicationsCount.toLocaleString('fr-FR') : '—'}</span>
+          </Tooltip>
+        ),
+      },
+      {
+        accessorKey: 'oaRate',
+        header: 'Accès ouvert',
+        size: 150,
+        Cell: ({ row }) => <RateCell value={row.original.oaRate} />,
+      },
+      {
+        accessorKey: 'halRate',
+        header: 'Dans HAL',
+        size: 150,
+        Cell: ({ row }) => <RateCell value={row.original.halRate} />,
+      },
+    ],
+    [],
+  )
+
+  const viewToggle = (
+    <ToggleButtonGroup
+      data-tour='structures-tabs'
+      size='small'
+      exclusive
+      value={view}
+      onChange={(_, value: View | null) => value && setView(value)}
+      aria-label='Présentation'
+      sx={{ ml: 1 }}
+    >
+      <ToggleButton value='list' aria-label='Liste'>
+        <TableRowsIcon fontSize='small' sx={{ mr: 0.5 }} />
+        Liste
+      </ToggleButton>
+      <ToggleButton value='tree' aria-label='Arborescence'>
+        <AccountTreeIcon fontSize='small' sx={{ mr: 0.5 }} />
+        Arborescence
+      </ToggleButton>
+    </ToggleButtonGroup>
+  )
+
+  const filterBar = (
+    <ListFilterBar
+      filters={filterDefinitions}
+      columnFilters={filters}
+      onColumnFiltersChange={setFilters}
+      globalFilter={query}
+      onGlobalFilterChange={setQuery}
+      endActions={viewToggle}
+    />
+  )
+
+  const isTree = view === 'tree'
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-        }}
-      >
-        <Typography variant='h4'>
-          Structures de recherche <HelpLink topic='structures' />
-        </Typography>
-        <Button
-          startIcon={<FileDownloadIcon />}
-          variant='outlined'
-          onClick={() => {
-            exportToCsv(flatData.map((d) => ({ original: d })))
-          }}
-        >
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant='h4' component='h1'>
+            Structures <HelpLink topic='structures' sx={{ ml: 0.5 }} />
+          </Typography>
+          <Typography color='text.secondary' sx={{ mt: 0.5 }}>
+            {filtered.length === data.length
+              ? `${data.length} structures : établissements, composantes, unités et équipes`
+              : `${filtered.length} structure${filtered.length > 1 ? 's' : ''} sur ${data.length}`}
+          </Typography>
+        </Box>
+        <Button startIcon={<FileDownloadIcon />} variant='outlined' onClick={() => exportToCsv(filtered)}>
           Exporter
         </Button>
       </Box>
 
-      <Tabs
-        data-tour='structures-tabs'
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab icon={<TableRowsIcon fontSize='small' />} iconPosition='start' label='Vue à plat' />
-        <Tab icon={<AccountTreeIcon fontSize='small' />} iconPosition='start' label='Vue hiérarchique' />
-      </Tabs>
-
-      {tab === 0 && <FlatTable {...tableProps} />}
-      {tab === 1 && <TreeTable {...tableProps} />}
+      <MaterialReactTable<Structure>
+        key={view}
+        {...listTableProps}
+        columns={columns}
+        data={isTree ? treeData : filtered}
+        enableSorting={!isTree}
+        enableExpanding={isTree}
+        getSubRows={isTree ? (row) => row.subRows : undefined}
+        enablePagination={!isTree}
+        enableBottomToolbar={!isTree}
+        enableGlobalFilter={false}
+        initialState={{ expanded: true, pagination: { pageIndex: 0, pageSize: 25 } }}
+        localization={Localization[lang]}
+        muiTableBodyRowProps={({ row }) => ({
+          onClick: () => navigateToDetail(row.original),
+          sx: { cursor: 'pointer' },
+        })}
+        renderEmptyRowsFallback={() => (
+          <Typography color='text.secondary' sx={{ p: 4, textAlign: 'center' }}>
+            Aucune structure ne correspond à ces filtres.
+          </Typography>
+        )}
+        renderTopToolbar={() => filterBar}
+      />
     </Box>
   )
 }

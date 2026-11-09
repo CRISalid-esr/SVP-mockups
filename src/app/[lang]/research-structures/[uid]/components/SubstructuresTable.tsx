@@ -1,15 +1,106 @@
 'use client'
 
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import { Box, Card, CardContent, CardHeader, Chip, IconButton, LinearProgress, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
-import NextLink from 'next/link'
+import { Box, LinearProgress, Typography } from '@mui/material'
+import { MaterialReactTable, MRT_ColumnDef } from 'material-react-table'
+import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
+import { listTableProps, listTitleSx } from '@/components/ListTable/listTableProps'
 import { StructureRaw } from '../types'
 
 const GENERIC_LABELS: Record<string, string> = {
-  institution: 'Institution',
+  institution: 'Établissement',
   institution_subdivision: 'Composante',
   unit: 'Unité',
   team: 'Équipe',
+}
+
+function RateCell({ value }: { value: number }) {
+  if (value <= 0) return <Typography variant='body2' color='text.secondary'>—</Typography>
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+      <Typography variant='body2' sx={{ width: 40, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{`${value} %`}</Typography>
+      <LinearProgress variant='determinate' value={value} aria-hidden sx={{ flex: 1, maxWidth: 64, height: 4, borderRadius: 2, bgcolor: 'action.hover' }} />
+    </Box>
+  )
+}
+
+/** Liste de structures (équipes, unités, composantes), au style des listes : clic sur la ligne pour ouvrir la fiche. */
+export function StructureTable({
+  structures,
+  parentUid,
+  lang,
+  emptyText,
+}: {
+  structures: StructureRaw[]
+  /** Pour signaler les structures rattachées en co-tutelle. */
+  parentUid?: string
+  lang: string
+  emptyText: string
+}) {
+  const router = useRouter()
+
+  const columns = useMemo<MRT_ColumnDef<StructureRaw>[]>(
+    () => [
+      {
+        accessorKey: 'acronym',
+        header: 'Structure',
+        size: 340,
+        Cell: ({ row }) => {
+          const child = row.original
+          const name = child.long_labels.find((l) => l.language === lang)?.value ?? child.long_labels[0]?.value ?? ''
+          const secondary = parentUid && child.parent_uid !== parentUid && child.secondary_parent_uids?.includes(parentUid)
+          return (
+            <Box sx={{ minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+                <Typography sx={{ ...listTitleSx, width: 'auto', fontWeight: 600 }}>{child.acronym}</Typography>
+                <Typography variant='body2' color='text.secondary' sx={{ fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
+                  {[child.national_type ?? GENERIC_LABELS[child.generic_type], secondary && 'en co-tutelle'].filter(Boolean).join(' · ')}
+                </Typography>
+              </Box>
+              <Typography variant='body2' color='text.secondary' noWrap sx={{ fontSize: '0.8125rem' }}>{name}</Typography>
+            </Box>
+          )
+        },
+      },
+      {
+        accessorKey: 'membersCount',
+        header: 'Membres',
+        size: 110,
+        muiTableHeadCellProps: { align: 'right' },
+        muiTableBodyCellProps: { align: 'right', sx: { justifyContent: 'flex-end' } },
+        Cell: ({ row }) => row.original.membersCount.toLocaleString('fr-FR'),
+      },
+      {
+        accessorKey: 'publicationsCount',
+        header: 'Publications',
+        size: 130,
+        muiTableHeadCellProps: { align: 'right' },
+        muiTableBodyCellProps: { align: 'right', sx: { justifyContent: 'flex-end' } },
+        Cell: ({ row }) => (row.original.publicationsCount > 0 ? row.original.publicationsCount.toLocaleString('fr-FR') : '—'),
+      },
+      { accessorKey: 'oaRate', header: 'Accès ouvert', size: 150, Cell: ({ row }) => <RateCell value={row.original.oaRate} /> },
+      { accessorKey: 'halRate', header: 'Dans HAL', size: 150, Cell: ({ row }) => <RateCell value={row.original.halRate} /> },
+    ],
+    [lang, parentUid],
+  )
+
+  return (
+    <MaterialReactTable<StructureRaw>
+      {...listTableProps}
+      columns={columns}
+      data={structures}
+      enableTopToolbar={false}
+      enablePagination={false}
+      enableBottomToolbar={false}
+      muiTableBodyRowProps={({ row }) => ({
+        onClick: () => router.push(`/${lang}/research-structures/${row.original.uid}`),
+        sx: { cursor: 'pointer' },
+      })}
+      renderEmptyRowsFallback={() => (
+        <Typography color='text.secondary' sx={{ p: 4, textAlign: 'center' }}>{emptyText}</Typography>
+      )}
+    />
+  )
 }
 
 type Props = {
@@ -18,125 +109,16 @@ type Props = {
   lang: string
 }
 
+/** Structures rattachées à un établissement ou à une composante, rattachements secondaires compris. */
 export default function SubstructuresTable({ structure, allStructures, lang }: Props) {
-  const childUids = structure.childUids ?? []
-
-  const directChildren = allStructures.filter(
-    (s) => s.parent_uid === structure.uid,
+  const direct = allStructures.filter((s) => s.parent_uid === structure.uid)
+  const secondary = allStructures.filter(
+    (s) => s.secondary_parent_uids?.includes(structure.uid) && s.parent_uid !== structure.uid,
   )
-  const secondaryChildren = allStructures.filter(
-    (s) =>
-      s.secondary_parent_uids?.includes(structure.uid) &&
-      s.parent_uid !== structure.uid,
-  )
+  const fromChildUids = (structure.childUids ?? [])
+    .map((uid) => allStructures.find((s) => s.uid === uid))
+    .filter(Boolean) as StructureRaw[]
+  const children = direct.length + secondary.length > 0 ? [...direct, ...secondary] : fromChildUids
 
-  const allChildren = [...directChildren, ...secondaryChildren]
-
-  if (allChildren.length === 0 && childUids.length === 0) {
-    return (
-      <Card variant='outlined'>
-        <CardContent>
-          <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 3 }}>
-            Aucune structure rattachée
-          </Typography>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const children = allChildren.length > 0
-    ? allChildren
-    : childUids.map((uid) => allStructures.find((s) => s.uid === uid)).filter(Boolean) as StructureRaw[]
-
-  return (
-    <Card variant='outlined'>
-      <CardHeader
-        title={
-          <Typography variant='subtitle1' fontWeight='bold'>
-            {structure.generic_type === 'institution' ? 'Structures rattachées' : 'Unités rattachées'}
-          </Typography>
-        }
-        subheader={`${children.length} structure${children.length > 1 ? 's' : ''}`}
-        sx={{ pb: 0 }}
-      />
-      <CardContent sx={{ p: 0, pb: '0 !important' }}>
-        <Table size='small' aria-label='Structures rattachées'>
-          <TableHead>
-            <TableRow sx={{ '& th': { fontWeight: 600, fontSize: 12, color: 'text.secondary', borderBottom: '1px solid', borderColor: 'divider' } }}>
-              <TableCell scope='col'>Structure</TableCell>
-              <TableCell scope='col'>Type</TableCell>
-              <TableCell scope='col' align='right'>Membres</TableCell>
-              <TableCell scope='col' align='right'>Publis 24m</TableCell>
-              <TableCell scope='col' sx={{ minWidth: 90 }}>OA</TableCell>
-              <TableCell scope='col' />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {children.map((child) => {
-              const isSecondary = child.secondary_parent_uids?.includes(structure.uid) && child.parent_uid !== structure.uid
-              const name = child.long_labels.find((l) => l.language === lang)?.value ?? child.long_labels[0]?.value ?? child.acronym
-              return (
-                <TableRow key={child.uid} hover sx={{ '&:last-child td': { border: 0 } }}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box>
-                        <Typography variant='body2' fontWeight='medium'>
-                          {child.acronym}
-                        </Typography>
-                        <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
-                          {name}
-                        </Typography>
-                      </Box>
-                      {isSecondary && (
-                        <Chip label='co-tutelle' size='small' variant='outlined' sx={{ fontSize: 10, height: 18 }} />
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                      {GENERIC_LABELS[child.generic_type] ?? child.generic_type}
-                      {child.national_type ? ` · ${child.national_type}` : ''}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align='right'>
-                    <Typography variant='body2'>{child.membersCount.toLocaleString('fr-FR')}</Typography>
-                  </TableCell>
-                  <TableCell align='right'>
-                    <Typography variant='body2'>{child.publicationsCount.toLocaleString('fr-FR')}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 48 }}>
-                        <LinearProgress
-                          variant='determinate'
-                          value={child.oaRate}
-                          role='progressbar'
-                          aria-valuenow={child.oaRate}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-label={`OA ${child.oaRate} %`}
-                          sx={{ height: 6, borderRadius: 3, bgcolor: 'action.disabledBackground', '& .MuiLinearProgress-bar': { bgcolor: '#3FB97A' } }}
-                        />
-                      </Box>
-                      <Typography variant='caption'>{child.oaRate > 0 ? `${child.oaRate} %` : '—'}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align='right'>
-                    <IconButton
-                      component={NextLink}
-                      href={`/${lang}/research-structures/${child.uid}`}
-                      size='small'
-                      aria-label={`Voir la fiche de ${child.acronym}`}
-                    >
-                      <ArrowForwardIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  )
+  return <StructureTable structures={children} parentUid={structure.uid} lang={lang} emptyText='Aucune structure rattachée.' />
 }

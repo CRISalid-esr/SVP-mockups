@@ -17,7 +17,7 @@ export default function SidebarAbout({ structure, lang }: Props) {
   if (!description) return null
 
   return (
-    <Card variant='outlined'>
+    <Card>
       <CardHeader
         title={<Typography variant='subtitle2' fontWeight='bold'>À propos</Typography>}
         sx={{ pb: 0 }}

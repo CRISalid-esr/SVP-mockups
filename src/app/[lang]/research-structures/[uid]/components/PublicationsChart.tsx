@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Card, CardContent, CardHeader, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import ReactECharts from 'echarts-for-react'
 import { useState } from 'react'
 import { PublicationYear } from '../types'
@@ -14,13 +14,9 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
 
   if (publicationsByYear.length === 0) {
     return (
-      <Card variant='outlined'>
-        <CardContent>
-          <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
-            Aucune publication sur la période
-          </Typography>
-        </CardContent>
-      </Card>
+      <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
+        Aucune publication sur la période
+      </Typography>
     )
   }
 
@@ -108,15 +104,9 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
   }
 
   return (
-    <Card variant='outlined'>
-      <CardHeader
-        title={
-          <Typography variant='subtitle1' fontWeight='bold'>
-            Publications par année
-          </Typography>
-        }
-        action={
-          <ToggleButtonGroup
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+        <ToggleButtonGroup
             value={mode}
             exclusive
             onChange={(_, v) => v && setMode(v)}
@@ -130,17 +120,13 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
               %
             </ToggleButton>
           </ToggleButtonGroup>
-        }
-        sx={{ pb: 0 }}
-      />
-      <CardContent sx={{ pt: 1, pb: '12px !important' }}>
-        <Box
+      </Box>
+      <Box
           role='img'
           aria-label={`Graphique des publications par année pour les ${years.length} dernières années. Taux d'accès ouvert moyen : ${Math.round(openData.reduce((a, b) => a + b, 0) / publicationsByYear.reduce((acc, d) => acc + d.open + d.closed + d.unknown, 0) * 100)} %.`}
         >
           <ReactECharts option={option} style={{ height: 240 }} />
         </Box>
-      </CardContent>
-    </Card>
+    </Box>
   )
 }

@@ -2,7 +2,9 @@
 
 import * as Lingui from '@lingui/core'
 import { HelpLink } from '@/app/[lang]/components/HelpLink'
-import { Box, CircularProgress, Tab, Tabs } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { TabFilter } from '@/components/TabFilter'
 import { notFound, useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { mockService } from '@/mocks/mockService'
@@ -13,7 +15,6 @@ import {
   EquipesTab,
   MembresTab,
   PerimeterEditor,
-  PublicationsChart,
   PublicationsTab,
   SidebarAbout,
   SidebarDisciplines,
@@ -36,6 +37,7 @@ export default function StructureDetailPage() {
   const [loading, setLoading] = useState(true)
   const [structure, setStructure] = useState<StructureRaw | null | undefined>(undefined)
   const [members, setMembers] = useState<PersonRaw[]>([])
+  const theme = useTheme()
   const [selectedTab, setSelectedTab] = useState<string>('')
 
   useEffect(() => {
@@ -74,27 +76,28 @@ export default function StructureDetailPage() {
   const isIntermediateStructure =
     isUnitOrTeam && allStructures.some((s) => s.member_of_uids?.includes(uid))
 
-  // ── Tabs definition ─────────────────────────────────────────────────────────
+  // ── Onglets ─────────────────────────────────────────────────────────────────
 
+  const primary = theme.palette.primary.main
   const tabs = isUnitOrTeam
     ? [
-        { value: 'membres', label: `Membres (${members.length})` },
-        ...(childTeams.length > 0 ? [{ value: 'equipes', label: `Équipes (${childTeams.length})` }] : []),
+        { value: 'membres', label: 'Membres', numberOfItems: members.length },
+        ...(childTeams.length > 0 ? [{ value: 'equipes', label: 'Équipes', numberOfItems: childTeams.length }] : []),
         { value: 'publications', label: 'Publications' },
         ...(isIntermediateStructure ? [{ value: 'perimetre', label: 'Périmètre' }] : []),
       ]
     : structure.generic_type === 'institution'
-    ? [
-        { value: 'structures', label: 'Structures rattachées' },
-        { value: 'publications', label: 'Publications' },
-        { value: 'apropos', label: 'À propos' },
-        { value: 'perimetre', label: 'Périmètre' },
-      ]
-    : [
-        { value: 'unites', label: 'Unités rattachées' },
-        { value: 'apropos', label: 'À propos' },
-        { value: 'perimetre', label: 'Périmètre' },
-      ]
+      ? [
+          { value: 'structures', label: 'Structures rattachées' },
+          { value: 'publications', label: 'Publications' },
+          { value: 'apropos', label: 'À propos' },
+          { value: 'perimetre', label: 'Périmètre' },
+        ]
+      : [
+          { value: 'unites', label: 'Unités rattachées' },
+          { value: 'apropos', label: 'À propos' },
+          { value: 'perimetre', label: 'Périmètre' },
+        ]
 
   const renderTabContent = () => {
     switch (selectedTab) {
@@ -116,94 +119,43 @@ export default function StructureDetailPage() {
     }
   }
 
-  // ── Tabs bar ─────────────────────────────────────────────────────────────────
-
-  const tabBar = (
-    <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider', mb: 2 }}>
-      <Tabs
-        value={selectedTab}
-        onChange={(_, v) => setSelectedTab(v)}
-        variant='scrollable'
-        scrollButtons='auto'
-        aria-label='Onglets de la structure'
-        sx={{ '& .MuiTab-root': { textTransform: 'none' } }}
-      >
-        {tabs.map((t) => (
-          <Tab key={t.value} label={t.label} value={t.value} />
-        ))}
-      </Tabs>
-      {selectedTab === 'membres' && <HelpLink topic='members' sx={{ ml: 'auto' }} />}
-    </Box>
+  const sidebar = isUnitOrTeam ? (
+    <>
+      <SidebarIdentifiers structure={structure} />
+      <SidebarAbout structure={structure} lang={lang} />
+      <SidebarMemberships structure={structure} allStructures={allStructures} lang={lang} />
+      {(structure.disciplines ?? []).length > 0 && <SidebarDisciplines disciplines={structure.disciplines!} />}
+      {(structure.sources ?? []).length > 0 && <SidebarSources sources={structure.sources!} />}
+    </>
+  ) : (
+    <SidebarAbout structure={structure} lang={lang} />
   )
 
-  // ── Layout unit / team ───────────────────────────────────────────────────────
-
-  if (isUnitOrTeam) {
-    return (
-      <Box>
-        <StructureHero structure={structure} allStructures={allStructures} lang={lang} />
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', lg: '1fr 320px' },
-            gap: 2,
-            alignItems: 'start',
-          }}
-        >
-          {/* Main column */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <StructureKpis structure={structure} />
-            <PublicationsChart publicationsByYear={structure.publicationsByYear ?? []} />
-            <Box>
-              {tabBar}
-              {renderTabContent()}
-            </Box>
-          </Box>
-
-          {/* Sidebar */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            <SidebarIdentifiers structure={structure} />
-            <SidebarAbout structure={structure} lang={lang} />
-            <SidebarMemberships structure={structure} allStructures={allStructures} lang={lang} />
-            {(structure.disciplines ?? []).length > 0 && (
-              <SidebarDisciplines disciplines={structure.disciplines!} />
-            )}
-            {(structure.sources ?? []).length > 0 && (
-              <SidebarSources sources={structure.sources!} />
-            )}
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
-
-  // ── Layout institution / composante ─────────────────────────────────────────
-
+  // L'essentiel en tête (indicateurs), le détail par onglet, la fiche d'identité à droite.
   return (
-    <Box>
+    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
       <StructureHero structure={structure} allStructures={allStructures} lang={lang} />
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1fr 320px' },
-          gap: 2,
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) 300px' },
+          gap: 4,
           alignItems: 'start',
         }}
       >
-        {/* Main column */}
-        <Box>
-          {tabBar}
-          {renderTabContent()}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+          {isUnitOrTeam && <StructureKpis structure={structure} />}
+          <Box>
+            <TabFilter
+              tabsData={tabs.map((tab) => ({ ...tab, color: primary }))}
+              selectedValue={selectedTab}
+              onTabChange={setSelectedTab}
+              action={selectedTab === 'membres' ? <HelpLink topic='members' /> : undefined}
+            />
+            {renderTabContent()}
+          </Box>
         </Box>
-
-        {/* Sidebar */}
-        <SidebarAbout structure={structure} lang={lang} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{sidebar}</Box>
       </Box>
     </Box>
   )

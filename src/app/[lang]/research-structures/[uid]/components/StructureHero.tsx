@@ -1,9 +1,9 @@
 'use client'
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { Box, Breadcrumbs, Chip, Link, Typography } from '@mui/material'
+import { Box, Breadcrumbs, IconButton, Link, Tooltip, Typography } from '@mui/material'
 import NextLink from 'next/link'
+import { Fragment } from 'react'
 import { StructureRaw } from '../types'
 
 const MISSION_LABELS: Record<string, string> = {
@@ -13,11 +13,11 @@ const MISSION_LABELS: Record<string, string> = {
   teaching: 'Enseignement',
 }
 
-const MISSION_COLORS: Record<string, 'success' | 'info' | 'warning' | 'secondary'> = {
-  research: 'success',
-  scientific_services: 'info',
-  administrative_services: 'warning',
-  teaching: 'secondary',
+const GENERIC_LABELS: Record<string, string> = {
+  institution: 'Établissement',
+  institution_subdivision: 'Composante',
+  unit: 'Unité de recherche',
+  team: 'Équipe',
 }
 
 type Props = {
@@ -41,163 +41,88 @@ function buildBreadcrumb(structure: StructureRaw, all: StructureRaw[]): Structur
   return chain
 }
 
+const labelOf = (structure: StructureRaw, lang: string) =>
+  structure.long_labels.find((l) => l.language === lang)?.value ?? structure.long_labels[0]?.value ?? structure.acronym
+
+/** En-tête de la fiche : comme la fiche publication, flèche de retour, titre, puis une ligne d'informations. */
 export default function StructureHero({ structure, allStructures, lang }: Props) {
-  const breadcrumbAncestors = buildBreadcrumb(structure, allStructures)
-  const missionColor = MISSION_COLORS[structure.main_mission] ?? 'default'
-  const missionLabel = MISSION_LABELS[structure.main_mission] ?? structure.main_mission
+  const ancestors = buildBreadcrumb(structure, allStructures)
 
-  const parentStructure = structure.parent_uid
-    ? allStructures.find((s) => s.uid === structure.parent_uid)
-    : null
-
+  const parentStructure = structure.parent_uid ? allStructures.find((s) => s.uid === structure.parent_uid) : null
   const secondaryParents = (structure.secondary_parent_uids ?? [])
     .map((uid) => allStructures.find((s) => s.uid === uid))
     .filter(Boolean) as StructureRaw[]
-
-  const memberOfStructures = (structure.member_of_uids ?? [])
+  const memberOf = (structure.member_of_uids ?? [])
     .map((uid) => allStructures.find((s) => s.uid === uid))
     .filter(Boolean) as StructureRaw[]
 
-  const inScopeInstitutionNames = new Set([
-    parentStructure?.acronym,
-    ...secondaryParents.map((s) => s.acronym),
-  ])
-  const outOfScopeNames = structure.institutionNames.filter(
-    (n) => !inScopeInstitutionNames.has(n) && n !== structure.acronym,
+  const inScope = new Set([parentStructure?.acronym, ...secondaryParents.map((s) => s.acronym)])
+  const outOfScope = structure.institutionNames.filter((n) => !inScope.has(n) && n !== structure.acronym)
+
+  const typeLabel = structure.national_type ?? GENERIC_LABELS[structure.generic_type] ?? structure.generic_type
+  const mission = MISSION_LABELS[structure.main_mission] ?? structure.main_mission
+
+  const structureLink = (s: StructureRaw, text: string) => (
+    <Link component={NextLink} href={`/${lang}/research-structures/${s.uid}`} underline='hover' sx={{ fontWeight: 500 }}>
+      {text}
+    </Link>
   )
 
-  const longLabel =
-    structure.long_labels.find((l) => l.language === lang)?.value ??
-    structure.long_labels[0]?.value ??
-    structure.acronym
+  const relations: { label: string; items: React.ReactNode[] }[] = [
+    parentStructure && { label: 'Tutelle', items: [structureLink(parentStructure, parentStructure.acronym)] },
+    (secondaryParents.length > 0 || outOfScope.length > 0) && {
+      label: 'Co-tutelles',
+      items: [...secondaryParents.map((s) => structureLink(s, s.acronym)), ...outOfScope.map((name) => <span key={name}>{name}</span>)],
+    },
+    memberOf.length > 0 && { label: 'Membre de', items: memberOf.map((s) => structureLink(s, s.acronym)) },
+  ].filter(Boolean) as { label: string; items: React.ReactNode[] }[]
 
   return (
-    <Box component='header' sx={{ mb: 3 }}>
-      {/* Back link */}
-      <Link
-        component={NextLink}
-        href={`/${lang}/research-structures`}
-        underline='hover'
-        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: 2, color: 'text.secondary', fontSize: 14 }}
-      >
-        <ArrowBackIcon sx={{ fontSize: 16 }} />
-        Structures de recherche
-      </Link>
-
-      {/* Breadcrumb */}
-      {breadcrumbAncestors.length > 0 && (
-        <Breadcrumbs
-          aria-label='hiérarchie de la structure'
-          sx={{ mb: 1.5, fontSize: 13, color: 'text.secondary' }}
-        >
-          {breadcrumbAncestors.map((ancestor) => (
-            <Link
-              key={ancestor.uid}
-              component={NextLink}
-              href={`/${lang}/research-structures/${ancestor.uid}`}
-              underline='hover'
-              sx={{ color: 'text.secondary', fontSize: 13 }}
-            >
-              {ancestor.acronym}
-            </Link>
-          ))}
-          <Typography sx={{ fontSize: 13, color: 'text.primary' }}>{structure.acronym}</Typography>
-        </Breadcrumbs>
-      )}
-
-      {/* Acronym + national type */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 0.5 }}>
-        <Typography component='h1' variant='h4' fontWeight='bold' sx={{ lineHeight: 1.2 }}>
+    <Box component='header' sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 4 }}>
+      <Tooltip title='Retour aux structures'>
+        <IconButton component={NextLink} href={`/${lang}/research-structures`} aria-label='Retour aux structures' sx={{ mt: 0.25 }}>
+          <ArrowBackIcon />
+        </IconButton>
+      </Tooltip>
+      <Box sx={{ minWidth: 0 }}>
+        {ancestors.length > 0 && (
+          <Breadcrumbs aria-label='Rattachement de la structure' sx={{ fontSize: '0.8125rem', mb: 0.5 }}>
+            {ancestors.map((ancestor) => (
+              <Link
+                key={ancestor.uid}
+                component={NextLink}
+                href={`/${lang}/research-structures/${ancestor.uid}`}
+                underline='hover'
+                color='text.secondary'
+                sx={{ fontSize: '0.8125rem' }}
+              >
+                {ancestor.acronym}
+              </Link>
+            ))}
+            <Typography sx={{ fontSize: '0.8125rem' }}>{structure.acronym}</Typography>
+          </Breadcrumbs>
+        )}
+        <Typography component='h1' variant='h4'>
           {structure.acronym}
         </Typography>
-        {structure.national_type && (
-          <Chip label={structure.national_type} size='small' variant='outlined' />
-        )}
-        <Chip
-          label={missionLabel}
-          size='small'
-          color={missionColor}
-          sx={{ fontWeight: 500 }}
-        />
-      </Box>
-
-      {/* Long label */}
-      <Typography variant='h6' fontWeight='normal' sx={{ color: 'text.secondary', mb: 1.5 }}>
-        {longLabel}
-      </Typography>
-
-      {/* Tutelles */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-        {parentStructure && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', minWidth: 140 }}>
-              Tutelle principale :
-            </Typography>
-            <Link
-              component={NextLink}
-              href={`/${lang}/research-structures/${parentStructure.uid}`}
-              underline='hover'
-              variant='body2'
-              fontWeight='medium'
-            >
-              {parentStructure.long_labels.find((l) => l.language === lang)?.value ??
-                parentStructure.long_labels[0]?.value ??
-                parentStructure.acronym}
-            </Link>
-          </Box>
-        )}
-
-        {(secondaryParents.length > 0 || outOfScopeNames.length > 0) && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', minWidth: 140 }}>
-              Co-tutelles :
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              {secondaryParents.map((s) => (
-                <Link
-                  key={s.uid}
-                  component={NextLink}
-                  href={`/${lang}/research-structures/${s.uid}`}
-                  underline='hover'
-                  variant='body2'
-                  fontWeight='medium'
-                >
-                  {s.acronym}
-                </Link>
+        <Typography color='text.secondary' sx={{ mt: 0.25 }}>
+          {labelOf(structure, lang)}
+        </Typography>
+        <Typography variant='body2' color='text.secondary' sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.5 }}>
+          <span>{typeLabel}</span>
+          {mission && <span>{`· ${mission}`}</span>}
+          {relations.map(({ label, items }) => (
+            <span key={label}>
+              {`· ${label} : `}
+              {items.map((item, index) => (
+                <Fragment key={index}>
+                  {index > 0 && ', '}
+                  {item}
+                </Fragment>
               ))}
-              {outOfScopeNames.map((name) => (
-                <Box key={name} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    {name}
-                  </Typography>
-                  <OpenInNewIcon sx={{ fontSize: 12, color: 'text.disabled' }} />
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        )}
-
-        {memberOfStructures.length > 0 && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', minWidth: 140 }}>
-              Membre de :
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              {memberOfStructures.map((s) => (
-                <Link
-                  key={s.uid}
-                  component={NextLink}
-                  href={`/${lang}/research-structures/${s.uid}`}
-                  underline='hover'
-                  variant='body2'
-                  fontWeight='medium'
-                >
-                  {s.long_labels.find((l) => l.language === lang)?.value ?? s.long_labels[0]?.value ?? s.acronym}
-                </Link>
-              ))}
-            </Box>
-          </Box>
-        )}
+            </span>
+          ))}
+        </Typography>
       </Box>
     </Box>
   )
