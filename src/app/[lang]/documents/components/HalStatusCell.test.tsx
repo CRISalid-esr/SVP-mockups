@@ -1,5 +1,6 @@
 import useStore from '@/stores/global_store'
 import { render, screen, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
 import { HalSubmitType as DbHalSubmitType, OAStatus } from '@prisma/client'
@@ -161,14 +162,13 @@ describe('HalStatusCell Component', () => {
         exact: false,
       }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        mockState.user.currentPerspective.membershipAcronyms.join(', '),
-        {
-          exact: false,
-        },
-      ),
-    ).toBeInTheDocument()
+    // Les sigles des structures ne sont plus dans le libellé : ils sont dans l'infobulle.
+    await userEvent.hover(
+      screen.getByText(i18n.t('documents_page_hal_status_out_of_collection')),
+    )
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      mockState.user.currentPerspective.membershipAcronyms.join(', '),
+    )
   })
 
   it('displays the outside Hal status', async () => {
