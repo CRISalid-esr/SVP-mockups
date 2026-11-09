@@ -1,7 +1,7 @@
 import useStore from '@/stores/global_store'
 import { BibliographicPlatform } from '@/types/BibliographicPlatform'
 import '@testing-library/jest-dom'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import HalUpdate from './HalUpdate'
 
 jest.mock('@/stores/global_store', () => ({
@@ -40,7 +40,9 @@ describe('HalUpdate', () => {
     expect(screen.getByRole('checkbox', { name: /Mot-clé : Apprentissage profond/ })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: /Résumé en anglais/ })).not.toBeChecked()
     expect(screen.getByText('À vérifier')).toBeInTheDocument()
-    expect(screen.getByText(/HAL : 1er janvier 2023 · SoVisu\+ : 15 mai 2023/)).toBeInTheDocument()
+    const differences = screen.getByRole('table', { name: 'Différences entre HAL et SoVisu+' })
+    expect(within(differences).getByText('1er janvier 2023')).toBeInTheDocument()
+    expect(within(differences).getByText('15 mai 2023')).toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: /Date de publication/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Vérifier et envoyer (5)' })).toBeEnabled()
   })

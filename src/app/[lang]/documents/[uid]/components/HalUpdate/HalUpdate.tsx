@@ -37,6 +37,9 @@ import {
   HalUpdateProposal,
   HalUpdateScenario,
 } from './halUpdateMock'
+import { visuallyHidden } from '@mui/utils'
+import DocumentSection from '../DocumentSection'
+import CompareTable, { CompareColumn, CompareRow, CompareStatus } from '../CompareTable'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -139,88 +142,91 @@ const SourceChip = ({ source }: { source: string }) => (
   />
 )
 
-const AddRow = ({
-  proposal,
-  checked,
-  onToggle,
-  onDismiss,
-}: {
-  proposal: HalUpdateProposal
-  checked: boolean
-  onToggle: () => void
-  onDismiss: () => void
-}) => (
-  <Box
-    sx={{
-      display: 'flex',
-      gap: 1,
-      alignItems: 'flex-start',
-      p: 1.25,
-      borderBottom: `1px solid ${BORDER}`,
-      '&:last-of-type': { borderBottom: 'none' },
-    }}
-  >
-    <Checkbox
-      checked={checked}
-      onChange={onToggle}
-      size="small"
-      inputProps={{ 'aria-label': `${proposal.category} : ${proposal.value}` }}
-      sx={{ p: 0.5, color: MUTED, '&.Mui-checked': { color: TEAL } }}
-    />
-    <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>{proposal.category}</Typography>
-      <Typography sx={{ color: TEXT, fontSize: '0.875rem', overflowWrap: 'anywhere' }}>
-        {proposal.value}
-      </Typography>
-      {proposal.warning && (
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-start', mt: 0.5 }}>
-          <WarningAmber sx={{ color: WARN, fontSize: 15, mt: '2px' }} />
-          <Typography sx={{ color: WARN, fontSize: '0.8125rem' }}>{proposal.warning}</Typography>
+const DismissButton = ({ label, onDismiss }: { label: string; onDismiss: () => void }) => (
+  <Tooltip title="Ne plus proposer">
+    <IconButton size="small" onClick={onDismiss} aria-label={`Ne plus proposer : ${label}`}>
+      <VisibilityOff sx={{ fontSize: 17 }} />
+    </IconButton>
+  </Tooltip>
+)
+
+/** Les informations absentes de HAL, à cocher pour les envoyer. */
+const additionRows = (
+  proposals: HalUpdateProposal[],
+  selected: string[],
+  onToggle: (id: string) => void,
+  onDismiss: (id: string) => void,
+): CompareRow[] =>
+  proposals.map((proposal) => ({
+    key: proposal.id,
+    cells: {
+      select: (
+        <Checkbox
+          checked={selected.includes(proposal.id)}
+          onChange={() => onToggle(proposal.id)}
+          size="small"
+          inputProps={{ 'aria-label': `${proposal.category} : ${proposal.value}` }}
+          sx={{ p: 0.25 }}
+        />
+      ),
+      category: <Typography sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{proposal.category}</Typography>,
+      value: (
+        <Box>
+          <Typography sx={{ fontSize: '0.875rem' }}>{proposal.value}</Typography>
+          {proposal.warning && (
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-start', mt: 0.5 }}>
+              <WarningAmber sx={{ color: WARN, fontSize: 15, mt: '2px' }} />
+              <Typography sx={{ color: WARN, fontSize: '0.8125rem' }}>{proposal.warning}</Typography>
+            </Box>
+          )}
+          {proposal.benefit && (
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem', mt: 0.5 }}>
+              {proposal.benefit}
+            </Typography>
+          )}
         </Box>
-      )}
-      {proposal.benefit && (
-        <Typography sx={{ color: TEAL, fontSize: '0.8125rem', mt: 0.5 }}>{proposal.benefit}</Typography>
-      )}
-    </Box>
-    <SourceChip source={proposal.source} />
-    <Tooltip title="Ne plus proposer">
-      <IconButton
-        size="small"
-        onClick={onDismiss}
-        aria-label={`Ne plus proposer : ${proposal.value}`}
-      >
-        <VisibilityOff sx={{ fontSize: 17 }} />
-      </IconButton>
-    </Tooltip>
+      ),
+      source: <SourceChip source={proposal.source} />,
+      dismiss: <DismissButton label={proposal.value} onDismiss={() => onDismiss(proposal.id)} />,
+    },
+  }))
+
+/** Les informations sur lesquelles HAL et SoVisu+ ne s'accordent pas : affichées, jamais envoyées. */
+const replacementRows = (proposals: HalUpdateProposal[], onDismiss: (id: string) => void): CompareRow[] =>
+  proposals.map((proposal) => ({
+    key: proposal.id,
+    cells: {
+      category: <Typography sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{proposal.category}</Typography>,
+      hal: proposal.halValue,
+      sovisu: proposal.value,
+      source: <SourceChip source={proposal.source} />,
+      status: <CompareStatus status="differs" />,
+      dismiss: <DismissButton label={proposal.category} onDismiss={() => onDismiss(proposal.id)} />,
+    },
+  }))
+
+const hiddenHeader = (label: string) => (
+  <Box component="span" sx={visuallyHidden}>
+    {label}
   </Box>
 )
 
-const ReplaceRow = ({
-  proposal,
-  onDismiss,
-}: {
-  proposal: HalUpdateProposal
-  onDismiss: () => void
-}) => (
-  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.25 }}>
-    <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Typography sx={{ color: MUTED, fontSize: '0.75rem' }}>{proposal.category}</Typography>
-      <Typography sx={{ color: TEXT, fontSize: '0.875rem' }}>
-        {`HAL : ${proposal.halValue} · SoVisu+ : ${proposal.value}`}
-      </Typography>
-    </Box>
-    <SourceChip source={proposal.source} />
-    <Tooltip title="Ne plus proposer">
-      <IconButton
-        size="small"
-        onClick={onDismiss}
-        aria-label={`Ne plus proposer : ${proposal.category}`}
-      >
-        <VisibilityOff sx={{ fontSize: 17 }} />
-      </IconButton>
-    </Tooltip>
-  </Box>
-)
+const ADDITION_COLUMNS: CompareColumn[] = [
+  { key: 'select', header: hiddenHeader('Ajouter'), width: 48 },
+  { key: 'category', header: 'Information', width: 200 },
+  { key: 'value', header: 'À ajouter dans HAL' },
+  { key: 'source', header: 'Provenance', width: 150 },
+  { key: 'dismiss', header: hiddenHeader('Ne plus proposer'), width: 48, align: 'right' },
+]
+
+const REPLACEMENT_COLUMNS: CompareColumn[] = [
+  { key: 'category', header: 'Information', width: 200 },
+  { key: 'hal', header: 'Dans HAL' },
+  { key: 'sovisu', header: 'Dans SoVisu+' },
+  { key: 'source', header: 'Provenance', width: 150 },
+  { key: 'status', header: 'État', width: 120 },
+  { key: 'dismiss', header: hiddenHeader('Ne plus proposer'), width: 48, align: 'right' },
+]
 
 const AccessBanner = ({
   state,
@@ -516,7 +522,7 @@ export default function HalUpdate() {
     />
   )
 
-  const containerSx = { maxWidth: 860, mx: 'auto', py: 3, px: { xs: 1, sm: 2 } }
+  const containerSx = { p: 3, border: 1, borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }
   const primaryButtonSx = {
     bgcolor: TEAL,
     textTransform: 'none',
@@ -637,21 +643,16 @@ export default function HalUpdate() {
   // ─── Comparaison ────────────────────────────────────────────────────────────
 
   return (
-    <Box sx={containerSx}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1, mb: 2 }}>
-        <Box>
-          <Typography variant="h6" sx={{ color: TEXT, fontWeight: 700 }}>
-            {additions.length > 0
-              ? `${formatCount(additions.length)} absente${additions.length > 1 ? 's' : ''} de HAL`
-              : `Rien à ajouter dans HAL`}
-          </Typography>
-          <Typography sx={{ color: MUTED, fontSize: '0.875rem' }}>
-            {`Choisissez ce que vous voulez ajouter à ce dépôt : le reste ne bouge pas.`}
-          </Typography>
-        </Box>
-        <Typography sx={{ fontSize: '0.875rem' }}>{halLink}</Typography>
-      </Box>
-
+    <Box>
+      <DocumentSection
+        title={
+          additions.length > 0
+            ? `${formatCount(additions.length)} absente${additions.length > 1 ? 's' : ''} de HAL`
+            : `Rien à ajouter dans HAL`
+        }
+        subtitle={`Choisissez ce que vous voulez ajouter à ce dépôt : le reste ne bouge pas.`}
+        actions={<Typography sx={{ fontSize: '0.875rem' }}>{halLink}</Typography>}
+      >
       {state.lastEvent === 'synced' && (
         <Alert severity="success" icon={<CheckCircle />} sx={{ mb: 2 }}>
           {`HAL a bien pris en compte vos derniers ajouts.`}
@@ -673,17 +674,11 @@ export default function HalUpdate() {
             title="À ajouter"
             hint="Ces informations existent dans SoVisu+ mais pas encore dans HAL."
           />
-          <Paper variant="outlined" sx={{ borderColor: BORDER }}>
-            {additions.map((p) => (
-              <AddRow
-                key={p.id}
-                proposal={p}
-                checked={state.selected.includes(p.id)}
-                onToggle={() => toggle(p.id)}
-                onDismiss={() => dismiss(p.id)}
-              />
-            ))}
-          </Paper>
+          <CompareTable
+            ariaLabel="Informations à ajouter dans HAL"
+            columns={ADDITION_COLUMNS}
+            rows={additionRows(additions, state.selected, toggle, dismiss)}
+          />
         </Box>
       )}
 
@@ -693,11 +688,11 @@ export default function HalUpdate() {
             title="À vérifier"
             hint="HAL et SoVisu+ ne disent pas la même chose. Ces différences ne sont pas envoyées : si HAL doit changer, corrigez-le directement dans HAL."
           />
-          <Paper variant="outlined" sx={{ borderColor: BORDER }}>
-            {replacements.map((p) => (
-              <ReplaceRow key={p.id} proposal={p} onDismiss={() => dismiss(p.id)} />
-            ))}
-          </Paper>
+          <CompareTable
+            ariaLabel="Différences entre HAL et SoVisu+"
+            columns={REPLACEMENT_COLUMNS}
+            rows={replacementRows(replacements, dismiss)}
+          />
         </Box>
       )}
 
@@ -763,6 +758,7 @@ export default function HalUpdate() {
           : `Pour ajouter un fichier à ce dépôt, passez par HAL : `}
         {halLink}
       </Typography>
+      </DocumentSection>
 
       {demoBar}
 

@@ -20,16 +20,17 @@ import {
   DocumentDetailsTitle,
   DocumentMeta,
   DocumentSummaryCard,
-  Domains,
   HalDeposit,
   HalUpdate,
-  Keywords,
   Sources,
+  Themes,
 } from './components/'
 import { BibliographicPlatform } from '@/types/BibliographicPlatform'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { Trans } from '@lingui/react'
+
+const LEGACY_TABS: Record<string, string> = { keywords: 'themes', domains: 'themes' }
 
 const DocumentDetailsPage = () => {
   const theme = useTheme()
@@ -59,23 +60,18 @@ const DocumentDetailsPage = () => {
       color: theme.palette.primary.main,
     },
     {
-      label: t`document_details_keywords_tab`,
-      value: 'keywords',
+      label: t`document_details_authors_tab`,
+      value: 'authors',
       color: theme.palette.primary.main,
     },
     {
-      label: t`document_details_domains_tab`,
-      value: 'domains',
+      label: 'Thématiques',
+      value: 'themes',
       color: theme.palette.primary.main,
     },
     {
       label: t`document_details_sources_tab`,
       value: 'sources',
-      color: theme.palette.primary.main,
-    },
-    {
-      label: t`document_details_authors_tab`,
-      value: 'authors',
       color: theme.palette.primary.main,
     },
     ...(selectedDocument
@@ -107,7 +103,8 @@ const DocumentDetailsPage = () => {
   useEffect(() => {
     const tab = searchParams.get('tab')
     if (tab) {
-      setSelectedTab(tab)
+      // Les anciens onglets Mots-clés et Domaines sont réunis dans Thématiques.
+      setSelectedTab(LEGACY_TABS[tab] ?? tab)
     }
   }, [searchParams])
 
@@ -146,10 +143,8 @@ const DocumentDetailsPage = () => {
         return <Sources />
       case 'authors':
         return <Authors />
-      case 'keywords':
-        return <Keywords />
-      case 'domains':
-        return <Domains />
+      case 'themes':
+        return <Themes />
       case 'hal_deposit':
         return <HalDeposit />
       case 'hal_update':
@@ -159,10 +154,10 @@ const DocumentDetailsPage = () => {
     }
   }
 
-  // L'onglet Domaines n'a pas de page d'aide.
+  // Les domaines n'ont pas de page d'aide : Thématiques renvoie à celle des mots-clés.
   const helpTopics: Record<string, HelpTopic[]> = {
     bibliographic_information: ['bibliographic'],
-    keywords: ['keywords'],
+    themes: ['keywords'],
     sources: ['sources'],
     authors: ['authors'],
     hal_deposit: ['halDeposit'],

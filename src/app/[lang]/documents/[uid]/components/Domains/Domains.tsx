@@ -16,7 +16,6 @@ import {
   DialogTitle,
   LinearProgress,
   Link,
-  Paper,
   TextField,
   Tooltip,
   Typography,
@@ -36,6 +35,7 @@ import {
   topicPath,
 } from './domainsMock'
 import TopicPickerDialog from './TopicPickerDialog'
+import DocumentSection from '../DocumentSection'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -86,33 +86,18 @@ const outlinedButtonSx = {
 
 const Section = ({
   title,
+  subtitle,
   actions,
   children,
 }: {
   title: string
+  subtitle?: string
   actions?: ReactNode
   children: ReactNode
 }) => (
-  <Paper variant="outlined" sx={{ borderColor: BORDER, mb: 3 }}>
-    <Box
-      sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: 1,
-        px: 2,
-        py: 1.5,
-        borderBottom: `1px solid ${BORDER}`,
-      }}
-    >
-      <Typography component="h2" sx={{ color: TEAL, fontSize: '1.125rem' }}>
-        {title}
-      </Typography>
-      {actions && <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>{actions}</Box>}
-    </Box>
-    <Box sx={{ p: 2 }}>{children}</Box>
-  </Paper>
+  <DocumentSection title={title} subtitle={subtitle} actions={actions}>
+    {children}
+  </DocumentSection>
 )
 
 const StatusChip = ({ row }: { row: TopicRow }) => {
@@ -327,9 +312,9 @@ export default function Domains() {
   ]
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {demoAccess === 'frozen' && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert severity="info">
           {`Ce document est en cours de mise à jour : ses domaines ne peuvent pas être modifiés pour le moment.`}
         </Alert>
       )}
@@ -337,6 +322,7 @@ export default function Domains() {
       {/* ── Classification OpenAlex ───────────────────────────────────────── */}
       <Section
         title="Classification OpenAlex"
+        subtitle="Domaine, discipline, sous-discipline et sujet"
         actions={
           // À vide, ces actions sont déjà mises en avant dans le corps de la section.
           !isEmpty && (canEdit || generating) ? (
@@ -545,6 +531,7 @@ export default function Domains() {
       {/* ── Domaines HAL ──────────────────────────────────────────────────── */}
       <Section
         title="Domaines HAL"
+        subtitle={isInHal ? 'Moissonnés depuis la notice HAL' : 'Repris au dépôt dans HAL'}
         actions={
           canEdit ? (
             <Button

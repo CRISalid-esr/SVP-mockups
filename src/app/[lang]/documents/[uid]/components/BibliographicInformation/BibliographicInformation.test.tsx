@@ -11,7 +11,7 @@ import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import BibliographicInformation from './BibliographicInformation'
 import { OAStatus } from '@prisma/client'
 // Mock Zustand store
@@ -117,7 +117,7 @@ describe('BibliographicInformation Component', () => {
     renderComponent()
 
     expect(
-      screen.getByText(i18n.t('document_details_page_card_title')),
+      screen.getByRole('heading', { name: 'Récapitulatif' }),
     ).toBeInTheDocument()
   })
 
@@ -131,9 +131,6 @@ describe('BibliographicInformation Component', () => {
       screen.getByText(i18n.t('document_details_page_type_row_label')),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(i18n.t('document_details_page_authors_row_label')),
-    ).toBeInTheDocument()
-    expect(
       screen.getByText(
         i18n.t('document_details_page_publication_date_row_label'),
       ),
@@ -141,14 +138,28 @@ describe('BibliographicInformation Component', () => {
     expect(
       screen.getByText(i18n.t('document_details_page_identifiers_row_label')),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(i18n.t('document_details_page_journal_row_label')),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Paru dans')).toBeInTheDocument()
+    expect(screen.getByText('0123-4567')).toHaveAttribute(
+      'href',
+      'https://portal.issn.org/resource/ISSN/0123-4567',
+    )
     expect(
       screen.getByText(i18n.t('document_details_page_abstracts_row_label')),
     ).toBeInTheDocument()
     expect(
       screen.getByText(i18n.t('document_details_page_sources_row_label')),
     ).toBeInTheDocument()
+  })
+
+  it('renvoie vers les onglets Auteurs et Thématiques au lieu de lister les auteurs', () => {
+    renderComponent()
+
+    expect(
+      screen.queryByText(i18n.t('document_details_page_authors_row_label')),
+    ).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Modifier les auteurs/ }))
+    expect(mockRouter.push).toHaveBeenLastCalledWith(expect.stringContaining('tab=authors'))
+    fireEvent.click(screen.getByRole('button', { name: /Modifier les thématiques/ }))
+    expect(mockRouter.push).toHaveBeenLastCalledWith(expect.stringContaining('tab=themes'))
   })
 })

@@ -173,11 +173,13 @@ describe('DocumentDetailsPage Component', () => {
       i18n.t('document_details_bibliographic_information_tab'),
     )
     expect(elements).toHaveLength(1)
-    expect(
-      screen.getByText(i18n.t('document_details_keywords_tab')),
-    ).toBeInTheDocument()
-    expect(screen.getByText('document_details_domains_tab')).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'document_details_authors_tab' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'document_details_sources_tab' })).toBeInTheDocument()
+    // Mots-clés et domaines sont réunis dans Thématiques, juste après Auteurs.
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'document_details_bibliographic_information_tab',
+      'document_details_authors_tab',
+      'Thématiques',
+      'document_details_sources_tab',
+      'document_details_hal_deposit_tab',
+    ])
   })
 })

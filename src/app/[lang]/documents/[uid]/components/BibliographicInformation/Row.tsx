@@ -1,4 +1,4 @@
-import { Box, TableCell, TableRow } from '@mui/material'
+import { Box } from '@mui/material'
 import * as Lingui from '@lingui/core'
 import { useEffect, useState } from 'react'
 
@@ -12,6 +12,7 @@ import {
   DocumentLocalizableFieldKey,
 } from './BibliographicInformation'
 
+/** Une ligne de la notice : libellé à gauche (au-dessus sur mobile), valeur à droite. */
 const Row = ({ field }: { field: DocumentField }) => {
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
   const [selectedLang, setSelectedLang] = useState<string>(lang)
@@ -46,41 +47,35 @@ const Row = ({ field }: { field: DocumentField }) => {
     field.noContentAvailableMessage,
   ])
 
-  const handleLanguageChange = (lang: string) => {
-    setSelectedLang(lang)
-  }
-
   return (
-    <TableRow sx={{ display: { xs: 'block', sm: 'table-row' }, '&:last-child td, &:last-child th': { border: 0 } }}>
-      <TableCell
-        component='th'
-        scope='row'
-        sx={{ display: { xs: 'block', sm: 'table-cell' }, borderBottom: { xs: 0, sm: undefined }, pb: { xs: 0, sm: 2 }, px: { xs: 0, sm: 2 } }}
-      >
-        <Box sx={{ alignItems: 'center', display: 'flex', gap: '2rem' }}>
-          <RowLabel>{field.title}</RowLabel>
-
-          {field.hasLanguageSelector && (
-            <LanguageChips
-              texts={
-                selectedDocument?.[
-                  field.value as DocumentLocalizableFieldKey
-                ] ?? []
-              }
-              selectedLang={selectedLang}
-              onLanguageSelect={handleLanguageChange}
-              isInline
-            />
-          )}
-        </Box>
-      </TableCell>
-
-      <TableCell sx={{ display: { xs: 'block', sm: 'table-cell' }, px: { xs: 0, sm: 2 } }}>
-        {field.component && (
-          <field.component content={content}></field.component>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: '180px minmax(0, 1fr)' },
+        columnGap: 3,
+        rowGap: 0.75,
+        py: 2,
+        borderTop: 1,
+        borderColor: 'divider',
+        '&:first-of-type': { borderTop: 0, pt: 0 },
+        '&:last-of-type': { pb: 0 },
+      }}
+    >
+      <Box component='dt' sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1, m: 0, pt: { sm: 0.25 } }}>
+        <RowLabel>{field.title}</RowLabel>
+        {field.hasLanguageSelector && (
+          <LanguageChips
+            texts={selectedDocument?.[field.value as DocumentLocalizableFieldKey] ?? []}
+            selectedLang={selectedLang}
+            onLanguageSelect={setSelectedLang}
+            isInline
+          />
         )}
-      </TableCell>
-    </TableRow>
+      </Box>
+      <Box component='dd' sx={{ m: 0, minWidth: 0 }}>
+        {field.component && <field.component content={content} />}
+      </Box>
+    </Box>
   )
 }
 export default Row

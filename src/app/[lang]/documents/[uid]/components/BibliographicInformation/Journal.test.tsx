@@ -1,7 +1,7 @@
 import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 
 import useStore from '@/stores/global_store'
 import { Journal } from '@/types/Journal'
@@ -61,16 +61,13 @@ describe('Journal Component', () => {
     expect(screen.getByText('Test journal')).toBeInTheDocument()
   })
 
-  it('shows the popper with additional journal information when the button is clicked', () => {
+  it('affiche l’ISSN et l’éditeur sans clic', () => {
     renderComponent()
 
-    expect(screen.queryByText('0123-4567')).toBeNull()
-    expect(screen.queryByText('Test publisher')).toBeNull()
-
-    const button = screen.getByText('Test journal')
-    fireEvent.click(button)
-
-    expect(screen.getByText('0123-4567')).toBeInTheDocument()
-    expect(screen.getByText('Test publisher')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '0123-4567' })).toHaveAttribute(
+      'href',
+      'https://portal.issn.org/resource/ISSN/0123-4567',
+    )
+    expect(screen.getByText(/Test publisher/)).toBeInTheDocument()
   })
 })
