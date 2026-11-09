@@ -6,7 +6,7 @@ import {
   TextField, Typography,
 } from '@mui/material'
 import { ContentCopy } from '@mui/icons-material'
-import { Keyword, ResearchTheme, TEAL, TEAL_DARK, VOCAB_CONFIG, copyTheme } from '../../types'
+import { Keyword, ResearchTheme, VOCAB_CONFIG, copyTheme } from '../../types'
 
 interface Props {
   open: boolean
@@ -110,9 +110,8 @@ export default function CopyThemeDialog({ open, theme, member, onClose, onConfir
         </Alert>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} sx={{ textTransform: 'none' }}>Annuler</Button>
-        <Button variant="contained" startIcon={<ContentCopy />} onClick={confirm} disabled={!label.trim()}
-          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_DARK } }}>
+        <Button color="inherit" onClick={onClose}>Annuler</Button>
+        <Button variant="contained" disableElevation startIcon={<ContentCopy />} onClick={confirm} disabled={!label.trim()}>
           Copier et modifier
         </Button>
       </DialogActions>
