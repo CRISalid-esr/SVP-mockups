@@ -26,12 +26,12 @@ import {
   topicPath,
 } from './domainsMock'
 
-const TEAL = '#006A61'
-const TEAL_DARK = '#005550'
-const BORDER = '#E5E7E6'
-const SURFACE = '#F5F7F6'
-const TEXT = '#2D3836'
-const MUTED = '#6F7977'
+const TEAL = 'primary.main'
+const TEAL_DARK = 'primary.dark'
+const BORDER = 'divider'
+const SURFACE = 'action.hover'
+const TEXT = 'text.primary'
+const MUTED = 'text.secondary'
 
 const MAX_RESULTS = 30
 
@@ -128,7 +128,7 @@ export default function TopicPickerDialog({
           sx={{ mb: 1.5 }}
         />
 
-        <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: 1, p: 1, height: 340, overflowY: 'auto' }}>
+        <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 1, height: 340, overflowY: 'auto' }}>
           {!trimmedQuery && (
             <SimpleTreeView disableSelection aria-label="Classification OpenAlex">
               {TAXONOMY.map((domain) => (
@@ -173,7 +173,7 @@ export default function TopicPickerDialog({
 
         {/* Sous la liste : la sélection ne doit pas faire sauter l'arbre pendant qu'on coche. */}
         {selected.length > 0 && (
-          <Box sx={{ p: 1.5, mt: 1.5, bgcolor: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 1 }}>
+          <Box sx={{ p: 1.5, mt: 1.5, bgcolor: SURFACE, border: 1, borderColor: 'divider', borderRadius: 1 }}>
             <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.8125rem', mb: 0.5 }}>
               {`Sélection (${selected.length})`}
             </Typography>

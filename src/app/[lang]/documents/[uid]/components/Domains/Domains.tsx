@@ -37,17 +37,17 @@ import {
 import TopicPickerDialog from './TopicPickerDialog'
 import DocumentSection from '../DocumentSection'
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants (jetons du thème) ────────────────────────────────────────────────────────────────
 
-const TEAL = '#006A61'
-const TEAL_DARK = '#005550'
-const TEAL_LIGHT = '#E8F5F4'
-const BORDER = '#E5E7E6'
-const SURFACE = '#F5F7F6'
-const TEXT = '#2D3836'
-const MUTED = '#6F7977'
-const WARN = '#B45309'
-const WARN_BORDER = '#F1D9A0'
+const TEAL = 'primary.main'
+const TEAL_DARK = 'primary.dark'
+const TEAL_LIGHT = 'navActive'
+const BORDER = 'divider'
+const SURFACE = 'action.hover'
+const TEXT = 'text.primary'
+const MUTED = 'text.secondary'
+const WARN = 'warning.dark'
+const WARN_BORDER = 'warning.light'
 
 /** Sujets OpenAlex affichés avant « voir plus » (seuil à confirmer). */
 const VISIBLE_OPENALEX_TOPICS = 5
@@ -439,7 +439,8 @@ export default function Domains() {
                     gap: 1,
                     ml: { xs: 0, sm: 2 },
                     py: 0.5,
-                    borderBottom: `1px solid ${SURFACE}`,
+                    borderBottom: 1,
+                    borderColor: 'divider',
                   }}
                 >
                   <Typography sx={{ color: TEXT, fontSize: '0.875rem', flex: '1 1 240px', minWidth: 0 }}>
@@ -503,7 +504,7 @@ export default function Domains() {
         )}
 
         {state.rejected.length > 0 && (
-          <Box sx={{ mt: 2, pt: 1.5, borderTop: `1px solid ${BORDER}` }}>
+          <Box sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
             <Typography sx={{ color: MUTED, fontSize: '0.8125rem', mb: 0.5 }}>
               {`Écartés (${state.rejected.length}) : ils ne seront plus proposés.`}
             </Typography>
@@ -610,7 +611,7 @@ export default function Domains() {
 
       {/* ── Zone de démonstration ─────────────────────────────────────────── */}
       {/* Marge à droite : le bouton flottant de l'assistant recouvre ce coin de l'écran. */}
-      <Box sx={{ pt: 1.5, pr: 9, borderTop: `1px dashed ${BORDER}`, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.75 }}>
+      <Box sx={{ pt: 1.5, pr: 9, borderTop: 1, borderColor: 'divider', borderTopStyle: 'dashed', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.75 }}>
         <Typography sx={{ color: MUTED, fontSize: '0.75rem', mr: 0.5 }}>Simuler :</Typography>
         {demoOptions.map(({ value, label }) => (
           <Button
@@ -635,7 +636,7 @@ export default function Domains() {
           size="small"
           startIcon={<Close sx={{ fontSize: 14 }} />}
           onClick={resetDemo}
-          sx={{ ...demoButtonSx, color: '#B3261E', ml: 'auto' }}
+          sx={{ ...demoButtonSx, color: 'error.main', ml: 'auto' }}
         >
           Réinitialiser
         </Button>
