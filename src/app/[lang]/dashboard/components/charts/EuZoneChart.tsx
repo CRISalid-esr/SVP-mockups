@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
+import { SERIES } from './chartPalette'
 
 const EuZoneChart = ({ data }: { data: { ue: number; horsUe: number } }) => {
   const ue = t`dashboard_intl_zone_eu`
@@ -16,8 +17,8 @@ const EuZoneChart = ({ data }: { data: { ue: number; horsUe: number } }) => {
         itemStyle: { borderColor: '#fff', borderWidth: 1 },
         label: { formatter: '{b}\n{d}%' },
         data: [
-          { name: ue, value: data.ue, itemStyle: { color: '#4C78A8' } },
-          { name: hors, value: data.horsUe, itemStyle: { color: '#F58518' } },
+          { name: ue, value: data.ue, itemStyle: { color: SERIES[0] } },
+          { name: hors, value: data.horsUe, itemStyle: { color: SERIES[1] } },
         ],
       },
     ],

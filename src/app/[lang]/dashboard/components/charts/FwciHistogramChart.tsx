@@ -2,6 +2,7 @@ import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { FWCI_REFERENCE, FWCI_BIN_WIDTH } from './impactAggregates'
+import { PRIMARY_SERIES } from './chartPalette'
 
 const FwciHistogramChart = ({
   data,
@@ -26,7 +27,7 @@ const FwciHistogramChart = ({
       {
         type: 'bar',
         data: data.map((d) => d.count),
-        itemStyle: { color: '#4C78A8' },
+        itemStyle: { color: PRIMARY_SERIES },
         barCategoryGap: '10%',
         markLine: {
           symbol: 'none',

@@ -8,6 +8,7 @@ import DashboardSectionCard from '@/app/[lang]/dashboard/components/charts/Dashb
 import DonutChart from '@/app/[lang]/dashboard/components/charts/DonutChart'
 import StackedAreaChart from '@/app/[lang]/dashboard/components/charts/StackedAreaChart'
 import RankBarChart from '@/app/[lang]/dashboard/components/charts/RankBarChart'
+import { PRIMARY_SERIES } from '../charts/chartPalette'
 
 const PhdTab = () => {
   const { publications, authors } = useDashboardData()
@@ -50,7 +51,7 @@ const PhdTab = () => {
               <RankBarChart
                 chartId='doctorants-classement'
                 data={agg.byDoctorant}
-                color='#B279A2'
+                color={PRIMARY_SERIES}
                 height={Math.max(240, agg.byDoctorant.length * 26 + 60)}
               />
             </DashboardSectionCard>

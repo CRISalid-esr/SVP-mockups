@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { PartnerItem } from './internationalAggregates'
+import { PRIMARY_SERIES } from './chartPalette'
 
 const TopPartnersChart = ({ data }: { data: PartnerItem[] }) => {
   const sorted = [...data].sort((a, b) => a.count - b.count)
@@ -26,7 +27,7 @@ const TopPartnersChart = ({ data }: { data: PartnerItem[] }) => {
       {
         type: 'bar',
         data: sorted.map((d) => d.count),
-        itemStyle: { color: '#2a9d8f', borderRadius: [0, 3, 3, 0] },
+        itemStyle: { color: PRIMARY_SERIES, borderRadius: [0, 3, 3, 0] },
         label: { show: true, position: 'right', fontSize: 10 },
       },
     ],

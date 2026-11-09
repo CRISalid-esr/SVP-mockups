@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
+import { PRIMARY_SERIES } from './chartPalette'
 
 const IntlPercentChart = ({
   data,
@@ -22,7 +23,7 @@ const IntlPercentChart = ({
         smooth: true,
         showSymbol: true,
         data: data.map((d) => d.pct),
-        itemStyle: { color: '#F58518' },
+        itemStyle: { color: PRIMARY_SERIES },
         areaStyle: { color: 'rgba(245,133,24,0.12)' },
       },
     ],

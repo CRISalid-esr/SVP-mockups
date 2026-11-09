@@ -6,6 +6,7 @@ import { Box, CircularProgress } from '@mui/material'
 import { t } from '@lingui/core/macro'
 import { publicPath } from '@/utils/publicPath'
 import { CountryItem } from './internationalAggregates'
+import { SEQUENTIAL, MAP_AREA, MAP_BORDER } from './chartPalette'
 
 const MAP_NAME = 'world'
 
@@ -51,7 +52,7 @@ const WorldChoroplethChart = ({ data }: { data: CountryItem[] }) => {
       left: 8,
       bottom: 8,
       calculable: true,
-      inRange: { color: ['#e8f0f9', '#9ec1e3', '#4C78A8', '#11304e'] },
+      inRange: { color: [SEQUENTIAL[0], SEQUENTIAL[1], SEQUENTIAL[3], SEQUENTIAL[4]] },
       text: [t`dashboard_intl_map_more`, t`dashboard_intl_map_less`],
     },
     series: [
@@ -60,7 +61,7 @@ const WorldChoroplethChart = ({ data }: { data: CountryItem[] }) => {
         map: MAP_NAME,
         roam: true,
         emphasis: { label: { show: false } },
-        itemStyle: { areaColor: '#f4f4f4', borderColor: '#d0d0d0' },
+        itemStyle: { areaColor: MAP_AREA, borderColor: MAP_BORDER },
         data: points.map((d) => ({ name: d.echarts, value: d.count })),
       },
     ],

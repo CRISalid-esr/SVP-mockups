@@ -6,8 +6,9 @@ import {
   Typography,
 } from '@mui/material'
 import { t } from '@lingui/core/macro'
-import ReactEcharts from 'echarts-for-react'
+import ThemedChart from './charts/ThemedChart'
 import { ComposeOption } from 'echarts/core'
+import type { EChartsOption } from 'echarts'
 import { BarSeriesOption } from 'echarts/charts'
 import {
   DatasetComponentOption,
@@ -22,6 +23,7 @@ import dayjs from 'dayjs'
 import BlockIcon from '@mui/icons-material/Block'
 import { OAStatus } from '@prisma/client'
 import { OAStatusProperties } from '@/app/[lang]/documents/components/OAStatusProperties'
+import { SERIES, PRIMARY_SERIES, NEUTRAL } from './charts/chartPalette'
 
 type ChartOption = ComposeOption<
   | BarSeriesOption
@@ -208,7 +210,7 @@ const PublicationCard = () => {
           let html = `<div style="min-width:250px; font-family:sans-serif;">
           <div style="font-weight:bold; ">${title}</div>
           <div style="display:flex; justify-content:space-between;"><span>${total}</span></div>
-          <div style="display:flex ; justify-content:space-between; color:#91cc75; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:5px;"><span>${oa}</span></div>
+          <div style="display:flex ; justify-content:space-between; color:${PRIMARY_SERIES}; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:5px;"><span>${oa}</span></div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-top:10px; font-size:11px;">`
 
           Object.entries(item.details).forEach(([key, val]) => {
@@ -219,7 +221,7 @@ const PublicationCard = () => {
           </div>`
           })
 
-          const color = '#81888f'
+          const color = NEUTRAL
           html += `<div style="display:flex; align-items:center;">
             <span style="width:7px; height:7px; border-radius:50%; margin-right:5px; background:${color}"></span>
             ${t`dashboard_page_publication_by_year_graph_tooltip_unknown`}: <b>${item.unknown}</b>
@@ -248,7 +250,7 @@ const PublicationCard = () => {
           type: 'bar',
           stack: 'total',
           data: filteredData.map((d) => d.oa),
-          itemStyle: { color: '#91cc75' },
+          itemStyle: { color: PRIMARY_SERIES },
           label: {
             show: true,
             position: 'inside',
@@ -267,7 +269,7 @@ const PublicationCard = () => {
           type: 'bar',
           stack: 'total',
           data: filteredData.map((d) => d.unknown),
-          itemStyle: { color: '#81888f' },
+          itemStyle: { color: NEUTRAL },
           label: {
             show: true,
             position: 'inside',
@@ -286,7 +288,7 @@ const PublicationCard = () => {
           type: 'bar',
           stack: 'total',
           data: filteredData.map((d) => d.total - (d.oa + d.unknown)),
-          itemStyle: { color: '#5470c6' },
+          itemStyle: { color: SERIES[1] },
           label: {
             show: true,
             position: 'inside',
@@ -413,11 +415,7 @@ const PublicationCard = () => {
           ) : (
             <Box>
               {option && (
-                <ReactEcharts
-                  option={option}
-                  notMerge={true}
-                  lazyUpdate={true}
-                />
+                <ThemedChart option={option as EChartsOption} />
               )}
             </Box>
           )}

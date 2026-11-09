@@ -1,11 +1,12 @@
 import { DashboardPublication } from '@/mocks/dashboardMockService'
 import { YearRange } from './overviewAggregates'
+import { ORDINAL } from './chartPalette'
 
 export const QUARTILE_COLORS: Record<string, string> = {
-  Q1: '#2166ac',
-  Q2: '#4dac26',
-  Q3: '#d8b365',
-  Q4: '#d7191c',
+  Q1: ORDINAL[0],
+  Q2: ORDINAL[1],
+  Q3: ORDINAL[2],
+  Q4: ORDINAL[3],
 }
 
 export const FWCI_REFERENCE = 1.0

@@ -39,6 +39,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CloseIcon from '@mui/icons-material/Close'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import { useChartTheme } from './useChartTheme'
 
 /**
  * Vrai à l'intérieur d'une iframe d'intégration : on masque alors le bouton
@@ -56,9 +57,6 @@ interface Props {
   notMerge?: boolean
   lazyUpdate?: boolean
 }
-
-/** Police de l'interface, aussi dans les graphiques. */
-const CHART_FONT = 'Inter, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
 
 const buildEmbedUrl = (chartId: string, perspective: string): string => {
   const url = new URL(window.location.href)
@@ -96,6 +94,7 @@ const EChart = ({
   const [copied, setCopied] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
+  const themed = useChartTheme(option)
   const isEmbed = useContext(EmbedModeContext)
   // Perspective laboratoire par défaut : jeu de données le plus complet.
   const [perspective, setPerspective] = useState<'researcher' | 'lab'>('lab')
@@ -113,7 +112,7 @@ const EChart = ({
     const url = inst.getDataURL({
       type: 'png',
       pixelRatio: 2,
-      backgroundColor: '#fff',
+      backgroundColor: themed.theme === 'dark' ? '#1A1C1B' : '#fff',
     })
     const a = document.createElement('a')
     a.href = url
@@ -212,7 +211,8 @@ const EChart = ({
 
       <ReactEcharts
         ref={chartRef}
-        option={{ textStyle: { fontFamily: CHART_FONT }, ...option }}
+        option={themed.option}
+        theme={themed.theme}
         notMerge={notMerge}
         lazyUpdate={lazyUpdate}
         style={{

@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
+import { SERIES } from './chartPalette'
 
 const EuByYearChart = ({
   data,
@@ -25,8 +26,8 @@ const EuByYearChart = ({
         type: 'line',
         stack: 'total',
         areaStyle: { color: 'rgba(76,120,168,0.5)' },
-        lineStyle: { color: '#4C78A8' },
-        itemStyle: { color: '#4C78A8' },
+        lineStyle: { color: SERIES[0] },
+        itemStyle: { color: SERIES[0] },
         data: data.map((d) => d.ue),
       },
       {
@@ -34,8 +35,8 @@ const EuByYearChart = ({
         type: 'line',
         stack: 'total',
         areaStyle: { color: 'rgba(245,133,24,0.5)' },
-        lineStyle: { color: '#F58518' },
-        itemStyle: { color: '#F58518' },
+        lineStyle: { color: SERIES[1] },
+        itemStyle: { color: SERIES[1] },
         data: data.map((d) => d.horsUe),
       },
     ],

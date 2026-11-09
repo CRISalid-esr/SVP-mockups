@@ -5,6 +5,7 @@ import type { EChartsOption } from 'echarts'
 import { Box, CircularProgress } from '@mui/material'
 import { publicPath } from '@/utils/publicPath'
 import { FlowMapAggregates } from './internationalAggregates'
+import { SERIES, MAP_AREA, MAP_AREA_HOVER, MAP_BORDER } from './chartPalette'
 
 const MAP_NAME = 'world'
 
@@ -52,10 +53,10 @@ const FlowMapChart = ({ data }: { data: FlowMapAggregates }) => {
     geo: {
       map: MAP_NAME,
       roam: true,
-      itemStyle: { areaColor: '#f4f4f4', borderColor: '#d8d8d8' },
+      itemStyle: { areaColor: MAP_AREA, borderColor: MAP_BORDER },
       emphasis: {
         label: { show: false },
-        itemStyle: { areaColor: '#e9eef5' },
+        itemStyle: { areaColor: MAP_AREA_HOVER },
       },
     },
     series: [
@@ -71,7 +72,7 @@ const FlowMapChart = ({ data }: { data: FlowMapAggregates }) => {
           symbol: 'arrow',
           symbolSize: 5,
         },
-        lineStyle: { color: '#F58518', opacity: 0.45, curveness: 0.3 },
+        lineStyle: { color: SERIES[1], opacity: 0.45, curveness: 0.3 },
         data: data.points.map((pt) => ({
           coords: [data.origin.coord, pt.coord],
           value: pt.value,
@@ -85,7 +86,7 @@ const FlowMapChart = ({ data }: { data: FlowMapAggregates }) => {
         zlevel: 2,
         rippleEffect: { brushType: 'stroke', scale: 3 },
         symbolSize: (val: number[]) => 6 + (val[2] / max) * 22,
-        itemStyle: { color: '#F58518' },
+        itemStyle: { color: SERIES[1] },
         data: data.points.map((pt) => ({
           name: pt.name,
           value: [...pt.coord, pt.value],
@@ -98,7 +99,7 @@ const FlowMapChart = ({ data }: { data: FlowMapAggregates }) => {
         zlevel: 3,
         symbol: 'pin',
         symbolSize: 30,
-        itemStyle: { color: '#4C78A8' },
+        itemStyle: { color: SERIES[0] },
         label: {
           show: true,
           formatter: data.origin.name,

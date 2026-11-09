@@ -1,8 +1,10 @@
 'use client'
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
-import ReactECharts from 'echarts-for-react'
+import type { EChartsOption } from 'echarts'
 import { useState } from 'react'
+import ThemedChart from '@/app/[lang]/dashboard/components/charts/ThemedChart'
+import { AXIS_LINE, NEUTRAL, SERIES, SPLIT_LINE } from '@/app/[lang]/dashboard/components/charts/chartPalette'
 import { PublicationYear } from '../types'
 
 type Props = {
@@ -41,11 +43,12 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
 
   const isPct = mode === 'pct'
 
-  const option = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      formatter: (params: { seriesName: string; value: number; dataIndex: number }[]) => {
+      formatter: (raw: unknown) => {
+        const params = raw as { seriesName: string; value: number; dataIndex: number; color: string }[]
         const idx = params[0]?.dataIndex ?? 0
         const year = years[idx]
         const total = publicationsByYear[idx].open + publicationsByYear[idx].closed + publicationsByYear[idx].unknown
@@ -53,9 +56,7 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
         let html = `<b>${year}</b> — ${total} publication${total > 1 ? 's' : ''}<br/>`
         html += `Taux OA : <b>${oaPct} %</b><br/>`
         for (const p of params) {
-          html += `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${
-            p.seriesName === 'Accès ouvert' ? '#3FB97A' : p.seriesName === 'Accès fermé' ? '#3B79D8' : '#9AA39E'
-          };margin-right:6px"></span>${p.seriesName} : ${isPct ? p.value + ' %' : p.value}<br/>`
+          html += `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:6px"></span>${p.seriesName} : ${isPct ? p.value + ' %' : p.value}<br/>`
         }
         return html
       },
@@ -69,14 +70,14 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
     xAxis: {
       type: 'category',
       data: years,
-      axisLine: { lineStyle: { color: '#DDE4E1' } },
+      axisLine: { lineStyle: { color: AXIS_LINE } },
       axisTick: { show: false },
     },
     yAxis: {
       type: 'value',
       max: isPct ? 100 : undefined,
       axisLabel: { formatter: isPct ? '{value} %' : '{value}' },
-      splitLine: { lineStyle: { color: '#F0F4F2' } },
+      splitLine: { lineStyle: { color: SPLIT_LINE } },
     },
     series: [
       {
@@ -84,21 +85,21 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
         type: 'bar',
         stack: 'total',
         data: isPct ? openPct : openData,
-        itemStyle: { color: '#3FB97A', borderRadius: [0, 0, 0, 0] },
+        itemStyle: { color: SERIES[0] },
       },
       {
         name: 'Accès fermé',
         type: 'bar',
         stack: 'total',
         data: isPct ? closedPct : closedData,
-        itemStyle: { color: '#3B79D8' },
+        itemStyle: { color: SERIES[1] },
       },
       {
         name: 'Type inconnu',
         type: 'bar',
         stack: 'total',
         data: isPct ? unknownPct : unknownData,
-        itemStyle: { color: '#9AA39E', borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: NEUTRAL, borderRadius: [4, 4, 0, 0] },
       },
     ],
   }
@@ -125,7 +126,7 @@ export default function PublicationsChart({ publicationsByYear }: Props) {
           role='img'
           aria-label={`Graphique des publications par année pour les ${years.length} dernières années. Taux d'accès ouvert moyen : ${Math.round(openData.reduce((a, b) => a + b, 0) / publicationsByYear.reduce((acc, d) => acc + d.open + d.closed + d.unknown, 0) * 100)} %.`}
         >
-          <ReactECharts option={option} style={{ height: 240 }} />
+          <ThemedChart option={option} style={{ height: 240 }} />
         </Box>
     </Box>
   )

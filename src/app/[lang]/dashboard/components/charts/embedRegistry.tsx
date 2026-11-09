@@ -45,6 +45,7 @@ import StackedBarHChart from './StackedBarHChart'
 import RadarChart from './RadarChart'
 import RankBarChart from './RankBarChart'
 import NetworkChart from './NetworkChart'
+import { PRIMARY_SERIES } from './chartPalette'
 
 // ── Hooks de portée : plage d'années pleine, calculée sur le périmètre courant ──
 const useScope = () => {
@@ -213,7 +214,7 @@ const ChartTopChercheurs = () => {
   return (
     <RankBarChart
       data={researchers}
-      color='#4C78A8'
+      color={PRIMARY_SERIES}
       height={560}
       chartId='top-chercheurs'
     />
@@ -242,7 +243,7 @@ const ChartDoctorantsClassement = () => {
   return (
     <RankBarChart
       data={a.byDoctorant}
-      color='#B279A2'
+      color={PRIMARY_SERIES}
       height={Math.max(240, a.byDoctorant.length * 26 + 60)}
       chartId='doctorants-classement'
     />

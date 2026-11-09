@@ -2,6 +2,7 @@ import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { IntlYearItem } from './internationalAggregates'
+import { SERIES } from './chartPalette'
 
 const IntlVsNationalChart = ({ data }: { data: IntlYearItem[] }) => {
   const intl = t`dashboard_intl_series_international`
@@ -18,14 +19,14 @@ const IntlVsNationalChart = ({ data }: { data: IntlYearItem[] }) => {
         type: 'bar',
         stack: 'total',
         data: data.map((d) => d.national),
-        itemStyle: { color: '#4C78A8' },
+        itemStyle: { color: SERIES[0] },
       },
       {
         name: intl,
         type: 'bar',
         stack: 'total',
         data: data.map((d) => d.international),
-        itemStyle: { color: '#F58518' },
+        itemStyle: { color: SERIES[1] },
       },
     ],
   }

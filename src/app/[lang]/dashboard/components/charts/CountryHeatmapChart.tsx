@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountryHeatmap } from './internationalAggregates'
+import { SEQUENTIAL } from './chartPalette'
 
 const CountryHeatmapChart = ({ data }: { data: CountryHeatmap }) => {
   const max = data.cells.reduce((m, c) => Math.max(m, c.v), 0)
@@ -32,7 +33,7 @@ const CountryHeatmapChart = ({ data }: { data: CountryHeatmap }) => {
       orient: 'horizontal',
       left: 'center',
       bottom: 0,
-      inRange: { color: ['#f2f7fc', '#9ec1e3', '#4C78A8', '#1b3a5c'] },
+      inRange: { color: [SEQUENTIAL[0], SEQUENTIAL[1], SEQUENTIAL[3], SEQUENTIAL[4]] },
     },
     series: [
       {

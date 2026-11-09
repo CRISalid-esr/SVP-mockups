@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { CountItem } from './overviewAggregates'
+import { PRIMARY_SERIES } from './chartPalette'
 
 const PublicationTypesChart = ({
   data,
@@ -25,7 +26,7 @@ const PublicationTypesChart = ({
       {
         type: 'bar',
         data: sorted.map((d) => d.count),
-        itemStyle: { color: '#6a9fb5', borderRadius: [0, 3, 3, 0] },
+        itemStyle: { color: PRIMARY_SERIES, borderRadius: [0, 3, 3, 0] },
         label: { show: true, position: 'right', fontSize: 10 },
       },
     ],

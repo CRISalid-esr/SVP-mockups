@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
+import { PRIMARY_SERIES } from './chartPalette'
 
 interface Props {
   data: { year: number; count: number }[]
@@ -20,7 +21,7 @@ const YearlyEvolutionChart = ({ data }: Props) => {
         name: t`dashboard_overview_yearly_series`,
         type: 'bar',
         data: data.map((d) => d.count),
-        itemStyle: { color: '#4C78A8', borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: PRIMARY_SERIES, borderRadius: [3, 3, 0, 0] },
         label: { show: true, position: 'top', fontSize: 10 },
       },
     ],

@@ -1,12 +1,13 @@
 import { DashboardPublication } from '@/mocks/dashboardMockService'
 import { CountItem, YearRange } from './overviewAggregates'
+import { SERIES } from './chartPalette'
 
 /** Types de publication considérés comme « ouvrages » + couleur (PUB_TYPE_COLORS Nantilux). */
 export const BOOK_TYPES: { key: string; color: string }[] = [
-  { key: 'Chapitre de livre', color: '#F58518' },
-  { key: 'Monographie', color: '#72B7B2' },
-  { key: "Direction/coordination d'ouvrage", color: '#E45756' },
-  { key: 'Coordination', color: '#B279A2' },
+  { key: 'Chapitre de livre', color: SERIES[0] },
+  { key: 'Monographie', color: SERIES[1] },
+  { key: "Direction/coordination d'ouvrage", color: SERIES[2] },
+  { key: 'Coordination', color: SERIES[3] },
 ]
 
 export interface BooksAggregates {

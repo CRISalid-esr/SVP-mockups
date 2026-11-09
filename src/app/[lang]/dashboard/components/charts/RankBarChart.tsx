@@ -1,5 +1,6 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
+import { PRIMARY_SERIES } from './chartPalette'
 
 interface Props {
   data: { label: string; count: number; teams?: string[] }[]
@@ -10,7 +11,7 @@ interface Props {
 
 const RankBarChart = ({
   data,
-  color = '#4C78A8',
+  color = PRIMARY_SERIES,
   height = 460,
   chartId,
 }: Props) => {

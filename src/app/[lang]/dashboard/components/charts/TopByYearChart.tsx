@@ -1,6 +1,7 @@
 import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
+import { SERIES } from './chartPalette'
 
 const TopByYearChart = ({
   data,
@@ -21,14 +22,14 @@ const TopByYearChart = ({
         type: 'bar',
         stack: 'total',
         data: data.map((d) => d.top10Only),
-        itemStyle: { color: '#F58518' },
+        itemStyle: { color: SERIES[0] },
       },
       {
         name: top1,
         type: 'bar',
         stack: 'total',
         data: data.map((d) => d.top1),
-        itemStyle: { color: '#E45756' },
+        itemStyle: { color: SERIES[1] },
       },
     ],
   }

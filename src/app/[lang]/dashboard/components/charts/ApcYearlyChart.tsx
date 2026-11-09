@@ -2,6 +2,7 @@ import EChart from './EChart'
 import type { EChartsOption } from 'echarts'
 import { t } from '@lingui/core/macro'
 import { ApcYearItem } from './overviewAggregates'
+import { PRIMARY_SERIES } from './chartPalette'
 
 const ApcYearlyChart = ({ data }: { data: ApcYearItem[] }) => {
   const nbLabel = t`dashboard_overview_apc_count_label`
@@ -20,7 +21,7 @@ const ApcYearlyChart = ({ data }: { data: ApcYearItem[] }) => {
       {
         type: 'bar',
         data: data.map((d) => Math.round(d.total)),
-        itemStyle: { color: '#F58518', borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: PRIMARY_SERIES, borderRadius: [3, 3, 0, 0] },
         label: {
           show: true,
           position: 'top',

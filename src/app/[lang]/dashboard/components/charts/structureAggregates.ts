@@ -1,16 +1,9 @@
 import { AuthorMeta, DashboardPublication } from '@/mocks/dashboardMockService'
 import { CountItem, YearRange } from './overviewAggregates'
+import { SERIES } from './chartPalette'
 
-export const TEAM_PALETTE = [
-  '#4C78A8',
-  '#F58518',
-  '#54A24B',
-  '#E45756',
-  '#72B7B2',
-  '#B279A2',
-  '#EECA3B',
-  '#9D755D',
-]
+/** Une couleur par équipe, dans l’ordre de la palette commune. */
+export const TEAM_PALETTE = [...SERIES]
 
 export interface StackedByYear {
   keys: string[]

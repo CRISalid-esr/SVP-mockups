@@ -1,4 +1,5 @@
 import { DashboardPublication } from '@/mocks/dashboardMockService'
+import { NEUTRAL } from './chartPalette'
 
 export interface YearRange {
   start: number
@@ -51,7 +52,7 @@ export const OA_COLORS: Record<string, string> = {
   hybrid: '#7b28bf',
   bronze: '#eb8036',
   closed: '#f23427',
-  unknown: '#81888f',
+  unknown: NEUTRAL,
 }
 
 /** Ordre d'affichage stable des statuts OA (du plus ouvert au fermé). */
