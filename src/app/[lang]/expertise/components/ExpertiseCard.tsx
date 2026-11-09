@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material'
 import { Expertise, ExpertiseLevel } from '@/types/Expertise'
 import { CustomCard } from '@/components/Card'
+import { BRAND, withAlpha } from '@/app/theme/brand'
 
 // ─── Mappings ──────────────────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ const ExpertiseCard: React.FC<ExpertiseCardProps> = ({ expertise, onEdit, onDele
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
         <Avatar
           sx={{
-            bgcolor: `${catColor}18`,
+            bgcolor: `${withAlpha(catColor, '18')}`,
             width: 44,
             height: 44,
             borderRadius: 1.5,
@@ -146,7 +147,7 @@ const ExpertiseCard: React.FC<ExpertiseCardProps> = ({ expertise, onEdit, onDele
           sx={{
             height: 20,
             fontSize: '0.68rem',
-            bgcolor: `${levelInfo.color}18`,
+            bgcolor: `${withAlpha(levelInfo.color, '18')}`,
             color: levelInfo.color,
             fontWeight: 600,
           }}
@@ -275,7 +276,7 @@ const ExpertiseCard: React.FC<ExpertiseCardProps> = ({ expertise, onEdit, onDele
             { value: expertise.projects, label: 'Projets' },
           ].map((stat) => (
             <Box key={stat.label} sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ color: '#006A61', fontWeight: 600 }}>
+              <Typography variant="h6" sx={{ color: BRAND, fontWeight: 600 }}>
                 {stat.value}
               </Typography>
               <Typography variant="caption" color="text.secondary">

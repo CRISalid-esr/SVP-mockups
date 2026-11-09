@@ -7,6 +7,7 @@ import {
 } from '@mui/material'
 import { ContentCopy } from '@mui/icons-material'
 import { Keyword, ResearchTheme, VOCAB_CONFIG, copyTheme } from '../../types'
+import { withAlpha } from '@/app/theme/brand'
 
 interface Props {
   open: boolean
@@ -83,7 +84,7 @@ export default function CopyThemeDialog({ open, theme, member, onClose, onConfir
                 <Chip key={kwKey(k)} size="small"
                   label={<><span>{k.label}</span><Box component="span" sx={{ ml: 0.75, fontSize: '0.62rem', fontWeight: 700, opacity: 0.75 }}>{c.tag}</Box></>}
                   onDelete={() => setKeywords((ks) => ks.filter((x) => kwKey(x) !== kwKey(k)))}
-                  sx={{ bgcolor: `${c.color}10`, color: c.color, border: `1px solid ${c.color}30`, '& .MuiChip-deleteIcon': { color: `${c.color}90` } }} />
+                  sx={{ bgcolor: `${withAlpha(c.color, '10')}`, color: c.color, border: `1px solid ${withAlpha(c.color, '30')}`, '& .MuiChip-deleteIcon': { color: `${withAlpha(c.color, '90')}` } }} />
               )
             })}
           </Box>

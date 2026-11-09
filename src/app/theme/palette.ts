@@ -2,7 +2,28 @@ type ColorPalette = Record<string, string>
 
 import { institutionalConfig } from '@/configs/index'
 
-const colors: ColorPalette = institutionalConfig.colors
+const defaultColors: ColorPalette = institutionalConfig.colors
+
+/** Surfaces et encres du mode clair (valeurs du sarcelle par défaut). */
+export interface LightSurfaces {
+  background: string
+  paper: string
+  text: string
+  textSecondary: string
+  divider: string
+  navHover: string
+  navActive: string
+}
+
+export const DEFAULT_SURFACES: LightSurfaces = {
+  background: '#FBFCFC',
+  paper: '#FFFFFF',
+  text: '#26302E',
+  textSecondary: '#5F6B68',
+  divider: '#E3EAE7',
+  navHover: '#F3F7F6',
+  navActive: '#E6F2F0',
+}
 
 interface Theme {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +34,8 @@ interface Theme {
   error: Record<string, string>
 }
 
+/** Palettes MUI claire et sombre à partir des tons de configs/(default|custom)/colors.ts (ou de la couleur d’établissement). */
+export function buildPalettes(colors: ColorPalette, surfaces: LightSurfaces = DEFAULT_SURFACES): { light: Theme; dark: Theme } {
 const light: Theme = {
   onPrimary: colors.secondary100,
   primaryContainer: colors.primary90,
@@ -59,11 +82,11 @@ const light: Theme = {
   cardBorder: colors.cardBorder,
   textSecondary: colors.textSecondary,
   lightSecondaryContainer: colors.lightSecondaryContainer,
-  background: { default: '#FBFCFC', paper: '#FFFFFF' },
-  text: { primary: '#26302E', secondary: '#5F6B68' },
-  divider: '#E3EAE7',
-  navHover: '#F3F7F6',
-  navActive: '#E6F2F0',
+  background: { default: surfaces.background, paper: surfaces.paper },
+  text: { primary: surfaces.text, secondary: surfaces.textSecondary },
+  divider: surfaces.divider,
+  navHover: surfaces.navHover,
+  navActive: surfaces.navActive,
   primary: {
     main: colors.primary40,
     light: colors.primary40,
@@ -156,5 +179,11 @@ const dark: Theme = {
     dark: colors.error80,
   },
 }
+
+return { light, dark }
+}
+
+const colors = defaultColors
+const { light, dark } = buildPalettes(colors)
 
 export { light, dark, colors }

@@ -9,6 +9,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
+import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import SettingsBrightnessOutlinedIcon from '@mui/icons-material/SettingsBrightnessOutlined'
 import TourOutlinedIcon from '@mui/icons-material/TourOutlined'
@@ -210,6 +211,17 @@ const Appbar = ({ handleToggleDrawer, sidebarOpen = true, user }: AppbarProps) =
               <PersonOutlineIcon fontSize='small' />
             </ListItemIcon>
             <ListItemText>{t`side_bar_my_account`}</ListItemText>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setAccountAnchor(null)
+              router.push(`/${lang}/appearance`)
+            }}
+          >
+            <ListItemIcon>
+              <PaletteOutlinedIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Apparence de l’établissement</ListItemText>
           </MenuItem>
           <MenuItem onClick={() => signOut({ callbackUrl: '/api/logout' })}>
             <ListItemIcon>

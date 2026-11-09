@@ -5,6 +5,7 @@ import { Autocomplete, Box, Chip, Link, TextField, Tooltip, Typography } from '@
 import { Add, BusinessOutlined, PersonOutline, PlaceOutlined } from '@mui/icons-material'
 import { OrgRef, PersonRef, PlaceRef, TEAL, geonamesUrl, idrefUrl } from '../types'
 import { searchOrganizations, searchPersons, searchPlaces, suggestedPlaces } from '../mockRefs'
+import { brandMix } from '@/app/theme/brand'
 
 // ─── Repères structurés : lieux, personnes, organisations ────────────────────
 // Trois champs de recherche (GeoNames / IdRef simulés), chaque repère retenu
@@ -90,7 +91,7 @@ export function RefChip({ kind, value, onDelete, size = 'medium' }: {
           height: size === 'small' ? 24 : 30,
           bgcolor: 'background.paper',
           border: '1px solid',
-          borderColor: url ? `${TEAL}55` : 'divider',
+          borderColor: url ? `${brandMix(33)}` : 'divider',
           borderStyle: url ? 'solid' : 'dashed',
           color: 'text.primary',
           textDecoration: 'none',
@@ -192,7 +193,7 @@ function RefField<T extends AnyRef>({ kind, value, search, onChange, suggestions
             {suggestions.map((s) => (
               <Chip key={s.label} size="small" variant="outlined" clickable icon={<Add sx={{ fontSize: 14 }} />}
                 label={s.label} onClick={() => add(s)}
-                sx={{ borderColor: `${TEAL}60`, color: TEAL, '& .MuiChip-icon': { color: TEAL } }} />
+                sx={{ borderColor: `${brandMix(38)}`, color: TEAL, '& .MuiChip-icon': { color: TEAL } }} />
             ))}
           </>
         )}

@@ -1,3 +1,4 @@
+import { BRAND, BRAND_TINT } from '@/app/theme/brand'
 export type ExpertiseNodeType = 'expertise'
 
 export type EdgeDirection = 'forward' | 'backward' | 'bidirectional'
@@ -74,8 +75,8 @@ export interface ExpertiseGraph {
   meta: ExpertiseGraphMeta
 }
 
-export const NODE_COLOR = '#006A61'
-export const NODE_BG = '#E8F5F4'
+export const NODE_COLOR = BRAND
+export const NODE_BG = BRAND_TINT
 
 export const NODE_TYPE_CONFIG: Record<
   ExpertiseNodeType,

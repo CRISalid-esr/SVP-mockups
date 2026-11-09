@@ -209,4 +209,14 @@ const config: Config = {
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-export default createJestConfig(config)
+// @material/material-color-utilities n'est publié qu'en module ES : on le fait transpiler.
+const jestConfig = async () => {
+  const resolved = await createJestConfig(config)()
+  resolved.transformIgnorePatterns = [
+    '/node_modules/(?!@material/material-color-utilities/)',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ]
+  return resolved
+}
+
+export default jestConfig

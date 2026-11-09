@@ -5,6 +5,7 @@ import { Box, Button, Chip, CircularProgress, Tab, Tabs, TextField, Typography }
 import { AutoAwesome, RestartAlt } from '@mui/icons-material'
 import { AUDIENCES, AUDIENCE_CONFIG, Audience, AudienceVariants, ResearchTheme, TEAL, TEAL_DARK, variantCount } from '../types'
 import { generateAudienceVariants } from '../mockAudienceLlm'
+import { BRAND_TINT, withAlpha } from '@/app/theme/brand'
 
 // ─── Déclinaison par public ──────────────────────────────────────────────────
 // Aucune saisie supplémentaire n'est demandée : les quatre reformulations sont
@@ -55,7 +56,7 @@ export default function AudienceVariantsEditor({ theme, onChange }: Props) {
         </Button>
         {count > 0 ? (
           <Chip size="small" label={`${count} / ${AUDIENCES.length} publics`}
-            sx={{ height: 22, fontSize: '0.72rem', bgcolor: '#E8F5F4', color: TEAL, fontWeight: 600 }} />
+            sx={{ height: 22, fontSize: '0.72rem', bgcolor: BRAND_TINT, color: TEAL, fontWeight: 600 }} />
         ) : (
           <Typography variant="caption" color="text.secondary">
             {canGenerate
@@ -91,7 +92,7 @@ export default function AudienceVariantsEditor({ theme, onChange }: Props) {
             )
           })}
         </Tabs>
-        <Box sx={{ p: 2, bgcolor: `${cfg.bg}55` }}>
+        <Box sx={{ p: 2, bgcolor: `${withAlpha(cfg.bg, '55')}` }}>
           <Typography variant="caption" sx={{ display: 'block', color: cfg.color, fontWeight: 700, mb: 1 }}>
             {cfg.label} — {cfg.question}
           </Typography>

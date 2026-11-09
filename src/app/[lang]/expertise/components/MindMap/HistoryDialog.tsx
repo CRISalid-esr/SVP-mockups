@@ -5,8 +5,9 @@ import {
 } from '@mui/material'
 import { Close, History, Restore } from '@mui/icons-material'
 import { HistoryEntry } from '../../types'
+import { BRAND, brandMix } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 interface Props {
   open: boolean
@@ -57,15 +58,15 @@ export default function HistoryDialog({ open, onClose, history, onRestore }: Pro
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{entry.label}</Typography>
                         {isCurrent && (
-                          <Chip size="small" label="Actuelle" sx={{ fontSize: '0.6rem', height: 16, bgcolor: `${TEAL}15`, color: TEAL }} />
+                          <Chip size="small" label="Actuelle" sx={{ fontSize: '0.6rem', height: 16, bgcolor: `${brandMix(8)}`, color: TEAL }} />
                         )}
                       </Box>
                       <Typography variant="caption" color="text.secondary">{dateStr} à {timeStr}</Typography>
                       <Box sx={{ display: 'flex', gap: 0.75, mt: 0.75, flexWrap: 'wrap' }}>
                         <Chip size="small" label={`${entry.nodeCount} nœud${entry.nodeCount !== 1 ? 's' : ''}`}
-                          sx={{ fontSize: '0.65rem', height: 18, bgcolor: `${TEAL}10`, color: TEAL }} />
+                          sx={{ fontSize: '0.65rem', height: 18, bgcolor: `${brandMix(6)}`, color: TEAL }} />
                         <Chip size="small" label={`${entry.edgeCount} lien${entry.edgeCount !== 1 ? 's' : ''}`}
-                          sx={{ fontSize: '0.65rem', height: 18, bgcolor: `${TEAL}10`, color: TEAL }} />
+                          sx={{ fontSize: '0.65rem', height: 18, bgcolor: `${brandMix(6)}`, color: TEAL }} />
                         <Chip size="small" label={`v${entry.graph.meta.version}`} variant="outlined"
                           sx={{ fontSize: '0.65rem', height: 18 }} />
                       </Box>

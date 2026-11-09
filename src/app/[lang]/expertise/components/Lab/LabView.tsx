@@ -16,10 +16,11 @@ import { PROFILE_CONFIG, ProfileType } from '../ImpactCards/impactCardsTypes'
 import {
   AggregatedSujet, LAB_FICHES, LAB_MEMBERS, LAB_TEAMS, LabFiche, aggregateSujets,
 } from './labMock'
+import { BRAND, BRAND_TINT, brandMix } from '@/app/theme/brand'
 
 const ReactEcharts = dynamic(() => import('echarts-for-react'), { ssr: false })
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 // Dégradé teal clair → foncé selon le nombre de membres partageant le thème.
 function tealShade(t: number): string {
@@ -156,7 +157,7 @@ export default function LabView({ labName, initialTeam = 'all' }: { labName: str
           extra={
             <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
               <LinearProgress variant="determinate" value={completion}
-                sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: '#E0F2F1', '& .MuiLinearProgress-bar': { bgcolor: TEAL } }} />
+                sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: BRAND_TINT, '& .MuiLinearProgress-bar': { bgcolor: TEAL } }} />
               <Typography variant="caption" sx={{ color: TEAL, fontWeight: 700 }}>{completion}%</Typography>
             </Box>
           }
@@ -211,7 +212,7 @@ export default function LabView({ labName, initialTeam = 'all' }: { labName: str
             {sujets.filter((s) => s.vocabulary).map((s) => (
               <Chip key={s.label} size="small" variant="outlined" onClick={() => setSelectedSujet(s)}
                 label={`${s.label} · ${s.vocabulary}`}
-                sx={{ fontSize: '0.65rem', height: 20, borderColor: `${TEAL}60`, color: TEAL }} />
+                sx={{ fontSize: '0.65rem', height: 20, borderColor: `${brandMix(38)}`, color: TEAL }} />
             ))}
           </Box>
         </Box>
@@ -310,7 +311,7 @@ export default function LabView({ labName, initialTeam = 'all' }: { labName: str
                 {selectedSujet.label}
                 {selectedSujet.vocabulary && (
                   <Chip size="small" variant="outlined" label={selectedSujet.vocabulary}
-                    sx={{ height: 20, fontSize: '0.65rem', borderColor: `${TEAL}60`, color: TEAL }} />
+                    sx={{ height: 20, fontSize: '0.65rem', borderColor: `${brandMix(38)}`, color: TEAL }} />
                 )}
               </Box>
               <Typography variant="caption" color="text.secondary">

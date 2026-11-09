@@ -7,6 +7,7 @@ import {
 import { Add, HistoryEdu } from '@mui/icons-material'
 import { StudiedPeriod, TEAL, formatStudiedBounds, formatYear } from '../types'
 import { searchPeriods } from '../mockPeriods'
+import { withAlpha } from '@/app/theme/brand'
 
 // ─── Période étudiée ─────────────────────────────────────────────────────────
 // L'époque sur laquelle porte le thème, distincte de la période de travail.
@@ -41,7 +42,7 @@ export function StudiedPeriodChip({ value, onDelete, size = 'medium' }: {
           height: size === 'small' ? 24 : 30,
           bgcolor: '#FBF6EC',
           border: '1px solid',
-          borderColor: `${PERIOD_COLOR}40`,
+          borderColor: `${withAlpha(PERIOD_COLOR, '40')}`,
           color: 'text.primary',
           '& .MuiChip-icon': { color: PERIOD_COLOR },
           '& .MuiChip-label': { px: 1 },

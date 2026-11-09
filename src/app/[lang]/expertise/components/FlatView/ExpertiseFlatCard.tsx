@@ -25,6 +25,7 @@ import {
   NODE_TYPE_CONFIG,
 } from '../../types'
 import { ImpactCard, PROFILE_CONFIG } from '../ImpactCards/impactCardsTypes'
+import { BRAND, brandMix, withAlpha } from '@/app/theme/brand'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   enseignement: 'Enseignement',
 }
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 
@@ -261,7 +262,7 @@ export default function ExpertiseFlatCard({
                     <Chip key={i}
                       label={c.vocabulary ? `${c.label} · ${c.vocabulary.toUpperCase()}` : c.label}
                       size="small"
-                      sx={{ fontSize: '0.7rem', bgcolor: `${TEAL}10`, color: TEAL, border: `1px solid ${TEAL}33` }} />
+                      sx={{ fontSize: '0.7rem', bgcolor: `${brandMix(6)}`, color: TEAL, border: `1px solid ${brandMix(20)}` }} />
                   ))}
                 </Box>
               </Box>
@@ -385,7 +386,7 @@ export default function ExpertiseFlatCard({
               const color = ACTIVITY_TYPE_COLORS[a.type]
               return (
                 <Chip key={a.id} label={a.title} size="small"
-                  sx={{ fontSize: '0.7rem', maxWidth: 200, bgcolor: `${color}12`, color, border: `1px solid ${color}33` }} />
+                  sx={{ fontSize: '0.7rem', maxWidth: 200, bgcolor: `${withAlpha(color, '12')}`, color, border: `1px solid ${withAlpha(color, '33')}` }} />
               )
             })}
           </Box>
@@ -415,7 +416,7 @@ export default function ExpertiseFlatCard({
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip label={ACTIVITY_TYPE_LABELS[a.type]} size="small"
-                          sx={{ fontSize: '0.6rem', height: 18, bgcolor: `${color}12`, color, border: `1px solid ${color}33` }} />
+                          sx={{ fontSize: '0.6rem', height: 18, bgcolor: `${withAlpha(color, '12')}`, color, border: `1px solid ${withAlpha(color, '33')}` }} />
                         <ListItemText
                           primary={a.title}
                           secondary={new Date(a.startDate).getFullYear()}

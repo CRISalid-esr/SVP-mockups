@@ -2,6 +2,7 @@ import {
   Apartment, CampaignOutlined, Groups2Outlined, LightbulbOutlined, Lock, NewspaperOutlined, Public,
   ScienceOutlined,
 } from '@mui/icons-material'
+import { BRAND, BRAND_TINT, BRAND_STRONG } from '@/app/theme/brand'
 
 // ─── Modèle « Profil de recherche 2 » ────────────────────────────────────────
 // Un seul objet : le thème de recherche, daté, qualifié par mots-clés et par
@@ -205,8 +206,8 @@ export interface ResearchProfile {
   lastUpdated: string
 }
 
-export const TEAL = '#006A61'
-export const TEAL_DARK = '#004d46'
+export const TEAL = BRAND
+export const TEAL_DARK = BRAND_STRONG
 export const CURRENT_YEAR = new Date().getFullYear()
 export const DESCRIPTION_MAX = 1200
 
@@ -239,7 +240,7 @@ export const VISIBILITY_CONFIG: Record<Visibility, {
     short: 'Public',
     description: 'Exposé sur les portails publics de recherche d’expertise.',
     color: TEAL,
-    bg: '#E8F5F4',
+    bg: BRAND_TINT,
     Icon: Public,
   },
 }

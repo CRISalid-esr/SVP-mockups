@@ -36,8 +36,9 @@ import { generateCardsFromGraph, pickAttributes } from './mockCardsLlm'
 import ImpactCardItem from './ImpactCard'
 import CardDetailDialog from './CardDetailDialog'
 import CreateCardWizard from './CreateCardWizard'
+import { BRAND, BRAND_STRONG, brandMix } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 function loadCards(): ImpactCard[] {
   if (typeof window === 'undefined') return INITIAL_CARDS
@@ -189,7 +190,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
       {/* Bandeau CTA — génération depuis les thèmes de recherche */}
       <Box sx={{
         display: 'flex', alignItems: 'center', gap: 2,
-        bgcolor: `${TEAL}08`, border: `1px solid ${TEAL}30`,
+        bgcolor: `${brandMix(3)}`, border: `1px solid ${brandMix(19)}`,
         borderRadius: 2, p: 2, mb: 3,
       }}>
         <AutoAwesomeOutlined sx={{ color: TEAL, fontSize: 28, flexShrink: 0 }} />
@@ -216,8 +217,8 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
           onClick={handleGenerateCards}
           sx={{
             textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0,
-            bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' },
-            '&.Mui-disabled': { bgcolor: `${TEAL}50`, color: 'white' },
+            bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG },
+            '&.Mui-disabled': { bgcolor: `${brandMix(31)}`, color: 'white' },
           }}
         >
           {generating ? 'Génération en cours…' : 'Générer les fiches'}
@@ -239,7 +240,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
           startIcon={<AddOutlined />}
           size="small"
           onClick={() => setWizardOpen(true)}
-          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}
+          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG } }}
         >
           Nouvelle fiche
         </Button>
@@ -294,7 +295,7 @@ export default function ImpactCardsView({ onGoToMindMap }: Props) {
             Aucune fiche dans cette vue
           </Typography>
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setWizardOpen(true)}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', mt: 1 }}>
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none', mt: 1 }}>
             Créer une fiche
           </Button>
         </Box>

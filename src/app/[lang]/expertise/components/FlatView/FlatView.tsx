@@ -26,9 +26,10 @@ import {
 import GenerationPanel from '../ThemeGeneration/GenerationPanel'
 import ExpertiseFlatCard, { ExpertiseEntry, RelatedExpertise } from './ExpertiseFlatCard'
 import AddThemeDialog, { NewTheme } from './AddThemeDialog'
+import { BRAND, BRAND_STRONG, brandMix } from '@/app/theme/brand'
 
 const ACTIVITIES_KEY = 'expertise-activities-v1'
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 const MOCK_ACTIVITIES: Activity[] = [
   {
@@ -330,7 +331,7 @@ export default function FlatView({
           </Typography>
         </Box>
         <Button variant="contained" startIcon={<Add />} onClick={() => setAddOpen(true)} size="small"
-          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
+          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG } }}>
           Ajouter un thème
         </Button>
       </Box>
@@ -380,7 +381,7 @@ export default function FlatView({
           {onGoToExpertises && (
             <Box sx={{
               mt: 4, p: 2.5, display: 'flex', alignItems: 'center', gap: 2,
-              bgcolor: `${TEAL}08`, border: `1px solid ${TEAL}30`, borderRadius: 2,
+              bgcolor: `${brandMix(3)}`, border: `1px solid ${brandMix(19)}`, borderRadius: 2,
             }}>
               <AutoAwesomeOutlined sx={{ color: TEAL, fontSize: 28, flexShrink: 0 }} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -393,7 +394,7 @@ export default function FlatView({
                 </Typography>
               </Box>
               <Button variant="contained" onClick={onGoToExpertises}
-                sx={{ textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0, bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0, bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG } }}>
                 Générer mes expertises →
               </Button>
             </Box>

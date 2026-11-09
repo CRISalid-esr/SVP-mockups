@@ -13,8 +13,9 @@ import {
   GEONAMES_MOCK, NAMED_PERIODS, searchIdRefOrganizations, searchIdRefPersons,
 } from './MindMap/mockIdRef'
 import type { IdRefResult } from './MindMap/mockIdRef'
+import { BRAND, withAlpha } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 // Éditeur des caractéristiques d'un thème de recherche — mêmes widgets que le
 // panneau de la vue Relations : slider / périodes nommées, GeoNames, IdRef,
@@ -310,11 +311,11 @@ export default function AttributesEditor({ value, onChange }: Props) {
                       icon={hasIdRef ? <OpenInNew sx={{ fontSize: '10px !important' }} /> : undefined}
                       sx={{
                         fontSize: '0.65rem', height: 20,
-                        bgcolor: `${color}10`, color,
-                        border: `1px solid ${color}33`,
+                        bgcolor: `${withAlpha(color, '10')}`, color,
+                        border: `1px solid ${withAlpha(color, '33')}`,
                         cursor: hasIdRef ? 'pointer' : 'default',
-                        '& .MuiChip-deleteIcon': { fontSize: 12, color: `${color}99`, '&:hover': { color } },
-                        '& .MuiChip-icon': { color: `${color}88` },
+                        '& .MuiChip-deleteIcon': { fontSize: 12, color: `${withAlpha(color, '99')}`, '&:hover': { color } },
+                        '& .MuiChip-icon': { color: `${withAlpha(color, '88')}` },
                       }}
                     />
                   )

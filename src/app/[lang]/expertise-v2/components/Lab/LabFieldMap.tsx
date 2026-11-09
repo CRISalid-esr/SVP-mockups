@@ -8,6 +8,7 @@ import { TEAL } from '../../types'
 import { LabEntry } from './labMock'
 import { LatLon } from './placeCoords'
 import { PlaceHits, aggregatePlaces } from './labPlaces'
+import { brandMix, resolveColor } from '@/app/theme/brand'
 
 // ─── Carte des terrains du laboratoire ───────────────────────────────────────
 // Première version : fond de carte OpenStreetMap (style CARTO clair), un
@@ -66,7 +67,7 @@ export default function LabFieldMap({ entries, teamColor, onSelectPlace, height 
     for (const p of ordered) {
       const count = p.entries.length
       const teams = [...new Set(p.entries.map((e) => e.member.team))]
-      const color = teams.length === 1 ? teamColor(teams[0]) : TEAL
+      const color = teams.length === 1 ? teamColor(teams[0]) : resolveColor(TEAL)
       const radius = p.area ? 13 + 9 * Math.sqrt(count / maxCount) : 7 + 9 * Math.sqrt(count / maxCount)
       const marker = L.circleMarker(p.coords as LatLon, {
         radius,
@@ -110,19 +111,19 @@ export default function LabFieldMap({ entries, teamColor, onSelectPlace, height 
         </Typography>
         <ToggleButtonGroup size="small" exclusive value={extent} onChange={(_e, v: Extent | null) => v && setExtent(v)} aria-label="Étendue de la carte"
           sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5, py: 0.25, fontSize: '0.78rem' } }}>
-          <ToggleButton value="ouest" sx={{ '&.Mui-selected': { bgcolor: `${TEAL}14`, color: TEAL, fontWeight: 700 } }}>Grand Ouest</ToggleButton>
-          <ToggleButton value="monde" sx={{ '&.Mui-selected': { bgcolor: `${TEAL}14`, color: TEAL, fontWeight: 700 } }}>Tous les terrains</ToggleButton>
+          <ToggleButton value="ouest" sx={{ '&.Mui-selected': { bgcolor: `${brandMix(8)}`, color: TEAL, fontWeight: 700 } }}>Grand Ouest</ToggleButton>
+          <ToggleButton value="monde" sx={{ '&.Mui-selected': { bgcolor: `${brandMix(8)}`, color: TEAL, fontWeight: 700 } }}>Tous les terrains</ToggleButton>
         </ToggleButtonGroup>
       </Box>
       <Box ref={containerRef} role="img" aria-label="Carte des terrains du laboratoire"
         sx={{ height, width: '100%', '& .leaflet-container': { fontFamily: 'inherit' }, '& .lab-map-tiles': { filter: 'grayscale(0.6) opacity(0.75)' } }} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', px: 2, py: 0.75, borderTop: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: `${TEAL}90`, border: `2px solid ${TEAL}` }} />
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: `${brandMix(56)}`, border: `2px solid ${TEAL}` }} />
           <Typography variant="caption" color="text.secondary">Ville (taille = nombre de thèmes)</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: `${TEAL}20`, border: `1.5px dashed ${TEAL}` }} />
+          <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: `${brandMix(13)}`, border: `1.5px dashed ${TEAL}` }} />
           <Typography variant="caption" color="text.secondary">Région, département, espace</Typography>
         </Box>
       </Box>

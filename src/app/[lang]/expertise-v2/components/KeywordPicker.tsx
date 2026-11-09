@@ -7,6 +7,7 @@ import {
 import { Add } from '@mui/icons-material'
 import { Keyword, TEAL, VOCAB_CONFIG, Vocabulary } from '../types'
 import { searchVocab, suggestedKeywords } from '../mockVocab'
+import { brandMix, withAlpha } from '@/app/theme/brand'
 
 interface Props {
   value: Keyword[]
@@ -38,7 +39,7 @@ export function KeywordChip({ keyword, onDelete }: { keyword: Keyword; onDelete?
         </Box>
       }
       sx={{
-        height: 30, bgcolor: 'background.paper', border: `1px solid ${cfg.color}40`,
+        height: 30, bgcolor: 'background.paper', border: `1px solid ${withAlpha(cfg.color, '40')}`,
         '& .MuiChip-label': { px: 1.25 },
       }}
     />
@@ -84,7 +85,7 @@ export default function KeywordPicker({ value, onChange }: Props) {
       >
         {VOCABS.map((v) => (
           <ToggleButton key={v} value={v}
-            sx={{ '&.Mui-selected': { bgcolor: `${VOCAB_CONFIG[v].color}14`, color: VOCAB_CONFIG[v].color, fontWeight: 700 } }}>
+            sx={{ '&.Mui-selected': { bgcolor: `${withAlpha(VOCAB_CONFIG[v].color, '14')}`, color: VOCAB_CONFIG[v].color, fontWeight: 700 } }}>
             {VOCAB_CONFIG[v].label}
           </ToggleButton>
         ))}
@@ -159,7 +160,7 @@ export default function KeywordPicker({ value, onChange }: Props) {
               icon={<Add sx={{ fontSize: 14 }} />}
               label={`${s.label}${s.vocabulary !== 'rameau' ? ` (${VOCAB_CONFIG[s.vocabulary].tag})` : ''}`}
               onClick={() => add(s)}
-              sx={{ borderColor: `${TEAL}60`, color: TEAL, '& .MuiChip-icon': { color: TEAL } }} />
+              sx={{ borderColor: `${brandMix(38)}`, color: TEAL, '& .MuiChip-icon': { color: TEAL } }} />
           ))}
         </Box>
       )}

@@ -7,8 +7,9 @@ import {
 import { Add, Check } from '@mui/icons-material'
 import { ExpertiseAttributes } from '../../types'
 import AttributesEditor from '../AttributesEditor'
+import { BRAND, BRAND_STRONG } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 export interface NewTheme {
   label: string
@@ -77,7 +78,7 @@ export default function AddThemeDialog({ open, onClose, onAdd, initial }: Props)
         <Button onClick={onClose} sx={{ textTransform: 'none' }}>Annuler</Button>
         <Button variant="contained" disabled={!label.trim()} onClick={handleSubmit}
           startIcon={isEdit ? <Check /> : <Add />}
-          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' } }}>
+          sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG } }}>
           {isEdit ? 'Enregistrer' : 'Ajouter le thème'}
         </Button>
       </DialogActions>

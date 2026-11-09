@@ -4,8 +4,8 @@ import { CountItem } from './overviewAggregates'
 import { languageLabel } from './overviewLabels'
 import { NEUTRAL, SERIES } from './chartPalette'
 
-/** Au-delà de six langues, les autres sont regroupées : la palette ne boucle jamais. */
-const MAX_SLICES = 6
+/** Au-delà de cinq langues, les autres sont regroupées : la palette ne boucle jamais (six couleurs au moins, quelle que soit la couleur d’établissement). */
+const MAX_SLICES = 5
 
 const LanguagePieChart = ({ data }: { data: CountItem[] }) => {
   const sorted = [...data].sort((a, b) => b.count - a.count)

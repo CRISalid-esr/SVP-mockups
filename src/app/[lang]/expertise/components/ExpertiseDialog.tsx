@@ -43,6 +43,7 @@ import {
 } from '@mui/icons-material'
 import { Expertise, ExpertiseFormData, ExpertiseLevel, GeographicZone } from '@/types/Expertise'
 import { CATEGORIES } from './ExpertiseCard'
+import { BRAND } from '@/app/theme/brand'
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -597,7 +598,7 @@ const ExpertiseDialog: React.FC<ExpertiseDialogProps> = ({ open, onClose, onSave
                 <ArrowBack fontSize="small" />
               </IconButton>
             )}
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#006A61' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: BRAND }}>
               {expertise ? "Modifier l'expertise" : `Ajouter une expertise`}
             </Typography>
           </Box>
@@ -625,7 +626,7 @@ const ExpertiseDialog: React.FC<ExpertiseDialogProps> = ({ open, onClose, onSave
                       left: 'calc(50% + 20px)',
                       right: 'calc(-50% + 20px)',
                       height: 2,
-                      bgcolor: isDone ? '#006A61' : '#e5e7eb',
+                      bgcolor: isDone ? BRAND : '#e5e7eb',
                     }}
                   />
                 )}
@@ -637,7 +638,7 @@ const ExpertiseDialog: React.FC<ExpertiseDialogProps> = ({ open, onClose, onSave
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: isActive || isDone ? '#006A61' : '#f3f4f6',
+                    bgcolor: isActive || isDone ? BRAND : '#f3f4f6',
                     color: isActive || isDone ? '#fff' : '#9ca3af',
                     border: isActive ? '3px solid #99f6e4' : 'none',
                     zIndex: 1,
@@ -652,7 +653,7 @@ const ExpertiseDialog: React.FC<ExpertiseDialogProps> = ({ open, onClose, onSave
                     textAlign: 'center',
                     fontSize: '0.72rem',
                     fontWeight: isActive ? 600 : 400,
-                    color: isActive ? '#006A61' : isDone ? '#374151' : '#9ca3af',
+                    color: isActive ? BRAND : isDone ? '#374151' : '#9ca3af',
                     maxWidth: 90,
                   }}
                 >

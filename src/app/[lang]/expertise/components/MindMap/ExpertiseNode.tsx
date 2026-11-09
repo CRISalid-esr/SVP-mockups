@@ -6,8 +6,9 @@ import {
   Business, CalendarToday, ExpandLess, ExpandMore, LocalOffer, Person, Place,
 } from '@mui/icons-material'
 import { ExpertiseNodeData, NODE_TYPE_CONFIG } from '../../types'
+import { BRAND, withAlpha } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 const ATTR_ROWS = [
   { key: 'temporal',      Icon: CalendarToday, color: '#0288D1' },
@@ -49,12 +50,12 @@ const ExpertiseNode = ({ id, data, selected }: NodeProps) => {
           border: `2px solid ${config.color}`,
           backgroundColor: selected ? config.color : config.bg,
           boxShadow: selected
-            ? `0 0 0 3px ${config.color}44`
+            ? `0 0 0 3px ${withAlpha(config.color, '44')}`
             : '0 2px 6px rgba(0,0,0,0.12)',
           cursor: 'grab',
           transition: 'all 0.15s ease',
           overflow: 'hidden',
-          '&:hover': { boxShadow: `0 0 0 3px ${config.color}44` },
+          '&:hover': { boxShadow: `0 0 0 3px ${withAlpha(config.color, '44')}` },
         }}
       >
         {/* Label row */}
@@ -82,7 +83,7 @@ const ExpertiseNode = ({ id, data, selected }: NodeProps) => {
                   p: 0.2,
                   flexShrink: 0,
                   color: selected ? 'rgba(255,255,255,0.75)' : config.color,
-                  '&:hover': { bgcolor: selected ? 'rgba(255,255,255,0.15)' : `${config.color}15` },
+                  '&:hover': { bgcolor: selected ? 'rgba(255,255,255,0.15)' : `${withAlpha(config.color, '15')}` },
                 }}
               >
                 {expanded
@@ -118,7 +119,7 @@ const ExpertiseNode = ({ id, data, selected }: NodeProps) => {
         {/* Section attributs déployée */}
         {hasAttrs && expanded && (
           <>
-            <Divider sx={{ borderColor: selected ? 'rgba(255,255,255,0.3)' : `${config.color}44` }} />
+            <Divider sx={{ borderColor: selected ? 'rgba(255,255,255,0.3)' : `${withAlpha(config.color, '44')}` }} />
             <Box sx={{ px: 1.5, py: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
               {ATTR_ROWS.map(({ key, Icon, color }) => {
                 const items = (nodeData[key] ?? []) as Array<{ label: string; vocabulary?: string }>
@@ -140,9 +141,9 @@ const ExpertiseNode = ({ id, data, selected }: NodeProps) => {
                             height: 18,
                             fontSize: '0.6rem',
                             fontWeight: 500,
-                            bgcolor: selected ? 'rgba(255,255,255,0.18)' : `${color}12`,
+                            bgcolor: selected ? 'rgba(255,255,255,0.18)' : `${withAlpha(color, '12')}`,
                             color: selected ? 'white' : color,
-                            border: `1px solid ${selected ? 'rgba(255,255,255,0.3)' : `${color}44`}`,
+                            border: `1px solid ${selected ? 'rgba(255,255,255,0.3)' : `${withAlpha(color, '44')}`}`,
                             '& .MuiChip-label': { px: 0.75 },
                           }}
                         />

@@ -3,8 +3,9 @@
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, getBezierPath } from '@xyflow/react'
 import { Box, Typography } from '@mui/material'
 import { EdgeData } from '../../types'
+import { BRAND, withAlpha } from '@/app/theme/brand'
 
-const COLOR_LABELED = '#006A61'
+const COLOR_LABELED = BRAND
 const COLOR_UNLABELED = '#94a3b8'
 
 export default function RelationEdge({
@@ -45,7 +46,7 @@ export default function RelationEdge({
           stroke: color,
           strokeWidth,
           strokeDasharray,
-          filter: selected ? `drop-shadow(0 0 4px ${color}88)` : undefined,
+          filter: selected ? `drop-shadow(0 0 4px ${withAlpha(color, '88')})` : undefined,
         }}
         markerEnd={markerEnd}
         markerStart={markerStart}
@@ -62,9 +63,9 @@ export default function RelationEdge({
             borderRadius: '4px',
             bgcolor: selected ? color : 'rgba(255,255,255,0.92)',
             border: `1px solid ${color}`,
-            boxShadow: selected ? `0 0 0 2px ${color}44` : 'none',
+            boxShadow: selected ? `0 0 0 2px ${withAlpha(color, '44')}` : 'none',
             transition: 'all 0.15s ease',
-            '&:hover': { bgcolor: `${color}22` },
+            '&:hover': { bgcolor: `${withAlpha(color, '22')}` },
           }}
           className="nodrag nopan"
         >

@@ -9,8 +9,9 @@ import { AutoAwesome, AutoGraph } from '@mui/icons-material'
 import { generateGraphFromPrompt, generateGraphFromPublications } from '../MindMap/mockLlm'
 import { ExpertiseGraph } from '../../types'
 import { getPerspective, loadSelectedPublications } from '../../storage'
+import { BRAND, BRAND_STRONG, brandMix } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 export const EXAMPLE_PROMPTS: Record<string, string> = {
   Sociologue: "Je suis sociologue spécialisé·e dans les migrations de travail et les inégalités de genre. Mes recherches portent sur les dynamiques identitaires et les politiques migratoires entre l'Asie du Sud et le Moyen-Orient.",
@@ -69,7 +70,7 @@ export default function GenerationPanel({ graph, onGraphGenerated, variant }: Pr
     <>
       <Box sx={{
         display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5,
-        bgcolor: selectedPubs.length > 0 ? `${TEAL}12` : '#f5f5f5',
+        bgcolor: selectedPubs.length > 0 ? `${brandMix(7)}` : '#f5f5f5',
         borderRadius: 2, minHeight: 44,
       }}>
         {selectedPubs.length > 0 ? (
@@ -101,7 +102,7 @@ export default function GenerationPanel({ graph, onGraphGenerated, variant }: Pr
         onClick={handleGenerateFromPublications}
         disabled={selectedPubs.length === 0 || generating}
         sx={{
-          bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none',
+          bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none',
           py: variant === 'empty' ? 1.25 : 1, borderRadius: 2, mt: 1.5,
         }}
       >
@@ -142,7 +143,7 @@ export default function GenerationPanel({ graph, onGraphGenerated, variant }: Pr
               <Chip
                 key={label} label={label} size="small" variant="outlined"
                 onClick={() => setPrompt(text)}
-                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${TEAL}10`, borderColor: TEAL, color: TEAL } }}
+                sx={{ cursor: 'pointer', '&:hover': { bgcolor: `${brandMix(6)}`, borderColor: TEAL, color: TEAL } }}
               />
             ))}
           </Box>
@@ -155,7 +156,7 @@ export default function GenerationPanel({ graph, onGraphGenerated, variant }: Pr
         onClick={handleGenerateFromPrompt}
         disabled={!prompt.trim() || generating}
         sx={{
-          bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none',
+          bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none',
           py: variant === 'empty' ? 1.25 : 1, borderRadius: 2,
         }}
       >

@@ -20,6 +20,7 @@ import ConsultationView from './components/ConsultationView'
 import LabView from './components/Lab/LabView'
 import { LAB_TEAMS } from './components/Lab/labMock'
 import { CARDS_KEY, loadStoredGraph } from './storage'
+import { BRAND, brandMix } from '@/app/theme/brand'
 
 const MindMapView = dynamic(
   () => import('./components/MindMap/MindMapView'),
@@ -33,7 +34,7 @@ const MindMapView = dynamic(
   },
 )
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 type SujetView = 'liste' | 'carte'
 
@@ -72,8 +73,8 @@ function JourneyStep({ index, label, count, done, active, onClick }: {
       sx={{
         display: 'flex', alignItems: 'center', gap: 0.75, cursor: 'pointer',
         px: 1, py: 0.25, borderRadius: 1,
-        bgcolor: active ? `${TEAL}10` : 'transparent',
-        '&:hover': { bgcolor: `${TEAL}14` },
+        bgcolor: active ? `${brandMix(6)}` : 'transparent',
+        '&:hover': { bgcolor: `${brandMix(8)}` },
       }}>
       <Box sx={{
         width: 16, height: 16, borderRadius: '50%', flexShrink: 0,

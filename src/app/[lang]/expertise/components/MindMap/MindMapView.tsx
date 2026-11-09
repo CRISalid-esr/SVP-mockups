@@ -33,8 +33,9 @@ import {
 import {
   EMPTY_GRAPH, GRAPH_KEY_PREFIX, appendHistoryEntry, getPerspective, loadHistory,
 } from '../../storage'
+import { BRAND, BRAND_STRONG, brandMix, withAlpha } from '@/app/theme/brand'
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 
 const DRAWER_WIDTH = 320
 
@@ -344,8 +345,8 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
 
   const renderStats = () => (
     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-      <Chip size="small" label={`${nodes.length} thème${nodes.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
-      <Chip size="small" label={`${edges.length} lien${edges.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${TEAL}15`, color: TEAL }} />
+      <Chip size="small" label={`${nodes.length} thème${nodes.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${brandMix(8)}`, color: TEAL }} />
+      <Chip size="small" label={`${edges.length} lien${edges.length > 1 ? 's' : ''}`} sx={{ bgcolor: `${brandMix(8)}`, color: TEAL }} />
       <Chip size="small" label={`v${meta.version}`} variant="outlined" />
     </Box>
   )
@@ -457,11 +458,11 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
                         }
                         sx={{
                           fontSize: '0.65rem', height: 20,
-                          bgcolor: `${color}10`, color,
-                          border: `1px solid ${color}33`,
+                          bgcolor: `${withAlpha(color, '10')}`, color,
+                          border: `1px solid ${withAlpha(color, '33')}`,
                           cursor: isGeo || hasIdRef ? 'pointer' : 'default',
-                          '& .MuiChip-deleteIcon': { fontSize: 12, color: `${color}99`, '&:hover': { color } },
-                          '& .MuiChip-icon': { color: `${color}88` },
+                          '& .MuiChip-deleteIcon': { fontSize: 12, color: `${withAlpha(color, '99')}`, '&:hover': { color } },
+                          '& .MuiChip-icon': { color: `${withAlpha(color, '88')}` },
                         }}
                       />
                     )
@@ -682,8 +683,8 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
                   sx={{
                     flex: 1, textAlign: 'center', py: 1, borderRadius: 1, cursor: 'pointer',
                     border: `1.5px solid ${direction === d ? TEAL : '#e0e0e0'}`,
-                    bgcolor: direction === d ? `${TEAL}12` : 'transparent',
-                    '&:hover': { bgcolor: `${TEAL}08` },
+                    bgcolor: direction === d ? `${brandMix(7)}` : 'transparent',
+                    '&:hover': { bgcolor: `${brandMix(3)}` },
                     transition: 'all 0.12s',
                   }}
                 >
@@ -731,7 +732,7 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
         <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {singleNode && singleData ? (
             <Box sx={{ border: `1.5px solid ${TEAL}`, borderRadius: 2, overflow: 'hidden' }}>
-              <Box sx={{ bgcolor: NODE_TYPE_CONFIG.expertise.bg, borderBottom: `1px solid ${TEAL}44`, px: 2, py: 1 }}>
+              <Box sx={{ bgcolor: NODE_TYPE_CONFIG.expertise.bg, borderBottom: `1px solid ${brandMix(27)}`, px: 2, py: 1 }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Expertise
                 </Typography>
@@ -855,7 +856,7 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
         </Typography>
         <Button
           variant="contained" onClick={onBackToList}
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none', borderRadius: 2 }}
+          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none', borderRadius: 2 }}
         >
           Retour à la vue Liste
         </Button>
@@ -929,7 +930,7 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', bgcolor: 'white', p: 1, borderRadius: 2, boxShadow: 2 }}>
                   <Tooltip title="Ajouter un thème de recherche">
                     <Button size="small" variant="contained" startIcon={<Add />} onClick={handleOpenAddNode}
-                      sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
+                      sx={{ bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none' }}>
                       Ajouter un thème
                     </Button>
                   </Tooltip>
@@ -1035,7 +1036,7 @@ export default function MindMapView({ onBackToList }: MindMapViewProps) {
         <DialogActions>
           <Button onClick={() => setNodeDialog(DEFAULT_DIALOG)} sx={{ textTransform: 'none' }}>Annuler</Button>
           <Button variant="contained" onClick={handleSaveNodeDialog} disabled={!nodeDialog.label.trim()}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#004d46' }, textTransform: 'none' }}>
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: BRAND_STRONG }, textTransform: 'none' }}>
             {nodeDialog.mode === 'add' ? 'Ajouter' : 'Enregistrer'}
           </Button>
         </DialogActions>

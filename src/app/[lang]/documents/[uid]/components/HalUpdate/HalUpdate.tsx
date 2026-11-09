@@ -40,12 +40,13 @@ import {
 import { visuallyHidden } from '@mui/utils'
 import DocumentSection from '../DocumentSection'
 import CompareTable, { CompareColumn, CompareRow, CompareStatus } from '../CompareTable'
+import { BRAND, BRAND_TINT } from '@/app/theme/brand'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TEAL = '#006A61'
+const TEAL = BRAND
 const TEAL_DARK = '#005550'
-const TEAL_LIGHT = '#E8F5F4'
+const TEAL_LIGHT = BRAND_TINT
 const SURFACE = '#F5F7F6'
 const BORDER = '#E5E7E6'
 const TEXT = '#2D3836'
