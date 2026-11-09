@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Box, Grid2 as Grid, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Box, Slider, Typography } from '@mui/material'
 import { t } from '@lingui/core/macro'
 import { dashboardMockService } from '@/mocks/dashboardMockService'
 import { useDashboardData } from '@/app/[lang]/dashboard/components/DashboardViewContext'
-import { getYearBounds } from '@/app/[lang]/dashboard/components/charts/overviewAggregates'
+import { useDashboardPeriod } from '@/app/[lang]/dashboard/components/DashboardPeriod'
 import {
   aggregateInternational,
   aggregateFlows,
   aggregateFlowMap,
 } from '@/app/[lang]/dashboard/components/charts/internationalAggregates'
-import YearRangeSelector from '@/app/[lang]/dashboard/components/charts/YearRangeSelector'
+import { aggregateNetwork } from '@/app/[lang]/dashboard/components/charts/networkAggregates'
 import DashboardSectionCard from '@/app/[lang]/dashboard/components/charts/DashboardSectionCard'
+import DashboardDetails from '@/app/[lang]/dashboard/components/charts/DashboardDetails'
+import { ChartGrid } from '@/app/[lang]/dashboard/components/charts/ChartGrid'
+import NetworkChart from '@/app/[lang]/dashboard/components/charts/NetworkChart'
 import IntlVsNationalChart from '@/app/[lang]/dashboard/components/charts/IntlVsNationalChart'
 import IntlPercentChart from '@/app/[lang]/dashboard/components/charts/IntlPercentChart'
 import WorldChoroplethChart from '@/app/[lang]/dashboard/components/charts/WorldChoroplethChart'
@@ -24,183 +26,133 @@ import SankeyChart from '@/app/[lang]/dashboard/components/charts/SankeyChart'
 import SunburstChart from '@/app/[lang]/dashboard/components/charts/SunburstChart'
 import FlowMapChart from '@/app/[lang]/dashboard/components/charts/FlowMapChart'
 
-const InternationalTab = () => {
-  const theme = useTheme()
-  const { publications, isResearcher } = useDashboardData()
-  const countryNames = useMemo(
-    () => dashboardMockService.getCountryNames(),
-    [],
-  )
-  const bounds = useMemo(() => getYearBounds(publications), [publications])
-  const [range, setRange] = useState({ start: bounds.min, end: bounds.max })
+const Empty = ({ children }: { children: React.ReactNode }) => (
+  <Typography color='text.secondary'>{children}</Typography>
+)
 
+const InternationalTab = () => {
+  const { publications, authors, isResearcher, isOwn, researcherId } = useDashboardData()
+  const { range } = useDashboardPeriod()
+  const countryNames = useMemo(() => dashboardMockService.getCountryNames(), [])
+
+  // Pour une personne, on garde tous ses co-auteurs directs (seuil 1).
+  const [minPubs, setMinPubs] = useState(isResearcher ? 1 : 2)
   useEffect(() => {
-    setRange({ start: bounds.min, end: bounds.max })
-  }, [bounds.min, bounds.max])
+    setMinPubs(isResearcher ? 1 : 2)
+  }, [isResearcher])
 
   const agg = useMemo(
     () => aggregateInternational(publications, range, countryNames),
     [publications, range, countryNames],
   )
-  const flows = useMemo(
-    () => aggregateFlows(publications, range, countryNames),
-    [publications, range, countryNames],
-  )
-  const flowMap = useMemo(
-    () => aggregateFlowMap(publications, range, countryNames),
-    [publications, range, countryNames],
-  )
-
-  const yearOptions = useMemo(
-    () =>
-      Array.from(
-        { length: bounds.max - bounds.min + 1 },
-        (_, i) => bounds.min + i,
-      ),
-    [bounds],
+  const flows = useMemo(() => aggregateFlows(publications, range, countryNames), [publications, range, countryNames])
+  const flowMap = useMemo(() => aggregateFlowMap(publications, range, countryNames), [publications, range, countryNames])
+  const network = useMemo(
+    () => aggregateNetwork(publications, authors, range, minPubs, isResearcher ? researcherId : null),
+    [publications, authors, range, minPubs, isResearcher, researcherId],
   )
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          gap: 1.5,
-        }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <DashboardSectionCard
+        title={
+          !isResearcher
+            ? t`dashboard_network_title`
+            : isOwn
+              ? t`dashboard_network_researcher_title`
+              : t`dashboard_network_other_researcher_title`
+        }
+        subtitle={
+          !isResearcher
+            ? t`dashboard_network_subtitle`
+            : isOwn
+              ? t`dashboard_network_researcher_subtitle`
+              : t`dashboard_network_other_researcher_subtitle`
+        }
       >
-        <Box>
-          <Typography
-            sx={{
-              fontSize: theme.utils.pxToRem(18),
-              color: theme.palette.primary.main,
-            }}
-          >
-            {t`dashboard_tab_international`}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, maxWidth: 360, mb: 1 }}>
+          <Typography id='network-threshold' variant='body2' color='text.secondary' sx={{ whiteSpace: 'nowrap' }}>
+            {t`dashboard_network_min_pubs`}
           </Typography>
-          <Typography variant='caption' color='text.secondary'>
-            {t`dashboard_overview_lab_demo_caption`}
-          </Typography>
+          <Slider
+            aria-labelledby='network-threshold'
+            value={minPubs}
+            onChange={(_event, value) => setMinPubs(value as number)}
+            min={1}
+            max={6}
+            step={1}
+            marks
+            valueLabelDisplay='auto'
+            size='small'
+          />
         </Box>
-        <YearRangeSelector
-          value={range}
-          options={yearOptions}
-          onChange={setRange}
-        />
-      </Box>
+        {network.nodes.length > 0 ? <NetworkChart data={network} /> : <Empty>{t`dashboard_network_empty`}</Empty>}
+      </DashboardSectionCard>
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <DashboardSectionCard title={t`dashboard_intl_vs_national_title`}>
-            <IntlVsNationalChart data={agg.intlByYear} />
-          </DashboardSectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <DashboardSectionCard title={t`dashboard_intl_pct_title`}>
-            <IntlPercentChart data={agg.intlPctByYear} />
-          </DashboardSectionCard>
-        </Grid>
+      <DashboardSectionCard title={t`dashboard_intl_map_title`} subtitle={t`dashboard_intl_map_subtitle`}>
+        <WorldChoroplethChart data={agg.byCountry} />
+      </DashboardSectionCard>
 
-        <Grid size={{ xs: 12 }}>
-          <DashboardSectionCard
-            title={t`dashboard_intl_map_title`}
-            subtitle={t`dashboard_intl_map_subtitle`}
-          >
-            <WorldChoroplethChart data={agg.byCountry} />
-          </DashboardSectionCard>
-        </Grid>
+      <ChartGrid>
+        <DashboardSectionCard title={t`dashboard_intl_vs_national_title`}>
+          <IntlVsNationalChart data={agg.intlByYear} />
+        </DashboardSectionCard>
+        <DashboardSectionCard title={t`dashboard_intl_partners_title`} subtitle={t`dashboard_intl_partners_subtitle`}>
+          {agg.topPartners.length > 0 ? (
+            <TopPartnersChart data={agg.topPartners} />
+          ) : (
+            <Empty>{t`dashboard_intl_partners_empty`}</Empty>
+          )}
+        </DashboardSectionCard>
+      </ChartGrid>
 
-        <Grid size={{ xs: 12 }}>
-          <DashboardSectionCard
-            title={t`dashboard_intl_flowmap_title`}
-            subtitle={t`dashboard_intl_flowmap_subtitle`}
-          >
-            {flowMap.points.length > 0 ? (
-              <FlowMapChart data={flowMap} />
-            ) : (
-              <Typography color='text.secondary'>
-                {t`dashboard_intl_flow_empty`}
-              </Typography>
-            )}
-          </DashboardSectionCard>
-        </Grid>
+      <DashboardDetails
+        summary={
+          isResearcher
+            ? 'Pays, Europe, villes partenaires'
+            : 'Pays, Europe, villes partenaires, flux par équipe'
+        }
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <ChartGrid>
+            <DashboardSectionCard title={t`dashboard_intl_top_countries_title`}>
+              <TopCountriesChart data={agg.byCountry} />
+            </DashboardSectionCard>
+            <DashboardSectionCard title={t`dashboard_intl_pct_title`}>
+              <IntlPercentChart data={agg.intlPctByYear} />
+            </DashboardSectionCard>
+            <DashboardSectionCard title={t`dashboard_intl_eu_zone_title`}>
+              <EuZoneChart data={agg.euZone} />
+            </DashboardSectionCard>
+            <DashboardSectionCard title={t`dashboard_intl_eu_evolution_title`}>
+              <EuByYearChart data={agg.euByYear} />
+            </DashboardSectionCard>
+          </ChartGrid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
-          <DashboardSectionCard title={t`dashboard_intl_top_countries_title`}>
-            <TopCountriesChart data={agg.byCountry} />
-          </DashboardSectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
           <DashboardSectionCard title={t`dashboard_intl_heatmap_title`}>
             <CountryHeatmapChart data={agg.heatmap} />
           </DashboardSectionCard>
-        </Grid>
 
-        <Grid size={{ xs: 12, md: 5 }}>
-          <DashboardSectionCard title={t`dashboard_intl_eu_zone_title`}>
-            <EuZoneChart data={agg.euZone} />
+          <DashboardSectionCard title={t`dashboard_intl_flowmap_title`} subtitle={t`dashboard_intl_flowmap_subtitle`}>
+            {flowMap.points.length > 0 ? <FlowMapChart data={flowMap} /> : <Empty>{t`dashboard_intl_flow_empty`}</Empty>}
           </DashboardSectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <DashboardSectionCard title={t`dashboard_intl_eu_evolution_title`}>
-            <EuByYearChart data={agg.euByYear} />
-          </DashboardSectionCard>
-        </Grid>
 
-        <Grid size={{ xs: 12 }}>
-          <DashboardSectionCard
-            title={t`dashboard_intl_partners_title`}
-            subtitle={t`dashboard_intl_partners_subtitle`}
-          >
-            {agg.topPartners.length > 0 ? (
-              <TopPartnersChart data={agg.topPartners} />
-            ) : (
-              <Typography color='text.secondary'>
-                {t`dashboard_intl_partners_empty`}
-              </Typography>
-            )}
-          </DashboardSectionCard>
-        </Grid>
-
-        {!isResearcher && (
-          <>
-            <Grid size={{ xs: 12 }}>
-              <DashboardSectionCard
-                title={t`dashboard_intl_sankey_title`}
-                subtitle={t`dashboard_intl_flow_subtitle`}
-              >
+          {!isResearcher && (
+            <>
+              <DashboardSectionCard title={t`dashboard_intl_sankey_title`} subtitle={t`dashboard_intl_flow_subtitle`}>
                 {flows.sankey.links.length > 0 ? (
-                  <SankeyChart
-                    nodes={flows.sankey.nodes}
-                    links={flows.sankey.links}
-                  />
+                  <SankeyChart nodes={flows.sankey.nodes} links={flows.sankey.links} />
                 ) : (
-                  <Typography color='text.secondary'>
-                    {t`dashboard_intl_flow_empty`}
-                  </Typography>
+                  <Empty>{t`dashboard_intl_flow_empty`}</Empty>
                 )}
               </DashboardSectionCard>
-            </Grid>
-
-            <Grid size={{ xs: 12 }}>
-              <DashboardSectionCard
-                title={t`dashboard_intl_sunburst_title`}
-                subtitle={t`dashboard_intl_flow_subtitle`}
-              >
-                {flows.sunburst.length > 0 ? (
-                  <SunburstChart data={flows.sunburst} />
-                ) : (
-                  <Typography color='text.secondary'>
-                    {t`dashboard_intl_flow_empty`}
-                  </Typography>
-                )}
+              <DashboardSectionCard title={t`dashboard_intl_sunburst_title`} subtitle={t`dashboard_intl_flow_subtitle`}>
+                {flows.sunburst.length > 0 ? <SunburstChart data={flows.sunburst} /> : <Empty>{t`dashboard_intl_flow_empty`}</Empty>}
               </DashboardSectionCard>
-            </Grid>
-          </>
-        )}
-      </Grid>
+            </>
+          )}
+        </Box>
+      </DashboardDetails>
     </Box>
   )
 }

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Box, Chip, Typography } from '@mui/material'
-import ConstructionIcon from '@mui/icons-material/Construction'
-import { t } from '@lingui/core/macro'
+import { Box } from '@mui/material'
 import TabFilter from '@/app/[lang]/components/TabFilter/TabFilter'
 import { useDashboardData } from '@/app/[lang]/dashboard/components/DashboardViewContext'
+import { DashboardPeriodFilter, DashboardPeriodProvider } from '@/app/[lang]/dashboard/components/DashboardPeriod'
 import OverviewTab from '@/app/[lang]/dashboard/components/tabs/OverviewTab'
 import InternationalTab from '@/app/[lang]/dashboard/components/tabs/InternationalTab'
 import ImpactTab from '@/app/[lang]/dashboard/components/tabs/ImpactTab'
@@ -11,122 +10,60 @@ import BooksTab from '@/app/[lang]/dashboard/components/tabs/BooksTab'
 import TeamsTab from '@/app/[lang]/dashboard/components/tabs/TeamsTab'
 import ResearchersTab from '@/app/[lang]/dashboard/components/tabs/ResearchersTab'
 import PhdTab from '@/app/[lang]/dashboard/components/tabs/PhdTab'
-import ApcTab from '@/app/[lang]/dashboard/components/tabs/ApcTab'
 
-type DashboardTabKey =
-  | 'overview'
-  | 'teams'
-  | 'axes'
-  | 'international'
-  | 'impact'
-  | 'apc'
-  | 'researchers'
-  | 'phd'
-  | 'books'
+type DashboardTabKey = 'overview' | 'collaborations' | 'impact' | 'teams' | 'researchers' | 'phd' | 'books'
 
-interface TabDef {
-  value: DashboardTabKey
-  label: string
-  /** Phase de la feuille de route (les onglets non livrés sont en placeholder). */
-  phase: 1 | 2 | 3
+const TABS: { value: DashboardTabKey; label: string }[] = [
+  { value: 'overview', label: 'Vue d’ensemble' },
+  { value: 'collaborations', label: 'Collaborations' },
+  { value: 'impact', label: 'Impact' },
+  { value: 'teams', label: 'Équipes' },
+  { value: 'researchers', label: 'Chercheurs' },
+  { value: 'phd', label: 'Doctorants' },
+  { value: 'books', label: 'Ouvrages' },
+]
+
+/** Onglets d'une personne : les autres décrivent une structure. */
+const RESEARCHER_TABS = new Set<DashboardTabKey>(['overview', 'collaborations', 'impact', 'books'])
+
+const TAB_CONTENT: Record<DashboardTabKey, () => JSX.Element> = {
+  overview: OverviewTab,
+  collaborations: InternationalTab,
+  impact: ImpactTab,
+  teams: TeamsTab,
+  researchers: ResearchersTab,
+  phd: PhdTab,
+  books: BooksTab,
 }
-
-const ComingSoon = ({ label, phase }: { label: string; phase: number }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 1.5,
-      py: 10,
-      color: 'text.secondary',
-    }}
-  >
-    <ConstructionIcon sx={{ fontSize: 48, opacity: 0.5 }} />
-    <Typography variant='h6'>{label}</Typography>
-    <Typography variant='body2'>{t`dashboard_tabs_coming_soon`}</Typography>
-    <Chip
-      size='small'
-      variant='outlined'
-      label={t`dashboard_tabs_phase` + ` ${phase}`}
-    />
-  </Box>
-)
-
-/** Onglets pertinents pour un chercheur (les autres sont propres au laboratoire). */
-const RESEARCHER_TABS = new Set<DashboardTabKey>([
-  'overview',
-  'international',
-  'impact',
-  'apc',
-  'books',
-])
 
 const DashboardTabs = () => {
   const { isResearcher, structureLevel } = useDashboardData()
   const [selected, setSelected] = useState<DashboardTabKey>('overview')
 
-  const allTabs: TabDef[] = [
-    { value: 'overview', label: t`dashboard_tab_overview`, phase: 1 },
-    { value: 'international', label: t`dashboard_tab_international`, phase: 2 },
-    { value: 'impact', label: t`dashboard_tab_impact`, phase: 2 },
-    { value: 'apc', label: t`dashboard_tab_apc`, phase: 1 },
-    { value: 'teams', label: t`dashboard_tab_teams`, phase: 3 },
-    { value: 'researchers', label: t`dashboard_tab_researchers`, phase: 3 },
-    { value: 'phd', label: t`dashboard_tab_phd`, phase: 3 },
-    { value: 'books', label: t`dashboard_tab_books`, phase: 3 },
-    { value: 'axes', label: t`dashboard_tab_axes`, phase: 3 },
-  ]
-  const tabs = isResearcher
-    ? allTabs.filter((tb) => RESEARCHER_TABS.has(tb.value))
-    : structureLevel === 'team'
-      ? allTabs.filter((tb) => tb.value !== 'teams')
-      : allTabs
+  const tabs = TABS.filter(({ value }) =>
+    isResearcher ? RESEARCHER_TABS.has(value) : !(structureLevel === 'team' && value === 'teams'),
+  )
 
-  // Si l'onglet courant n'est plus visible (changement de perspective), revenir à la vue d'ensemble.
+  // Un onglet qui n'existe pas dans la nouvelle perspective ramène à la vue d'ensemble.
   useEffect(() => {
-    if (!tabs.some((tb) => tb.value === selected)) setSelected('overview')
+    if (!tabs.some(({ value }) => value === selected)) setSelected('overview')
   }, [tabs, selected])
 
-  const active = tabs.find((tb) => tb.value === selected)
-
-  const renderTab = () => {
-    switch (selected) {
-      case 'overview':
-        return <OverviewTab />
-      case 'international':
-        return <InternationalTab />
-      case 'impact':
-        return <ImpactTab />
-      case 'books':
-        return <BooksTab />
-      case 'teams':
-        return <TeamsTab />
-      case 'researchers':
-        return <ResearchersTab />
-      case 'phd':
-        return <PhdTab />
-      case 'apc':
-        return <ApcTab />
-      default:
-        return (
-          <ComingSoon label={active?.label ?? ''} phase={active?.phase ?? 3} />
-        )
-    }
-  }
+  const Content = TAB_CONTENT[selected]
 
   return (
-    <Box>
-      <TabFilter
-        tabsData={tabs.map((tb) => ({ label: tb.label, value: tb.value }))}
-        selectedValue={selected}
-        onTabChange={(v) => setSelected(v as DashboardTabKey)}
-        tourId='dashboard-tabs'
-      />
-
-      {renderTab()}
-    </Box>
+    <DashboardPeriodProvider>
+      <Box>
+        <TabFilter
+          tabsData={tabs}
+          selectedValue={selected}
+          onTabChange={(value) => setSelected(value as DashboardTabKey)}
+          action={<DashboardPeriodFilter />}
+          tourId='dashboard-tabs'
+        />
+        <Content />
+      </Box>
+    </DashboardPeriodProvider>
   )
 }
 

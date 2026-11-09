@@ -20,12 +20,14 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
   Snackbar,
   Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
@@ -33,6 +35,7 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
 import ShareIcon from '@mui/icons-material/Share'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CloseIcon from '@mui/icons-material/Close'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
@@ -54,6 +57,9 @@ interface Props {
   lazyUpdate?: boolean
 }
 
+/** Police de l'interface, aussi dans les graphiques. */
+const CHART_FONT = 'Inter, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+
 const buildEmbedUrl = (chartId: string, perspective: string): string => {
   const url = new URL(window.location.href)
   url.search = ''
@@ -71,11 +77,9 @@ const buildEmbedUrl = (chartId: string, perspective: string): string => {
 }
 
 /**
- * Wrapper commun à tous les graphiques du tableau de bord. La barre d'outils
- * (télécharger PNG, réinitialiser, plein écran, partager) est rendue en HTML et
- * positionnée en absolu en haut à droite : elle se place dans le bandeau de titre
- * de la `CustomCard` (qui est en `position: relative`) au lieu d'empiéter sur le
- * graphique. Gère aussi le plein écran et le dialogue d'intégration iframe.
+ * Wrapper commun à tous les graphiques du tableau de bord. Les actions (image, plein écran,
+ * réinitialiser, intégrer) sont dans un menu ⋯ placé en haut à droite de la carte
+ * (DashboardSectionCard, en `position: relative`).
  */
 const EChart = ({
   option,
@@ -90,6 +94,7 @@ const EChart = ({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
   const isEmbed = useContext(EmbedModeContext)
   // Perspective laboratoire par défaut : jeu de données le plus complet.
@@ -157,8 +162,7 @@ const EChart = ({
       sx={{
         width: '100%',
         height: '100%',
-        // En plein écran seulement, on ancre la barre d'outils sur le conteneur ;
-        // sinon elle s'ancre sur la CustomCard (bandeau de titre).
+        // En plein écran seulement, le menu s'ancre sur le conteneur ; sinon sur la carte.
         '&:fullscreen': {
           position: 'relative',
           p: 2,
@@ -169,57 +173,46 @@ const EChart = ({
         },
       }}
     >
-      {/* Barre d'outils HTML — placée dans le bandeau de titre de la carte. */}
-      <Stack
-        direction='row'
-        spacing={0.25}
-        sx={{
-          position: 'absolute',
-          top: 6,
-          right: 6,
-          zIndex: 3,
-          borderRadius: 1,
-          bgcolor: 'rgba(255,255,255,0.65)',
-          '& .MuiIconButton-root': { color: 'text.secondary', p: 0.5 },
-        }}
+      {/* Menu ⋯ du graphique, en haut à droite de sa carte. */}
+      <IconButton
+        aria-label='Actions sur le graphique'
+        aria-haspopup='menu'
+        onClick={(event) => setMenuAnchor(event.currentTarget)}
+        sx={{ position: 'absolute', top: 16, right: 16, zIndex: 3, color: 'text.secondary' }}
       >
-        <Tooltip title='Télécharger (PNG)'>
-          <IconButton size='small' onClick={downloadPng}>
-            <DownloadIcon fontSize='small' />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title='Réinitialiser'>
-          <IconButton size='small' onClick={restore}>
-            <RestartAltIcon fontSize='small' />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}>
-          <IconButton size='small' onClick={toggleFullscreen}>
-            {isFullscreen ? (
-              <FullscreenExitIcon fontSize='small' />
-            ) : (
-              <FullscreenIcon fontSize='small' />
-            )}
-          </IconButton>
-        </Tooltip>
+        <MoreHorizIcon />
+      </IconButton>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={() => setMenuAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        container={isFullscreen ? containerRef.current : undefined}
+      >
+        <MenuItem onClick={() => { setMenuAnchor(null); downloadPng() }}>
+          <ListItemIcon><DownloadIcon fontSize='small' /></ListItemIcon>
+          Télécharger l’image
+        </MenuItem>
+        <MenuItem onClick={() => { setMenuAnchor(null); toggleFullscreen() }}>
+          <ListItemIcon>{isFullscreen ? <FullscreenExitIcon fontSize='small' /> : <FullscreenIcon fontSize='small' />}</ListItemIcon>
+          {isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+        </MenuItem>
+        <MenuItem onClick={() => { setMenuAnchor(null); restore() }}>
+          <ListItemIcon><RestartAltIcon fontSize='small' /></ListItemIcon>
+          Réinitialiser le zoom
+        </MenuItem>
         {!isEmbed && shareId && (
-          <Tooltip title='Partager / Intégrer'>
-            <IconButton
-              size='small'
-              onClick={() => {
-                setPerspective('lab')
-                setShareOpen(true)
-              }}
-            >
-              <ShareIcon fontSize='small' />
-            </IconButton>
-          </Tooltip>
+          <MenuItem onClick={() => { setMenuAnchor(null); setPerspective('lab'); setShareOpen(true) }}>
+            <ListItemIcon><ShareIcon fontSize='small' /></ListItemIcon>
+            Intégrer dans une page
+          </MenuItem>
         )}
-      </Stack>
+      </Menu>
 
       <ReactEcharts
         ref={chartRef}
-        option={option}
+        option={{ textStyle: { fontFamily: CHART_FONT }, ...option }}
         notMerge={notMerge}
         lazyUpdate={lazyUpdate}
         style={{

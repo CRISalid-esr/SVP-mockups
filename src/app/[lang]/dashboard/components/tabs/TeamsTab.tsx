@@ -1,13 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Box, Grid2 as Grid, Typography } from '@mui/material'
 import { t } from '@lingui/core/macro'
 import { useDashboardData } from '@/app/[lang]/dashboard/components/DashboardViewContext'
-import { getYearBounds } from '@/app/[lang]/dashboard/components/charts/overviewAggregates'
+import { useDashboardPeriod } from '@/app/[lang]/dashboard/components/DashboardPeriod'
 import {
   aggregateTeams,
   aggregateTeamRadar,
 } from '@/app/[lang]/dashboard/components/charts/structureAggregates'
-import LabTabHeader from '@/app/[lang]/dashboard/components/charts/LabTabHeader'
 import DashboardSectionCard from '@/app/[lang]/dashboard/components/charts/DashboardSectionCard'
 import DonutChart from '@/app/[lang]/dashboard/components/charts/DonutChart'
 import StackedAreaChart from '@/app/[lang]/dashboard/components/charts/StackedAreaChart'
@@ -16,8 +15,7 @@ import RadarChart from '@/app/[lang]/dashboard/components/charts/RadarChart'
 
 const TeamsTab = () => {
   const { publications } = useDashboardData()
-  const bounds = useMemo(() => getYearBounds(publications), [publications])
-  const [range, setRange] = useState({ start: bounds.min, end: bounds.max })
+  const { range } = useDashboardPeriod()
 
   const agg = useMemo(
     () => aggregateTeams(publications, range),
@@ -27,21 +25,10 @@ const TeamsTab = () => {
     () => aggregateTeamRadar(publications, range),
     [publications, range],
   )
-  const yearOptions = useMemo(
-    () =>
-      Array.from({ length: bounds.max - bounds.min + 1 }, (_, i) => bounds.min + i),
-    [bounds],
-  )
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <LabTabHeader
-        title={t`dashboard_tab_teams`}
-        range={range}
-        yearOptions={yearOptions}
-        onRangeChange={setRange}
-      />
-      <Grid container spacing={2}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 5 }}>
           <DashboardSectionCard
             title={t`dashboard_teams_distribution_title`}
