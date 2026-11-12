@@ -17,6 +17,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       "Développement de méthodes d'apprentissage profond pour l'analyse de données scientifiques massives en climatologie et biologie computationnelle.",
     url: 'https://anr.fr',
     specificData: { budget: '450 000 €', role: 'Coordinateur', funder: 'ANR', awardId: 'ANR-22-CE23-0012' },
+    visibility: 'public',
   },
   {
     id: '2',
@@ -45,6 +46,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     description:
       "Récompense pour contributions exceptionnelles dans le domaine de l'apprentissage automatique appliqué aux sciences de la vie.",
     specificData: { organization: 'SFIA' },
+    visibility: 'public',
   },
   {
     id: '5',
@@ -55,6 +57,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
       'Présentation invitée sur les avancées récentes en apprentissage par renforcement appliqué à la robotique chirurgicale.',
     url: 'https://neurips.cc',
     specificData: { location: 'Vancouver, Canada', type: 'Conférence invitée' },
+    visibility: 'public',
   },
   {
     id: '6',
@@ -80,6 +83,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     description:
       "Responsabilités éditoriales incluant la gestion de soumissions et la coordination des relectures pour une revue internationale classée A*.",
     specificData: { journal: 'JMLR', role: 'Éditeur associé' },
+    visibility: 'public',
   },
   {
     id: '8',

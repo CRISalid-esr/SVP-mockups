@@ -5,11 +5,13 @@ import useStore from '@/stores/global_store'
 import { DocumentTypeLabels } from '@/app/[lang]/documents/components/DocumentTypeLabels'
 import HalStatusCell from '@/app/[lang]/documents/components/HalStatusCell'
 import OAStatusCell from '@/app/[lang]/documents/components/OAStatusCell'
+import { FeaturedToggle } from '@/app/[lang]/documents/featured'
 
 /** Sous le titre de la fiche : les statuts, puis le type, l'année et la revue. */
 const DocumentMeta = () => {
   const { _ } = useLingui()
   const { selectedDocument = null } = useStore((state) => state.document)
+  const { ownPerspective } = useStore((state) => state.user)
   if (!selectedDocument) return null
 
   const { documentType, publicationDate, journal } = selectedDocument
@@ -22,6 +24,8 @@ const DocumentMeta = () => {
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mt: 1.5 }}>
+      {/* Publication phare (plan CV, S3) : seulement dans son propre espace. */}
+      {ownPerspective && <FeaturedToggle id={selectedDocument.uid} />}
       <HalStatusCell row={{ original: selectedDocument }} />
       <OAStatusCell row={{ original: selectedDocument }} />
       <Typography variant='body1' color='text.secondary' sx={{ ml: 0.5 }}>

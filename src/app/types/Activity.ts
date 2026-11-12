@@ -20,6 +20,8 @@ export interface Activity {
     specificData?: Record<string, any>;
     /** Diffusion : « établissement » par défaut (plan « Mon CV », D11). */
     visibility?: ActivityVisibility;
+    /** Activité proposée par une source moissonnée (theses.fr, ANR…) puis ajoutée. */
+    source?: { label: string };
 }
 
 export type ActivityVisibility = 'private' | 'institution' | 'public';

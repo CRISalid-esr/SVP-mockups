@@ -3,7 +3,7 @@ import { INITIAL_ACTIVITIES } from '@/app/[lang]/research-activities/activitiesS
 import { DEMO_PROFILE } from '@/app/[lang]/expertise-v2/types'
 import { Activity } from '@/types/Activity'
 import {
-  CV_PERSON_UIDS, activityToEntry, formatAuthors, getPersonCv, publicationSection, selectPublications, toBibtex, toCslJson,
+  CV_PERSON_UIDS, activityToEntry, isPublicEntry, formatAuthors, getPersonCv, publicationSection, selectPublications, toBibtex, toCslJson,
 } from './cvMock'
 
 describe('CV de maquette', () => {
@@ -37,6 +37,16 @@ describe('CV de maquette', () => {
     expect(short.some((p) => publicationSection(p) === 'preprints')).toBe(false)
     expect(selectPublications(cv, 'complete', false).every((p) => p.validated)).toBe(true)
     expect(selectPublications(cv, 'erc', true).every((p) => p.year > 2016)).toBe(true)
+  })
+
+  it('choisit d’abord les publications phares dans les modèles courts', () => {
+    const cv = getPersonCv('person-1')!
+    const main = cv.publications.filter((p) => publicationSection(p) === 'publications')
+    const oldest = main[main.length - 1]
+    expect(selectPublications(cv, 'short', true).map((p) => p.id)).not.toContain(oldest.id)
+    const withFeatured = selectPublications(cv, 'short', true, [oldest.id]).filter((p) => publicationSection(p) === 'publications')
+    expect(withFeatured).toHaveLength(5)
+    expect(withFeatured.map((p) => p.id)).toContain(oldest.id)
   })
 
   it('range prépublications et jeux de données dans leurs sections', () => {
@@ -109,5 +119,13 @@ describe('son propre CV, alimenté par SoVisu+', () => {
       expect.objectContaining({ origin: 'activities', count: 1 }),
       expect.objectContaining({ origin: 'profile', count: 1 }),
     ]))
+  })
+
+  it('ne garde sur la page publique que les activités publiques', () => {
+    const cv = getPersonCv('person-1', 'fr', { activities: INITIAL_ACTIVITIES, profile: DEMO_PROFILE })!
+    expect(cv.sections.grants?.every(isPublicEntry)).toBe(true)
+    // Encadrement et responsabilités sont « établissement » par défaut.
+    expect(cv.sections.supervision?.some(isPublicEntry)).toBe(false)
+    expect(cv.sections.service?.some(isPublicEntry)).toBe(false)
   })
 })

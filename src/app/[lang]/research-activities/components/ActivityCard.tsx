@@ -122,6 +122,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onEdit, onDelete 
             {activity.endDate
               ? formatDate(activity.endDate) === formatDate(activity.startDate) ? '' : ` – ${formatDate(activity.endDate)}`
               : isPunctual(activity.type) ? '' : ' – en cours'}
+            {activity.source && ` · Source : ${activity.source.label}`}
           </Typography>
         </Box>
 

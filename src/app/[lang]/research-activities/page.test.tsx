@@ -159,6 +159,20 @@ describe('ResearchActivitiesPage', () => {
     expect(within(dialog).getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
   })
 
+  it('propose les activités venues du graphe, à ajouter ou à écarter', () => {
+    render(<ResearchActivitiesPage />)
+    const proposals = screen.getByRole('region', { name: '3 activités trouvées pour vous' })
+
+    fireEvent.click(within(proposals).getByRole('button', { name: 'Ajouter : Thèse de Yanis Koné' }))
+    expect(cards()).toHaveLength(11)
+    const card = screen.getByRole('heading', { name: 'Thèse de Yanis Koné', level: 2 }).closest('article') as HTMLElement
+    expect(within(card).getByText(/Source : theses.fr/)).toBeInTheDocument()
+
+    fireEvent.click(within(screen.getByRole('region', { name: '2 activités trouvées pour vous' })).getAllByRole('button', { name: 'Écarter' })[0])
+    expect(screen.getByRole('region', { name: '1 activité trouvée pour vous' })).toBeInTheDocument()
+    expect(localStorage.getItem('activity-proposals-v1')).toContain('graph-these-kone')
+  })
+
   it('demande confirmation avant de supprimer une activité', async () => {
     render(<ResearchActivitiesPage />)
 

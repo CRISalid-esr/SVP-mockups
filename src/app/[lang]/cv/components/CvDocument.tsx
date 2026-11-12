@@ -4,6 +4,8 @@ import { Fragment, ReactNode } from 'react'
 import { Box, Chip, Divider, Link, Typography } from '@mui/material'
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined'
 import NextLink from 'next/link'
+import StarIcon from '@mui/icons-material/Star'
+import { FeaturedToggle } from '@/app/[lang]/documents/featured'
 import {
   CitationStyle,
   CvEntry,
@@ -19,6 +21,7 @@ import {
   SECTION_ORDER,
   TEMPLATES,
   formatAuthors,
+  isPublicEntry,
   publicationSection,
   selectPublications,
 } from '../cvMock'
@@ -44,8 +47,8 @@ const formatPeriod = (entry: CvEntry, lang: 'fr' | 'en') => {
 }
 
 /** Sections qui ont du contenu pour ce CV et ce modèle. */
-export const sectionsWithContent = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean): CvSectionKey[] => {
-  const pubs = selectPublications(cv, template, includeUnvalidated)
+export const sectionsWithContent = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean, featured: string[] = []): CvSectionKey[] => {
+  const pubs = selectPublications(cv, template, includeUnvalidated, featured)
   return SECTION_ORDER.filter((key) => {
     if (!TEMPLATES[template].sections.includes(key)) return false
     if (key === 'statement') return !!cv.statement.text
@@ -72,14 +75,24 @@ interface CvDocumentProps {
   showSources: boolean
   /** Lien « Gérer » vers la rubrique de SoVisu+ d'où vient une section (son propre CV seulement). */
   manageHref?: (origin: CvOrigin) => string | undefined
+  /** Publications phares (identifiants). */
+  featured?: string[]
+  /** Son propre CV : l'étoile se coche depuis le CV. */
+  canFeature?: boolean
+  /** Aperçu de la page publique : seules les entrées publiques, sans l'adresse électronique. */
+  publicView?: boolean
 }
 
 /** Le CV tel que le service de CV le rendrait (et tel qu'il s'imprime). */
-const CvDocument = ({ cv, template, style, lang, sections, includeUnvalidated, showSources, manageHref }: CvDocumentProps) => {
+const CvDocument = ({ cv, template, style, lang, sections, includeUnvalidated, showSources, manageHref, featured = [], canFeature = false, publicView = false }: CvDocumentProps) => {
+  // Page publique : on retire les entrées privées ou réservées à l'établissement.
+  const shown: PersonCv = publicView
+    ? { ...cv, sections: Object.fromEntries(Object.entries(cv.sections).map(([key, list]) => [key, (list ?? []).filter(isPublicEntry)])) }
+    : cv
   const config = TEMPLATES[template]
-  const publications = selectPublications(cv, template, includeUnvalidated)
+  const publications = selectPublications(cv, template, includeUnvalidated, featured)
   const labels = SECTION_LABELS[lang]
-  const visible = sectionsWithContent(cv, template, includeUnvalidated).filter((key) => sections[key] !== false)
+  const visible = sectionsWithContent(shown, template, includeUnvalidated, featured).filter((key) => sections[key] !== false)
 
   const entries = (list: CvEntry[]) => (
     <Box component='dl' sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '120px 1fr' }, columnGap: 2, rowGap: 1, m: 0 }}>
@@ -127,6 +140,14 @@ const CvDocument = ({ cv, template, style, lang, sections, includeUnvalidated, s
     <Box component='ol' sx={{ m: 0, pl: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
       {items.map((p) => (
         <Box component='li' key={p.id} sx={{ typography: 'body2', pl: 0.5 }}>
+          {canFeature && (
+            <Box component='span' className='cv-screen-only' sx={{ display: 'inline-block', verticalAlign: 'middle', ml: -0.5, mr: 0.25 }}>
+              <FeaturedToggle id={p.id} />
+            </Box>
+          )}
+          {!canFeature && featured.includes(p.id) && (
+            <StarIcon className='cv-screen-only' fontSize='inherit' aria-label='Publication phare' sx={{ color: 'warning.main', verticalAlign: 'middle', mr: 0.5 }} />
+          )}
           {citation(p)}
           {(showSources || p.openAccess) && (
             <Box component='span' className='cv-screen-only' sx={{ display: 'inline-flex', gap: 0.5, ml: 1, verticalAlign: 'middle', flexWrap: 'wrap' }}>
@@ -178,7 +199,7 @@ const CvDocument = ({ cv, template, style, lang, sections, includeUnvalidated, s
       )
     }
     if ((PUBLICATION_SECTIONS as CvSectionKey[]).includes(key)) return publicationSectionContent(key as PublicationSectionKey)
-    return entries(cv.sections[key as keyof PersonCv['sections']] ?? [])
+    return entries(shown.sections[key as keyof PersonCv['sections']] ?? [])
   }
 
   const provenance = (key: CvSectionKey) => {
@@ -209,7 +230,7 @@ const CvDocument = ({ cv, template, style, lang, sections, includeUnvalidated, s
           <Typography key={a} variant='body2' color='text.secondary'>{a}</Typography>
         ))}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, mt: 1.5, typography: 'body2' }}>
-          <span>{cv.email}</span>
+          {!publicView && <span>{cv.email}</span>}
           {identifiers.map((id) => (
             <span key={id.label}>
               {`${id.label} `}

@@ -102,6 +102,9 @@ export interface PersonCv {
   exclusions: CvExclusion[]
 }
 
+/** Une entrée peut figurer sur la page publique du CV (D11) : sans diffusion précisée, elle est publique. */
+export const isPublicEntry = (entry: CvEntry) => (entry.visibility ?? 'public') === 'public'
+
 /** Données saisies par la personne connectée, lues dans SoVisu+. */
 export interface OwnDossier {
   activities: Activity[]
@@ -946,19 +949,19 @@ export const TEMPLATES: Record<CvTemplate, { label: string; description: string;
   },
   short: {
     label: 'CV court (2 pages)',
-    description: 'Parcours, formation et 5 publications récentes.',
+    description: 'Parcours, formation et 5 publications : les phares d’abord, puis les plus récentes.',
     sections: ['statement', 'positions', 'education', 'publications', 'awards'],
     maxPublications: 5,
   },
   anr: {
     label: 'ANR — CV du porteur',
-    description: 'Format de l’appel à projets générique : parcours, 5 publications, projets, encadrement.',
+    description: 'Format de l’appel à projets générique : parcours, 5 publications (les phares d’abord), projets, encadrement.',
     sections: ['positions', 'education', 'publications', 'grants', 'supervision', 'awards'],
     maxPublications: 5,
   },
   erc: {
     label: 'ERC — Track record',
-    description: 'Dix dernières années : thèmes, publications, financements, conférences invitées, prix, encadrement.',
+    description: 'Dix dernières années : thèmes, 10 publications (les phares d’abord), financements, conférences invitées, prix, encadrement.',
     sections: ['statement', 'themes', 'positions', 'education', 'publications', 'preprints', 'grants', 'talks', 'supervision', 'awards'],
     maxPublications: 10,
     sinceYears: 10,
@@ -995,17 +998,23 @@ export const formatAuthors = (authors: string[], style: CitationStyle): string =
 
 /**
  * Publications retenues pour un modèle donné, toutes sections confondues.
- * La limite du modèle ne porte que sur la section « Publications ».
+ * La limite du modèle ne porte que sur la section « Publications » : les
+ * publications phares passent d'abord, puis les plus récentes.
  */
-export const selectPublications = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean, now = 2026) => {
+export const selectPublications = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean, featured: string[] = [], now = 2026) => {
   const config = TEMPLATES[template]
   const list = cv.publications.filter((p) =>
     (includeUnvalidated || p.validated)
     && (!config.sinceYears || p.year > now - config.sinceYears)
     && config.sections.includes(publicationSection(p)))
   if (!config.maxPublications) return list
-  let kept = 0
-  return list.filter((p) => publicationSection(p) !== 'publications' || kept++ < config.maxPublications!)
+  const main = list.filter((p) => publicationSection(p) === 'publications')
+  const chosen = new Set(
+    [...main.filter((p) => featured.includes(p.id)), ...main.filter((p) => !featured.includes(p.id))]
+      .slice(0, config.maxPublications)
+      .map((p) => p.id),
+  )
+  return list.filter((p) => publicationSection(p) !== 'publications' || chosen.has(p.id))
 }
 
 /* ------------------------------------------------------------------ */

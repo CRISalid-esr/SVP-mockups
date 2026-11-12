@@ -38,10 +38,12 @@ import {
   PersonCv,
   SECTION_LABELS,
   TEMPLATES,
+  isPublicEntry,
   selectPublications,
   toBibtex,
   toCslJson,
 } from '../cvMock'
+import { useFeatured } from '@/app/[lang]/documents/featured'
 import CvDocument, { SOURCE_LABELS, sectionsWithContent } from './CvDocument'
 
 /** Adresse du service de CV de l'établissement (NEXT_PUBLIC_CV_URL dans le plan). */
@@ -56,8 +58,8 @@ const download = (filename: string, content: string, type: string) => {
   URL.revokeObjectURL(url)
 }
 
-const toMarkdown = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean) => {
-  const pubs = selectPublications(cv, template, includeUnvalidated)
+const toMarkdown = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean, featured: string[]) => {
+  const pubs = selectPublications(cv, template, includeUnvalidated, featured)
   return [
     `# ${cv.displayName}`,
     '',
@@ -87,8 +89,12 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
   const [sections, setSections] = useState<Partial<Record<CvSectionKey, boolean>>>({})
   const [includeUnvalidated, setIncludeUnvalidated] = useState(false)
   const [showSources, setShowSources] = useState(true)
+  const [publicView, setPublicView] = useState(false)
   const [exportAnchor, setExportAnchor] = useState<HTMLElement | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  // Publications phares : celles de la personne connectée seulement (maquette).
+  const { featured: ownFeatured } = useFeatured()
+  const featured = isOwn ? ownFeatured : []
 
   const counts = useMemo(() => {
     const bySource = { sovisu: 0, hal: 0, openalex: 0 }
@@ -106,8 +112,11 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
     return result
   }, [cv])
 
+  // Entrées que la page publique masque (diffusion privée ou établissement).
+  const hiddenInPublic = Object.values(cv.sections).flat().filter((entry) => entry && !isPublicEntry(entry)).length
+
   const config = TEMPLATES[template]
-  const available = sectionsWithContent(cv, template, includeUnvalidated)
+  const available = sectionsWithContent(cv, template, includeUnvalidated, featured)
   const slugBase = `cv-${cv.slug}`
 
   const manageHref = (origin: CvOrigin) => {
@@ -117,7 +126,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
 
   const exportAs = (format: string) => {
     setExportAnchor(null)
-    const pubs = selectPublications(cv, template, includeUnvalidated)
+    const pubs = selectPublications(cv, template, includeUnvalidated, featured)
     if (format === 'pdf') {
       window.print()
     } else if (format === 'bibtex') {
@@ -125,7 +134,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
     } else if (format === 'csl') {
       download(`${slugBase}.json`, toCslJson(pubs), 'application/json')
     } else if (format === 'md') {
-      download(`${slugBase}.md`, toMarkdown(cv, template, includeUnvalidated), 'text/markdown')
+      download(`${slugBase}.md`, toMarkdown(cv, template, includeUnvalidated, featured), 'text/markdown')
     } else {
       setMessage(`Export ${format} simulé dans la maquette : le service de CV produit le fichier.`)
     }
@@ -187,6 +196,16 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: '300px minmax(0, 1fr)' }, gap: 3, alignItems: 'start' }}>
         <Card className='cv-screen-only' sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5, position: { lg: 'sticky' }, top: { lg: 88 }, maxHeight: { lg: 'calc(100vh - 104px)' }, overflowY: { lg: 'auto' } }}>
+          {isOwn && (
+            <Box>
+              <Typography variant='subtitle2' sx={{ mb: 1 }} id='cv-version'>{'Version'}</Typography>
+              <ToggleButtonGroup size='small' exclusive fullWidth value={publicView ? 'public' : 'full'} onChange={(_, v) => v && setPublicView(v === 'public')} aria-labelledby='cv-version'>
+                <ToggleButton value='full'>{'Mon CV complet'}</ToggleButton>
+                <ToggleButton value='public'>{'Page publique'}</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          )}
+
           <FormControl size='small' fullWidth>
             <InputLabel id='cv-template'>{'Modèle'}</InputLabel>
             <Select labelId='cv-template' label='Modèle' value={template} onChange={(e) => setTemplate(e.target.value as CvTemplate)}>
@@ -247,6 +266,11 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
                       {origin === 'publications'
                         ? `${counts.sovisu} validées dans ${SOURCE_LABELS.sovisu}${counts.hal ? `, ${counts.hal} trouvées dans HAL` : ''}${counts.openalex ? `, ${counts.openalex} trouvées dans OpenAlex, absentes de SoVisu+` : ''}`
                         : `${count} élément${count > 1 ? 's' : ''}`}
+                      {origin === 'publications' && isOwn && (
+                        <Box>{featured.length
+                          ? `${featured.length} publication${featured.length > 1 ? 's' : ''} phare${featured.length > 1 ? 's' : ''} (★), choisie${featured.length > 1 ? 's' : ''} d’abord dans les CV courts`
+                          : 'Marquez vos publications phares (☆) : les CV courts les choisissent d’abord.'}</Box>
+                      )}
                       {exclusions.map((x) => (
                         <Box key={x.reason}>{`Non repris : ${x.count} ${x.reason}`}</Box>
                       ))}
@@ -259,7 +283,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
               <FormControlLabel
                 sx={{ mt: 1.5 }}
                 control={<Switch size='small' checked={includeUnvalidated} onChange={(e) => setIncludeUnvalidated(e.target.checked)} />}
-                label={<Typography variant='body2'>{`Inclure les ${counts.unvalidated} publications à vérifier`}</Typography>}
+                label={<Typography variant='body2'>{counts.unvalidated > 1 ? `Inclure les ${counts.unvalidated} publications à vérifier` : 'Inclure la publication à vérifier'}</Typography>}
               />
             )}
             <FormControlLabel
@@ -269,18 +293,32 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
           </Box>
         </Card>
 
-        <Card sx={{ minWidth: 0, maxWidth: 900 }}>
+        <Box sx={{ minWidth: 0, maxWidth: 900 }}>
+        {publicView && (
+          <Alert severity='info' className='cv-screen-only' sx={{ mb: 2 }}>
+            {'Aperçu de la page publique de votre CV, si vous la publiez dans le service de CV. '}
+            {hiddenInPublic
+              ? `${hiddenInPublic} élément${hiddenInPublic > 1 ? 's' : ''} n’y figure${hiddenInPublic > 1 ? 'nt' : ''} pas : leur diffusion est privée ou réservée à l’établissement. `
+              : ''}
+            {'Les montants des projets, votre adresse électronique et les publications à vérifier n’y figurent jamais.'}
+          </Alert>
+        )}
+        <Card>
           <CvDocument
             cv={cv}
             template={template}
             style={style}
             lang={cvLang}
             sections={sections}
-            includeUnvalidated={includeUnvalidated}
-            showSources={showSources}
+            includeUnvalidated={includeUnvalidated && !publicView}
+            showSources={showSources && !publicView}
             manageHref={manageHref}
+            featured={featured}
+            canFeature={isOwn && !publicView}
+            publicView={publicView}
           />
         </Card>
+        </Box>
       </Box>
 
       <Snackbar open={!!message} autoHideDuration={6000} onClose={() => setMessage(null)} message={message} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />

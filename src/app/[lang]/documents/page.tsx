@@ -80,6 +80,7 @@ import OAStatusCellBadge from '@/app/[lang]/documents/components/OAStatusCellBad
 import ListFilterBar, { FilterDefinition } from '@/components/ListTable/ListFilterBar'
 import { listTableProps, listTitleSx } from '@/components/ListTable/listTableProps'
 import HalNextActionCell from '@/app/[lang]/documents/components/HalNextActionCell'
+import { FeaturedToggle } from '@/app/[lang]/documents/featured'
 
 dayjs.extend(utc)
 
@@ -240,7 +241,10 @@ const DocumentsPage = () => {
             t`no_title_available`,
           ).value
           return (
-            <Box sx={{ minWidth: 0, width: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, minWidth: 0, width: '100%' }}>
+            {/* Publication phare (plan CV, S3) : seulement dans son propre espace. */}
+            {ownPerspective && <Box sx={{ mt: -0.5, ml: -1 }}><FeaturedToggle id={row.original.uid} /></Box>}
+            <Box sx={{ minWidth: 0, flexGrow: 1 }}>
               {/* Le clic remonte à la ligne : ce bouton la rend accessible au clavier. */}
               <Link
                 component='button'
@@ -264,6 +268,7 @@ const DocumentsPage = () => {
                   </>
                 )}
               </Typography>
+            </Box>
             </Box>
           )
         },

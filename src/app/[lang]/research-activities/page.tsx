@@ -22,6 +22,7 @@ import { Activity, ActivityType } from '@/types/Activity'
 import { INITIAL_ACTIVITIES, loadActivities, saveActivities } from './activitiesStore'
 import ActivityCard from './components/ActivityCard'
 import ActivityDialog from './components/ActivityDialog'
+import GraphProposals from './components/GraphProposals'
 import { ACTIVITY_TYPES, isPunctual } from './components/activityTypes'
 
 const TYPE_FILTER: FilterDefinition[] = [{
@@ -46,7 +47,7 @@ const overlaps = (activity: Activity, from?: string | null, to?: string | null) 
 }
 
 const ResearchActivitiesPage = () => {
-  const { currentPerspective } = useStore((state) => state.user)
+  const { currentPerspective, ownPerspective } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
 
   const [activities, setActivitiesState] = useState<Activity[]>(INITIAL_ACTIVITIES)
@@ -129,6 +130,10 @@ const ResearchActivitiesPage = () => {
           onGlobalFilterChange={setSearchQuery}
         />
       </Box>
+
+      {ownPerspective && (
+        <GraphProposals onAccept={(activity) => setActivities([activity, ...activities])} />
+      )}
 
       {filteredActivities.length === 0 ? (
         <Box sx={{ py: 10, textAlign: 'center' }}>
