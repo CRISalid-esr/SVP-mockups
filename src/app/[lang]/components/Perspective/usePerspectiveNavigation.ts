@@ -11,7 +11,7 @@ const RECENTS_KEY = 'svp-recent-perspectives'
 const MAX_RECENTS = 5
 
 /** Pages qui savent afficher une autre perspective que la sienne. */
-const PERSPECTIVE_AWARE = /^\/[a-z]{2}\/(documents|dashboard|expertise|expertise-v2|research-activities)(\/|$)/
+const PERSPECTIVE_AWARE = /^\/[a-z]{2}\/(documents|dashboard|expertise|expertise-v2|research-activities|cv)(\/|$)/
 
 export type PerspectiveKind = 'person' | 'structure'
 
