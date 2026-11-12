@@ -1,12 +1,15 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import * as Lingui from '@lingui/core'
 import { Box, Typography } from '@mui/material'
 import DocumentHeader from '@/app/[lang]/documents/components/DocumentHeader'
 import { usePerspectiveScope } from '@/app/[lang]/components/Perspective/usePerspectiveScope'
 import useStore from '@/stores/global_store'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
-import { getPersonCv } from './cvMock'
+import { loadActivities } from '@/app/[lang]/research-activities/activitiesStore'
+import { loadProfile } from '@/app/[lang]/expertise-v2/storage'
+import { OwnDossier, getPersonCv } from './cvMock'
 import MembersCvList from './components/MembersCvList'
 import PersonCvView from './components/PersonCvView'
 
@@ -22,6 +25,10 @@ const CvPage = () => {
 
   const perspectiveName = currentPerspective?.getDisplayName(lang) || ''
 
+  // Son propre CV reprend ce qui est saisi dans SoVisu+ (lu après le montage : localStorage).
+  const [dossier, setDossier] = useState<OwnDossier | null>(null)
+  useEffect(() => setDossier({ activities: loadActivities(), profile: loadProfile() }), [])
+
   if (scope === 'structure' && currentPerspective) {
     return (
       <Box>
@@ -34,7 +41,8 @@ const CvPage = () => {
   const isOwn = scope === 'own'
   const uid = isOwn ? connectedUser?.person?.uid : currentPerspective?.uid
   if (!uid) return null
-  const cv = getPersonCv(uid, lang)
+  if (isOwn && !dossier) return null
+  const cv = getPersonCv(uid, lang, isOwn ? dossier ?? undefined : undefined)
 
   return (
     <Box>

@@ -67,6 +67,7 @@ const ACTIVITY_TYPE_COLORS: Record<ActivityType, string> = {
   distinction: '#D4AF37',
   mediation: '#16A085',
   enseignement: '#2ECC71',
+  responsabilite: '#56616E',
 }
 
 const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
@@ -78,6 +79,7 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   distinction: 'Distinction',
   mediation: 'Médiation',
   enseignement: 'Enseignement',
+  responsabilite: 'Responsabilité',
 }
 
 const TEAL = BRAND

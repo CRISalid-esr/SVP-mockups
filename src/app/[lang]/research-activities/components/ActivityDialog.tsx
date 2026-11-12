@@ -17,7 +17,7 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { Activity, ActivityType } from '@/types/Activity'
+import { Activity, ActivityType, ActivityVisibility } from '@/types/Activity'
 import { ACTIVITY_TYPES, isPunctual } from './activityTypes'
 
 // ─── Champs propres à chaque type ──────────────────────────────────────────
@@ -30,19 +30,33 @@ interface SpecificField {
   type?: 'number'
   /** Occupe toute la largeur. */
   wide?: boolean
+  /** Aide sous le champ, éventuellement selon la valeur saisie. */
+  helper?: string | ((value: string) => string | undefined)
 }
 
 const values = (...items: string[]) => items.map((value) => ({ value }))
 
+const VISIBILITY_HELP: Record<ActivityVisibility, string> = {
+  private: 'Visible de vous seul·e : reprise dans votre CV, jamais sur une page publique.',
+  institution: 'Visible dans l’établissement : reprise dans votre CV, pas sur une page publique.',
+  public: 'Peut figurer sur une page de CV publique, si vous la publiez.',
+}
+
 const SPECIFIC_FIELDS: Record<ActivityType, SpecificField[]> = {
   projet: [
     { key: 'role', label: 'Rôle', options: values('Coordinateur', 'Participant', 'Responsable de tâche') },
-    { key: 'budget', label: 'Budget', placeholder: '450 000 €' },
+    { key: 'funder', label: 'Financeur', options: values('ANR', 'Horizon Europe', 'ERC', 'France 2030 (PEPR, PIA)', 'Région', 'Contrat industriel', 'Autre') },
+    { key: 'awardId', label: 'Référence du contrat', placeholder: 'ANR-22-CE23-0012' },
+    { key: 'budget', label: 'Montant', placeholder: '450 000 €', helper: 'Reste dans SoVisu+ : le montant n’est pas repris dans le CV.' },
   ],
   encadrement: [
-    { key: 'student', label: 'Nom de l’étudiant·e', placeholder: 'Marie Dupont', wide: true },
-    { key: 'level', label: 'Niveau', options: values('Stage', 'Master', 'PhD', 'Post-doc') },
+    { key: 'student', label: 'Nom de la personne encadrée', placeholder: 'Marie Dupont', wide: true },
+    { key: 'thesisTitle', label: 'Sujet', placeholder: 'Titre de la thèse, du mémoire ou du projet postdoctoral', wide: true },
+    { key: 'level', label: 'Niveau', options: values('Licence', 'Master', 'Doctorat', 'Post-doc', 'Stage') },
+    { key: 'role', label: 'Rôle', options: values('Direction', 'Co-direction ou co-encadrement', 'Comité de suivi', 'Mentorat') },
+    { key: 'status', label: 'État', options: values('En cours', 'Terminé', 'Interrompu') },
     { key: 'percentage', label: 'Taux d’encadrement', placeholder: '50%' },
+    { key: 'currentPosition', label: 'Devenir', placeholder: 'Maîtresse de conférences, Université de Lille', helper: 'Ce que fait aujourd’hui la personne encadrée, si vous le savez.' },
   ],
   brevet: [
     { key: 'number', label: 'Numéro de dépôt', placeholder: 'FR2024001234' },
@@ -50,7 +64,14 @@ const SPECIFIC_FIELDS: Record<ActivityType, SpecificField[]> = {
   ],
   conference: [
     { key: 'location', label: 'Lieu', placeholder: 'Paris, France' },
-    { key: 'type', label: 'Type d’intervention', options: values('Keynote', 'Invited talk', 'Présentation', 'Poster') },
+    {
+      key: 'type',
+      label: 'Type d’intervention',
+      options: values('Conférence invitée', 'Keynote', 'Communication', 'Poster'),
+      helper: (value) => (value === 'Communication' || value === 'Poster'
+        ? 'Une communication ou un poster est une publication : ajoutez-le dans vos publications pour qu’il figure dans le CV.'
+        : undefined),
+    },
   ],
   distinction: [
     { key: 'organization', label: 'Organisation', placeholder: 'Académie des sciences', wide: true },
@@ -74,6 +95,17 @@ const SPECIFIC_FIELDS: Record<ActivityType, SpecificField[]> = {
       ],
     },
     { key: 'hours', label: 'Volume horaire (heures)', placeholder: '48', type: 'number' },
+  ],
+  responsabilite: [
+    {
+      key: 'category',
+      label: 'Nature',
+      options: values('Direction ou gouvernance', 'Instance d’évaluation (CNU, CoNRS, HCERES…)', 'Jury (thèse, HDR, recrutement)', 'Expertise de projets', 'Comité de programme ou organisation d’événement', 'Société savante ou réseau'),
+      wide: true,
+    },
+    { key: 'role', label: 'Rôle', placeholder: 'Membre, présidente, rapporteur…' },
+    { key: 'scope', label: 'Échelle', options: values('Laboratoire', 'Établissement', 'National', 'International') },
+    { key: 'body', label: 'Instance ou structure', placeholder: 'Conseil de laboratoire du LS2N', wide: true },
   ],
   mediation: [
     { key: 'audience', label: 'Public cible', placeholder: 'Grand public, scolaires…' },
@@ -272,6 +304,7 @@ const ActivityDialog: React.FC<ActivityDialogProps> = ({ open, onClose, onSave, 
                   label={field.label}
                   placeholder={field.placeholder}
                   value={formData.specificData?.[field.key] ?? ''}
+                  helperText={typeof field.helper === 'function' ? field.helper(formData.specificData?.[field.key] ?? '') : field.helper}
                   onChange={(e) => setSpecific(field.key, e.target.value)}
                   sx={field.wide ? { gridColumn: '1 / -1' } : undefined}
                 >
@@ -289,6 +322,18 @@ const ActivityDialog: React.FC<ActivityDialogProps> = ({ open, onClose, onSave, 
                 onChange={(e) => patch({ description: e.target.value })}
                 sx={{ gridColumn: '1 / -1' }}
               />
+              <TextField
+                select
+                label='Diffusion'
+                value={formData.visibility ?? 'institution'}
+                helperText={VISIBILITY_HELP[formData.visibility ?? 'institution']}
+                onChange={(e) => patch({ visibility: e.target.value as ActivityVisibility })}
+                sx={{ gridColumn: '1 / -1' }}
+              >
+                <MenuItem value='private'>Privée</MenuItem>
+                <MenuItem value='institution'>Établissement</MenuItem>
+                <MenuItem value='public'>Publique</MenuItem>
+              </TextField>
               <TextField
                 type='url'
                 label='Site web'

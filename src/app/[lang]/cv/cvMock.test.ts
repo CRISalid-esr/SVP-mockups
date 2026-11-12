@@ -1,5 +1,10 @@
 import personsData from '@/mocks/data/persons.json'
-import { CV_PERSON_UIDS, formatAuthors, getPersonCv, selectPublications, toBibtex, toCslJson } from './cvMock'
+import { INITIAL_ACTIVITIES } from '@/app/[lang]/research-activities/activitiesStore'
+import { DEMO_PROFILE } from '@/app/[lang]/expertise-v2/types'
+import { Activity } from '@/types/Activity'
+import {
+  CV_PERSON_UIDS, activityToEntry, formatAuthors, getPersonCv, publicationSection, selectPublications, toBibtex, toCslJson,
+} from './cvMock'
 
 describe('CV de maquette', () => {
   it('donne un CV à chaque personne de la base', () => {
@@ -7,7 +12,7 @@ describe('CV de maquette', () => {
     for (const uid of CV_PERSON_UIDS) {
       const cv = getPersonCv(uid)!
       expect(cv.publications.length).toBeGreaterThan(0)
-      expect(cv.positions.length).toBeGreaterThan(0)
+      expect(cv.sections.positions?.length).toBeGreaterThan(0)
       // Chaque publication cite la personne.
       for (const p of cv.publications) expect(p.authors).toContain(`${cv.lastName}, ${cv.firstName}`)
     }
@@ -27,9 +32,16 @@ describe('CV de maquette', () => {
 
   it('applique les limites des modèles et écarte les publications à vérifier', () => {
     const cv = getPersonCv('person-2')!
-    expect(selectPublications(cv, 'short', true)).toHaveLength(5)
+    const short = selectPublications(cv, 'short', true)
+    expect(short.filter((p) => publicationSection(p) === 'publications')).toHaveLength(5)
+    expect(short.some((p) => publicationSection(p) === 'preprints')).toBe(false)
     expect(selectPublications(cv, 'complete', false).every((p) => p.validated)).toBe(true)
     expect(selectPublications(cv, 'erc', true).every((p) => p.year > 2016)).toBe(true)
+  })
+
+  it('range prépublications et jeux de données dans leurs sections', () => {
+    const sections = getPersonCv('person-2')!.publications.map(publicationSection)
+    expect(sections).toEqual(expect.arrayContaining(['publications', 'preprints', 'datasets']))
   })
 
   it('formate les auteurs selon le style', () => {
@@ -45,5 +57,57 @@ describe('CV de maquette', () => {
     expect(csl).toHaveLength(pubs.length)
     expect(csl[0].author[0]).toHaveProperty('family')
     expect(toBibtex(pubs).match(/^@/gm)).toHaveLength(pubs.length)
+  })
+})
+
+describe('son propre CV, alimenté par SoVisu+', () => {
+  const activity = (type: Activity['type'], specificData: Record<string, string>, extra: Partial<Activity> = {}): Activity => ({
+    id: type, type, title: `Activité ${type}`, startDate: '2024-01-15', description: '', specificData, ...extra,
+  })
+
+  it('range chaque type d’activité dans la section du schéma de CV', () => {
+    expect(activityToEntry(activity('projet', { role: 'Coordinateur', funder: 'ANR' }))?.section).toBe('grants')
+    expect(activityToEntry(activity('encadrement', { level: 'Doctorat' }))?.section).toBe('supervision')
+    expect(activityToEntry(activity('conference', { type: 'Conférence invitée' }))?.section).toBe('talks')
+    expect(activityToEntry(activity('editorial', { role: 'Éditeur associé' }))?.section).toBe('editorial')
+    expect(activityToEntry(activity('editorial', { role: 'Relecteur' }))?.section).toBe('peer-review')
+    expect(activityToEntry(activity('brevet', {}))?.section).toBe('patents')
+    expect(activityToEntry(activity('distinction', {}))?.section).toBe('awards')
+    expect(activityToEntry(activity('enseignement', {}))?.section).toBe('teaching')
+    expect(activityToEntry(activity('mediation', {}))?.section).toBe('outreach')
+    expect(activityToEntry(activity('responsabilite', { role: 'Membre élu', body: 'Conseil de laboratoire' }))?.section).toBe('service')
+  })
+
+  it('reprend le sujet et le devenir d’une personne encadrée', () => {
+    const supervision = activityToEntry(activity('encadrement', { thesisTitle: 'Graphes dynamiques', level: 'Doctorat', currentPosition: 'MCF, Lille' }))!
+    expect(supervision.entry.detail).toBe('Graphes dynamiques · Doctorat · aujourd’hui : MCF, Lille')
+  })
+
+  it('ne reprend ni le montant d’un projet, ni une communication ou un poster', () => {
+    const grant = activityToEntry(activity('projet', { budget: '450 000 €', role: 'Coordinateur', funder: 'ANR' }))!
+    expect(JSON.stringify(grant)).not.toContain('450 000')
+    expect(grant.entry.detail).toBe('Coordinateur · ANR')
+    expect(activityToEntry(activity('conference', { type: 'Poster' }))).toBeNull()
+  })
+
+  it('reprend les activités saisies et les seuls thèmes validés', () => {
+    const profile = {
+      ...DEMO_PROFILE,
+      themes: [
+        { ...DEMO_PROFILE.themes[0], status: 'validated' as const },
+        { ...DEMO_PROFILE.themes[1], status: 'draft' as const },
+      ],
+    }
+    const activities = [...INITIAL_ACTIVITIES, activity('conference', { type: 'Poster' })]
+    const cv = getPersonCv('person-1', 'fr', { activities, profile })!
+    expect(cv.sections.grants?.map((e) => e.title)).toEqual(['ANR DeepLearning4Science'])
+    expect(cv.sections.grants?.every((e) => e.origin === 'activities')).toBe(true)
+    expect(cv.sections.themes?.map((e) => e.title)).toEqual([DEMO_PROFILE.themes[0].label])
+    // Les responsabilités viennent des activités, plus de la fiche de maquette.
+    expect(cv.sections.service?.map((e) => e.origin)).toEqual(['activities', 'activities'])
+    expect(cv.exclusions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ origin: 'activities', count: 1 }),
+      expect.objectContaining({ origin: 'profile', count: 1 }),
+    ]))
   })
 })

@@ -12,7 +12,9 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
+  GlobalStyles,
   InputLabel,
+  Link as MuiLink,
   ListItemText,
   Menu,
   MenuItem,
@@ -23,24 +25,24 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { GlobalStyles } from '@mui/material'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import Link from 'next/link'
 import {
   CITATION_STYLES,
   CitationStyle,
+  CvOrigin,
   CvSectionKey,
   CvTemplate,
+  ORIGIN_CONFIG,
   PersonCv,
   SECTION_LABELS,
-  SECTION_ORDER,
   TEMPLATES,
   selectPublications,
   toBibtex,
   toCslJson,
 } from '../cvMock'
-import CvDocument, { SOURCE_LABELS } from './CvDocument'
+import CvDocument, { SOURCE_LABELS, sectionsWithContent } from './CvDocument'
 
 /** Adresse du service de CV de l'établissement (NEXT_PUBLIC_CV_URL dans le plan). */
 const CV_SERVICE_HOST = 'cv.univ-nantes.fr'
@@ -62,13 +64,15 @@ const toMarkdown = (cv: PersonCv, template: CvTemplate, includeUnvalidated: bool
     `${cv.position} — ${cv.affiliations.join(' ; ')}`,
     '',
     '## Parcours professionnel',
-    ...cv.positions.map((p) => `- ${p.from}${p.to === null ? '–' : p.to ? `–${p.to}` : ''} : ${p.title}${p.place ? `, ${p.place}` : ''}`),
+    ...(cv.sections.positions ?? []).map((p) => `- ${p.from}${p.to === null ? '–' : p.to ? `–${p.to}` : ''} : ${p.title}${p.place ? `, ${p.place}` : ''}`),
     '',
     '## Publications',
     ...pubs.map((p) => `- ${p.authors.join(', ')} (${p.year}). ${p.title}. *${p.venue}*.${p.doi ? ` https://doi.org/${p.doi}` : ''}`),
     '',
   ].join('\n')
 }
+
+const ORIGIN_ORDER: CvOrigin[] = ['publications', 'activities', 'profile', 'affiliations', 'cv']
 
 interface PersonCvViewProps {
   cv: PersonCv
@@ -80,9 +84,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
   const [template, setTemplate] = useState<CvTemplate>('complete')
   const [style, setStyle] = useState<CitationStyle>('apa')
   const [cvLang, setCvLang] = useState<'fr' | 'en'>(lang === 'en' ? 'en' : 'fr')
-  const [sections, setSections] = useState<Record<CvSectionKey, boolean>>(
-    () => Object.fromEntries(SECTION_ORDER.map((key) => [key, true])) as Record<CvSectionKey, boolean>,
-  )
+  const [sections, setSections] = useState<Partial<Record<CvSectionKey, boolean>>>({})
   const [includeUnvalidated, setIncludeUnvalidated] = useState(false)
   const [showSources, setShowSources] = useState(true)
   const [exportAnchor, setExportAnchor] = useState<HTMLElement | null>(null)
@@ -94,8 +96,24 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
     return { ...bySource, unvalidated: cv.publications.filter((p) => !p.validated).length }
   }, [cv])
 
+  /** Nombre d'entrées du CV par provenance (hors publications). */
+  const byOrigin = useMemo(() => {
+    const result: Partial<Record<CvOrigin, number>> = {}
+    Object.values(cv.sections).flat().forEach((entry) => {
+      if (entry) result[entry.origin] = (result[entry.origin] ?? 0) + 1
+    })
+    result[cv.statement.origin] = (result[cv.statement.origin] ?? 0) + 1
+    return result
+  }, [cv])
+
   const config = TEMPLATES[template]
+  const available = sectionsWithContent(cv, template, includeUnvalidated)
   const slugBase = `cv-${cv.slug}`
+
+  const manageHref = (origin: CvOrigin) => {
+    const route = ORIGIN_CONFIG[origin].route
+    return isOwn && route ? `/${lang}/${route}` : undefined
+  }
 
   const exportAs = (format: string) => {
     setExportAnchor(null)
@@ -131,20 +149,20 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
         {!isOwn && <Chip label='Lecture seule' size='small' />}
         <Typography variant='body2' color='text.secondary' sx={{ flexGrow: 1, minWidth: 240 }}>
           {isOwn
-            ? 'Votre CV est construit à partir de vos publications validées dans SoVisu+ et des sources ouvertes. Choisissez un modèle, puis exportez-le.'
+            ? 'Votre CV reprend vos publications validées, vos activités de recherche et les thèmes validés de votre profil. Pour corriger une rubrique, modifiez-la là où elle est saisie.'
             : `CV de ${cv.displayName}, construit à partir de ses données dans SoVisu+.`}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-        <Button
-          variant='outlined'
-          endIcon={<OpenInNewIcon />}
-          onClick={() => setMessage(`Dans la version cible, ouvre ${CV_SERVICE_HOST} dans un nouvel onglet, sans nouvelle connexion (compte de l'établissement).`)}
-        >
-          {'Ouvrir dans le service de CV'}
-        </Button>
-        <Button variant='contained' startIcon={<FileDownloadOutlinedIcon />} onClick={(e) => setExportAnchor(e.currentTarget)}>
-          {'Exporter'}
-        </Button>
+          <Button
+            variant='outlined'
+            endIcon={<OpenInNewIcon />}
+            onClick={() => setMessage(`Dans la version cible, ouvre ${CV_SERVICE_HOST} dans un nouvel onglet, sans nouvelle connexion (compte de l'établissement).`)}
+          >
+            {'Ouvrir dans le service de CV'}
+          </Button>
+          <Button variant='contained' startIcon={<FileDownloadOutlinedIcon />} onClick={(e) => setExportAnchor(e.currentTarget)}>
+            {'Exporter'}
+          </Button>
         </Box>
         <Menu anchorEl={exportAnchor} open={!!exportAnchor} onClose={() => setExportAnchor(null)}>
           <MenuItem onClick={() => exportAs('pdf')}><ListItemText primary='PDF' secondary='Impression du CV affiché' /></MenuItem>
@@ -168,7 +186,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
       )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: '300px minmax(0, 1fr)' }, gap: 3, alignItems: 'start' }}>
-        <Card className='cv-screen-only' sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5, position: { lg: 'sticky' }, top: { lg: 88 } }}>
+        <Card className='cv-screen-only' sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.5, position: { lg: 'sticky' }, top: { lg: 88 }, maxHeight: { lg: 'calc(100vh - 104px)' }, overflowY: { lg: 'auto' } }}>
           <FormControl size='small' fullWidth>
             <InputLabel id='cv-template'>{'Modèle'}</InputLabel>
             <Select labelId='cv-template' label='Modèle' value={template} onChange={(e) => setTemplate(e.target.value as CvTemplate)}>
@@ -199,10 +217,10 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
           <Box>
             <Typography variant='subtitle2' sx={{ mb: 0.5 }}>{'Rubriques'}</Typography>
             <FormGroup>
-              {SECTION_ORDER.filter((key) => config.sections.includes(key)).map((key) => (
+              {available.map((key) => (
                 <FormControlLabel
                   key={key}
-                  control={<Checkbox size='small' checked={sections[key]} onChange={(e) => setSections({ ...sections, [key]: e.target.checked })} />}
+                  control={<Checkbox size='small' checked={sections[key] !== false} onChange={(e) => setSections({ ...sections, [key]: e.target.checked })} />}
                   label={<Typography variant='body2'>{SECTION_LABELS.fr[key]}</Typography>}
                 />
               ))}
@@ -212,15 +230,34 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
           <Divider />
 
           <Box>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>{'Sources des publications'}</Typography>
-            <Box component='ul' sx={{ m: 0, pl: 2.5, typography: 'body2', color: 'text.secondary' }}>
-              <li>{`${counts.sovisu} validées dans ${SOURCE_LABELS.sovisu}`}</li>
-              {counts.hal > 0 && <li>{`${counts.hal} trouvées dans HAL`}</li>}
-              {counts.openalex > 0 && <li>{`${counts.openalex} trouvées dans OpenAlex, absentes de SoVisu+`}</li>}
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>{'D’où vient ce CV'}</Typography>
+            <Box component='ul' sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+              {ORIGIN_ORDER.map((origin) => {
+                const exclusions = cv.exclusions.filter((x) => x.origin === origin)
+                const count = origin === 'publications' ? cv.publications.length : byOrigin[origin] ?? 0
+                if (!count && !exclusions.length) return null
+                const href = manageHref(origin)
+                return (
+                  <Box component='li' key={origin} sx={{ typography: 'body2' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                      <Box component='span' sx={{ fontWeight: 600 }}>{ORIGIN_CONFIG[origin].label}</Box>
+                      {href && <MuiLink component={Link} href={href} underline='hover' variant='body2'>{'Gérer'}</MuiLink>}
+                    </Box>
+                    <Box sx={{ color: 'text.secondary' }}>
+                      {origin === 'publications'
+                        ? `${counts.sovisu} validées dans ${SOURCE_LABELS.sovisu}${counts.hal ? `, ${counts.hal} trouvées dans HAL` : ''}${counts.openalex ? `, ${counts.openalex} trouvées dans OpenAlex, absentes de SoVisu+` : ''}`
+                        : `${count} élément${count > 1 ? 's' : ''}`}
+                      {exclusions.map((x) => (
+                        <Box key={x.reason}>{`Non repris : ${x.count} ${x.reason}`}</Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )
+              })}
             </Box>
             {counts.unvalidated > 0 && (
               <FormControlLabel
-                sx={{ mt: 1 }}
+                sx={{ mt: 1.5 }}
                 control={<Switch size='small' checked={includeUnvalidated} onChange={(e) => setIncludeUnvalidated(e.target.checked)} />}
                 label={<Typography variant='body2'>{`Inclure les ${counts.unvalidated} publications à vérifier`}</Typography>}
               />
@@ -229,11 +266,6 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
               control={<Switch size='small' checked={showSources} onChange={(e) => setShowSources(e.target.checked)} />}
               label={<Typography variant='body2'>{'Afficher la provenance (écran seulement)'}</Typography>}
             />
-            {isOwn && counts.unvalidated > 0 && (
-              <Button component={Link} href={`/${lang}/documents`} size='small' sx={{ mt: 1, px: 0 }}>
-                {'Valider mes publications'}
-              </Button>
-            )}
           </Box>
         </Card>
 
@@ -246,6 +278,7 @@ const PersonCvView = ({ cv, isOwn, lang }: PersonCvViewProps) => {
             sections={sections}
             includeUnvalidated={includeUnvalidated}
             showSources={showSources}
+            manageHref={manageHref}
           />
         </Card>
       </Box>

@@ -36,10 +36,12 @@ describe('couleurs des types d’activité', () => {
 })
 
 describe('ResearchActivitiesPage', () => {
+  beforeEach(() => localStorage.clear())
+
   it('affiche une carte par activité, avec son type et sa période', () => {
     render(<ResearchActivitiesPage />)
 
-    expect(cards()).toHaveLength(8)
+    expect(cards()).toHaveLength(10)
     const card = screen.getByRole('heading', { name: 'ANR DeepLearning4Science' }).closest('article') as HTMLElement
     expect(within(card).getByText('Projet')).toBeInTheDocument()
     expect(within(card).getByText(/janv\. 2023/)).toBeInTheDocument()
@@ -72,7 +74,7 @@ describe('ResearchActivitiesPage', () => {
     fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
 
     fireEvent.click(screen.getByRole('button', { name: /documents_page_reset_filters/, hidden: true }))
-    expect(cards()).toHaveLength(8)
+    expect(cards()).toHaveLength(10)
 
     fireEvent.click(screen.getByRole('button', { name: 'Année', hidden: true }))
     fireEvent.change(screen.getByLabelText('documents_page_year_from'), { target: { value: '2030' } })
@@ -98,14 +100,16 @@ describe('ResearchActivitiesPage', () => {
 
     fireEvent.change(within(dialog).getByLabelText(/Intitulé/), { target: { value: 'Projet Horizon' } })
     fireEvent.change(within(dialog).getByLabelText(/Début/), { target: { value: '2024-01-15' } })
-    fireEvent.change(within(dialog).getByLabelText(/Fin/), { target: { value: '2023-01-15' } })
+    fireEvent.change(within(dialog).getByLabelText('Fin'), { target: { value: '2023-01-15' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Ajouter l’activité' }))
     expect(within(dialog).getByText('La fin doit suivre le début.')).toBeInTheDocument()
 
-    fireEvent.change(within(dialog).getByLabelText(/Fin/), { target: { value: '' } })
+    fireEvent.change(within(dialog).getByLabelText('Fin'), { target: { value: '' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Ajouter l’activité' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
+    // Enregistrée pour que « Mon CV » la reprenne.
+    expect(localStorage.getItem('research-activities-v1')).toContain('Projet Horizon')
     const card = screen.getByRole('heading', { name: 'Projet Horizon' }).closest('article') as HTMLElement
     expect(within(card).getByText(/en cours/)).toBeInTheDocument()
     // Une activité sans description ne casse pas la recherche.
@@ -165,6 +169,6 @@ describe('ResearchActivitiesPage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Supprimer' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(cards()).toHaveLength(7)
+    expect(cards()).toHaveLength(9)
   })
 })

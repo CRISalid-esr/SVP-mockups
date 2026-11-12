@@ -6,7 +6,8 @@ export type ActivityType =
     | 'conference'
     | 'distinction'
     | 'mediation'
-    | 'enseignement';
+    | 'enseignement'
+    | 'responsabilite';
 
 export interface Activity {
     id: string;
@@ -17,4 +18,8 @@ export interface Activity {
     description: string;
     url?: string;
     specificData?: Record<string, any>;
+    /** Diffusion : « établissement » par défaut (plan « Mon CV », D11). */
+    visibility?: ActivityVisibility;
 }
+
+export type ActivityVisibility = 'private' | 'institution' | 'public';

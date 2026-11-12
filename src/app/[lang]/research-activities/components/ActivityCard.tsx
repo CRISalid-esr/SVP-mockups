@@ -19,11 +19,18 @@ import { ACTIVITY_TYPES, isPunctual } from './activityTypes'
 const DATA_LABELS: Record<string, string> = {
   budget: 'Budget',
   role: 'Rôle',
-  student: 'Étudiant·e',
+  student: 'Personne encadrée',
+  thesisTitle: 'Sujet',
+  currentPosition: 'Devenir',
+  funder: 'Financeur',
+  awardId: 'Référence',
+  category: 'Nature',
+  scope: 'Échelle',
+  body: 'Instance',
   level: 'Niveau',
   percentage: 'Encadrement',
   number: 'N° de dépôt',
-  status: 'Statut',
+  status: 'État',
   location: 'Lieu',
   audience: 'Public cible',
   type: 'Intervention',
@@ -112,7 +119,9 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onEdit, onDelete 
           <Typography variant='h6' component='h2'>{activity.title}</Typography>
           <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
             {formatDate(activity.startDate)}
-            {activity.endDate ? ` – ${formatDate(activity.endDate)}` : isPunctual(activity.type) ? '' : ' – en cours'}
+            {activity.endDate
+              ? formatDate(activity.endDate) === formatDate(activity.startDate) ? '' : ` – ${formatDate(activity.endDate)}`
+              : isPunctual(activity.type) ? '' : ' – en cours'}
           </Typography>
         </Box>
 

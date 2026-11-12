@@ -9,7 +9,11 @@
 import documentsData from '@/mocks/data/documents.json'
 import personsData from '@/mocks/data/persons.json'
 
-export type CvPublicationType = 'article' | 'conference' | 'book' | 'chapter' | 'report' | 'software'
+import { Activity } from '@/types/Activity'
+import { isPunctual } from '@/app/[lang]/research-activities/components/activityTypes'
+import type { ResearchProfile } from '@/app/[lang]/expertise-v2/types'
+
+export type CvPublicationType = 'article' | 'conference' | 'book' | 'chapter' | 'report' | 'software' | 'preprint' | 'dataset'
 
 /** Où le service de CV a trouvé la référence. */
 export type CvSource = 'sovisu' | 'hal' | 'openalex'
@@ -30,6 +34,17 @@ export interface CvPublication {
   openAccess: boolean
 }
 
+/** D'où vient une entrée du CV (provenance affichée par section). */
+export type CvOrigin = 'activities' | 'profile' | 'affiliations' | 'publications' | 'cv'
+
+export const ORIGIN_CONFIG: Record<CvOrigin, { label: string; route?: string }> = {
+  activities: { label: 'Activités de recherche', route: 'research-activities' },
+  profile: { label: 'Profil recherche', route: 'expertise-v2' },
+  affiliations: { label: 'Affiliations (graphe CRISalid)', route: 'account?tab=affiliations' },
+  publications: { label: 'Publications', route: 'documents' },
+  cv: { label: 'Saisi dans le service de CV' },
+}
+
 export interface CvEntry {
   from: number | null
   /** null = en cours ; undefined = date ponctuelle. */
@@ -37,6 +52,36 @@ export interface CvEntry {
   title: string
   place?: string
   detail?: string
+  /** Thèmes : mots-clés des vocabulaires contrôlés. */
+  keywords?: string[]
+  origin: CvOrigin
+  visibility?: 'private' | 'institution' | 'public'
+}
+
+/**
+ * Sections du CV. Les noms reprennent les sections du schéma canonique de SigmaCV
+ * (SECTION_TYPES), sauf `themes` et `outreach`, qui sont à proposer (E8 du plan).
+ */
+export type CvSectionKey =
+  | 'statement' | 'themes' | 'positions' | 'education' | 'grants'
+  | 'publications' | 'preprints' | 'datasets' | 'software'
+  | 'talks' | 'supervision' | 'teaching' | 'editorial' | 'peer-review'
+  | 'patents' | 'outreach' | 'service' | 'awards'
+
+export type CvEntrySectionKey = Exclude<CvSectionKey, 'statement' | PublicationSectionKey>
+export type PublicationSectionKey = 'publications' | 'preprints' | 'datasets' | 'software'
+
+export const PUBLICATION_SECTIONS: PublicationSectionKey[] = ['publications', 'preprints', 'datasets', 'software']
+
+/** Section du CV d'une publication. */
+export const publicationSection = (p: CvPublication): PublicationSectionKey =>
+  p.type === 'preprint' ? 'preprints' : p.type === 'dataset' ? 'datasets' : p.type === 'software' ? 'software' : 'publications'
+
+/** Élément de SoVisu+ volontairement laissé hors du CV, signalé dans le panneau des sources. */
+export interface CvExclusion {
+  origin: CvOrigin
+  count: number
+  reason: string
 }
 
 export interface PersonCv {
@@ -51,16 +96,16 @@ export interface PersonCv {
   orcid?: string
   idhal?: string
   idref?: string
-  summary: string
-  keywords: string[]
-  positions: CvEntry[]
-  education: CvEntry[]
+  statement: { text: string; keywords: string[]; origin: CvOrigin }
+  sections: Partial<Record<CvEntrySectionKey, CvEntry[]>>
   publications: CvPublication[]
-  projects: CvEntry[]
-  supervision: CvEntry[]
-  teaching: CvEntry[]
-  service: CvEntry[]
-  awards: CvEntry[]
+  exclusions: CvExclusion[]
+}
+
+/** Données saisies par la personne connectée, lues dans SoVisu+. */
+export interface OwnDossier {
+  activities: Activity[]
+  profile: ResearchProfile
 }
 
 /* ------------------------------------------------------------------ */
@@ -162,7 +207,9 @@ const POOLS: Record<Domain, PoolItem[]> = {
   ],
 }
 
-const PROJECTS: Record<Domain, CvEntry[]> = {
+type SeedEntry = Omit<CvEntry, 'origin'>
+
+const PROJECTS: Record<Domain, SeedEntry[]> = {
   ia: [
     { from: 2023, to: 2027, title: 'ANR EDGE-GNN', detail: 'Apprentissage sur graphes pour l’informatique en périphérie — coordination' },
     { from: 2020, to: 2023, title: 'Région Pays de la Loire, programme Étoiles montantes', detail: 'Apprentissage fédéré pour les réseaux de capteurs' },
@@ -198,12 +245,12 @@ interface Seed {
   position: string
   summary: string
   keywords?: string[]
-  positions: CvEntry[]
-  education: CvEntry[]
-  supervision?: CvEntry[]
-  teaching?: CvEntry[]
-  service?: CvEntry[]
-  awards?: CvEntry[]
+  positions: SeedEntry[]
+  education: SeedEntry[]
+  supervision?: SeedEntry[]
+  teaching?: SeedEntry[]
+  service?: SeedEntry[]
+  awards?: SeedEntry[]
   /** Nombre de publications générées en plus des documents de la base. */
   publicationCount: number
 }
@@ -591,11 +638,163 @@ const generatedPublications = (person: PersonJson, seed: Seed, hasOrcid: boolean
   })
 }
 
+/** Prépublication et jeu de données par domaine, pour les profils qui publient beaucoup. */
+const EXTRA_OUTPUTS: Record<Domain, PoolItem[]> = {
+  ia: [
+    { title: 'Scaling behaviour of graph foundation models on sparse sensor networks', type: 'preprint', venue: 'arXiv' },
+    { title: 'TrafficGraph-FR: road sensor graphs for spatio-temporal forecasting', type: 'dataset', venue: 'Recherche Data Gouv' },
+  ],
+  tasc: [
+    { title: 'Explanations for over-constrained scheduling problems: a user study', type: 'preprint', venue: 'HAL (prépublication)' },
+    { title: 'Energy community planning instances (ECP-2025)', type: 'dataset', venue: 'Recherche Data Gouv' },
+  ],
+  alma: [
+    { title: 'How developers fix microservice security smells: an empirical study', type: 'preprint', venue: 'arXiv' },
+    { title: 'Corpus of model transformation histories', type: 'dataset', venue: 'Zenodo' },
+  ],
+  physique: [
+    { title: 'Production cross-sections of terbium isotopes for targeted alpha therapy', type: 'preprint', venue: 'arXiv' },
+    { title: 'Alpha spectrometry calibration data, campaign 2024', type: 'dataset', venue: 'Recherche Data Gouv' },
+  ],
+  maths: [
+    { title: 'Modified scattering for cubic dispersive equations in low dimension', type: 'preprint', venue: 'arXiv' },
+    { title: 'Tables of congruences between weight-one modular forms', type: 'dataset', venue: 'Zenodo' },
+  ],
+  meca: [
+    { title: 'Phase-field fatigue model for woven composites: validation against DIC', type: 'preprint', venue: 'HAL (prépublication)' },
+    { title: 'Full-field strain measurements on recycled carbon specimens', type: 'dataset', venue: 'Recherche Data Gouv' },
+  ],
+}
+
+/** Conférence invitée et action de médiation par domaine (profils confirmés). */
+const TALKS: Record<Domain, SeedEntry> = {
+  ia: { from: 2025, title: 'Conférence invitée : Learning on graphs at the edge', place: 'Journées de l’IA embarquée, Grenoble' },
+  tasc: { from: 2024, title: 'Conférence invitée : Explaining constraint solvers', place: 'Workshop ModRef, Toronto' },
+  alma: { from: 2024, title: 'Conférence invitée : Models that evolve with the code', place: 'Journées du GDR GPL, Paris' },
+  physique: { from: 2025, title: 'Keynote : New isotopes for nuclear medicine', place: 'International Nuclear Physics Conference, Lisbonne' },
+  maths: { from: 2023, title: 'Conférence invitée : Long-time dynamics of dispersive waves', place: 'Séminaire Laurent Schwartz, Palaiseau' },
+  meca: { from: 2025, title: 'Keynote : Durability of composites at sea', place: 'European Conference on Composite Materials, Nantes' },
+}
+
+const OUTREACH: Record<Domain, SeedEntry> = {
+  ia: { from: 2024, title: 'Atelier « Comment apprend une IA ? »', place: 'Fête de la science, Nantes', detail: 'Scolaires' },
+  tasc: { from: 2023, title: 'Conférence « Faire rentrer un emploi du temps dans une boîte »', place: 'Les Champs libres, Rennes', detail: 'Grand public' },
+  alma: { from: 2025, title: 'Stand « Le logiciel, ça s’use aussi »', place: 'Fête de la science, Nantes', detail: 'Grand public' },
+  physique: { from: 2024, title: 'Émission « La radioactivité au service de la médecine »', place: 'France Culture', detail: 'Grand public' },
+  maths: { from: 2024, title: 'Exposé « Les vagues font des maths »', place: 'Maison des mathématiques, Nantes', detail: 'Lycéens' },
+  meca: { from: 2023, title: 'Visite du bassin d’essais', place: 'Centrale Nantes', detail: 'Scolaires' },
+}
+
+/** Thèmes de recherche par domaine (profils sans profil recherche saisi dans la maquette). */
+const THEMES: Record<Domain, SeedEntry[]> = {
+  ia: [
+    { from: 2016, to: null, title: 'Apprentissage sur graphes', detail: 'Modèles de graphes dynamiques et leur explication.', keywords: ['réseaux de neurones', 'graphes'] },
+    { from: 2020, to: null, title: 'IA embarquée et sobre', detail: 'Apprentissage fédéré et inférence sur équipements contraints.', keywords: ['informatique en périphérie', 'apprentissage fédéré'] },
+  ],
+  tasc: [
+    { from: 2008, to: null, title: 'Contraintes globales pour l’ordonnancement', detail: 'Propagation et explication des contraintes.', keywords: ['programmation par contraintes', 'ordonnancement'] },
+    { from: 2019, to: null, title: 'Optimisation pour la transition énergétique', detail: 'Planification des communautés énergétiques locales.', keywords: ['optimisation combinatoire', 'énergie'] },
+  ],
+  alma: [
+    { from: 2012, to: null, title: 'Ingénierie dirigée par les modèles', detail: 'Transformations, co-évolution et langages dédiés.', keywords: ['génie logiciel', 'langages dédiés'] },
+    { from: 2021, to: null, title: 'Sobriété des plateformes logicielles', detail: 'Mesure et réduction de la consommation des orchestrateurs.', keywords: ['sobriété numérique', 'architectures logicielles'] },
+  ],
+  physique: [
+    { from: 2005, to: null, title: 'Isotopes radioactifs à vie courte', detail: 'Production et spectroscopie laser.', keywords: ['physique nucléaire', 'isotopes'] },
+    { from: 2014, to: null, title: 'Radio-isotopes pour la médecine', detail: 'Thérapie alpha ciblée et dosimétrie.', keywords: ['médecine nucléaire', 'radioprotection'] },
+  ],
+  maths: [
+    { from: 2001, to: null, title: 'Équations aux dérivées partielles non linéaires', detail: 'Existence globale, diffusion, comportement en temps long.', keywords: ['EDP', 'analyse'] },
+    { from: 2013, to: null, title: 'Statistique et théorie des nombres', detail: 'Selon les membres : données fonctionnelles ou formes modulaires.', keywords: ['statistique', 'théorie des nombres'] },
+  ],
+  meca: [
+    { from: 2011, to: null, title: 'Durabilité des matériaux composites', detail: 'Fatigue et endommagement, en particulier en milieu marin.', keywords: ['composites', 'fatigue'] },
+    { from: 2015, to: null, title: 'Modélisation multi-échelle', detail: 'Homogénéisation et identification par mesures de champs.', keywords: ['mécanique des matériaux', 'homogénéisation'] },
+  ],
+}
+
 const identifier = (person: PersonJson, type: string) =>
   person.identifiers?.find((id) => id.type === type)?.value
 
-/** CV d'une personne de la base, ou null si elle n'est pas dans la maquette. */
-export const getPersonCv = (uid: string, lang = 'fr'): PersonCv | null => {
+const withOrigin = (origin: CvOrigin) => (entry: SeedEntry): CvEntry => ({ ...entry, origin })
+
+const isEditorialService = (entry: SeedEntry) => /[ÉE]dit|éditorial|Relecteur/i.test(entry.title)
+
+/* ------------------------------------------------------------------ */
+/* Activités de recherche → sections du CV                            */
+/* ------------------------------------------------------------------ */
+
+const yearOf = (date?: string) => (date ? Number(date.slice(0, 4)) : null)
+const join = (...parts: (string | undefined | null | false)[]) => parts.filter(Boolean).join(' · ') || undefined
+
+
+const INVITED_TALKS = ['Conférence invitée', 'Keynote', 'Invited talk']
+
+/**
+ * Section du CV d'une activité (plan « Mon CV », § 5.5) et entrée correspondante.
+ * Le montant d'un projet n'est jamais repris. Une communication ou un poster
+ * relève des publications : la fonction renvoie null.
+ */
+export const activityToEntry = (activity: Activity): { section: CvEntrySectionKey; entry: CvEntry } | null => {
+  const d = (activity.specificData ?? {}) as Record<string, string | undefined>
+  const from = yearOf(activity.startDate)
+  const to = isPunctual(activity.type) ? undefined : yearOf(activity.endDate) ?? null
+  const base = { from, to, title: activity.title, origin: 'activities' as const, visibility: activity.visibility ?? 'institution' }
+  switch (activity.type) {
+    case 'projet':
+      return { section: 'grants', entry: { ...base, detail: join(d.role, d.funder, d.awardId) } }
+    case 'encadrement':
+      return {
+        section: 'supervision',
+        entry: {
+          ...base,
+          detail: join(d.thesisTitle, d.level, d.role, d.percentage && `taux d’encadrement ${d.percentage}`, d.status, d.currentPosition && `aujourd’hui : ${d.currentPosition}`),
+        },
+      }
+    case 'conference':
+      if (d.type && !INVITED_TALKS.includes(d.type)) return null
+      // Le type n'est rappelé que s'il n'est pas déjà dans l'intitulé.
+      return {
+        section: 'talks',
+        entry: { ...base, place: d.location, detail: d.type && !activity.title.toLowerCase().includes(d.type.toLowerCase()) ? d.type : undefined },
+      }
+    case 'editorial':
+      return {
+        section: d.role === 'Relecteur' ? 'peer-review' : 'editorial',
+        entry: { ...base, place: d.journal, detail: d.role },
+      }
+    case 'brevet':
+      return { section: 'patents', entry: { ...base, detail: join(d.number, d.status) } }
+    case 'distinction':
+      return { section: 'awards', entry: { ...base, place: d.organization } }
+    case 'enseignement':
+      return {
+        section: 'teaching',
+        entry: { ...base, title: d.subject || activity.title, place: d.establishment, detail: join(d.level, d.hours && `${d.hours} h`, d.courseType) },
+      }
+    case 'responsabilite':
+      return { section: 'service', entry: { ...base, place: d.body, detail: join(d.role, d.category, d.scope) } }
+    case 'mediation':
+      return { section: 'outreach', entry: { ...base, place: d.location, detail: d.audience } }
+    default:
+      return null
+  }
+}
+
+const push = (sections: PersonCv['sections'], key: CvEntrySectionKey, entries: CvEntry[]) => {
+  if (entries.length) sections[key] = [...(sections[key] ?? []), ...entries]
+}
+
+/* ------------------------------------------------------------------ */
+/* CV d'une personne                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * CV d'une personne de la base, ou null si elle n'est pas dans la maquette.
+ * Avec `own`, les activités et les thèmes viennent de ce que la personne
+ * connectée a saisi dans SoVisu+ ; sinon, de sa fiche de maquette.
+ */
+export const getPersonCv = (uid: string, lang = 'fr', own?: OwnDossier): PersonCv | null => {
   const person = personsData.find((p) => p.uid === uid)
   if (!person) return null
   const seed = SEEDS[person.slug]
@@ -604,14 +803,79 @@ export const getPersonCv = (uid: string, lang = 'fr'): PersonCv | null => {
   const orcid = identifier(person, 'orcid')
   const idhal = identifier(person, 'id_hal_s')
   const idref = identifier(person, 'idref')
+  const junior = /Doctorant|Post-doc|Ingé/.test(person.statut ?? '')
+
+  const extras = seed.publicationCount >= 6
+    ? EXTRA_OUTPUTS[seed.domain].map((item, i): CvPublication => ({
+        id: `${person.slug}-extra-${i}`,
+        type: item.type,
+        year: 2026 - i,
+        title: item.title,
+        authors: [citedName(person.firstName, person.lastName), ...EXTERNAL_COAUTHORS[seed.domain].slice(i, i + 1)],
+        venue: item.venue,
+        doi: item.type === 'dataset' ? `10.57745/${person.slug.slice(0, 4).toUpperCase()}${2026 - i}` : undefined,
+        source: 'sovisu',
+        validated: true,
+        openAccess: true,
+      }))
+    : []
 
   const publications = [
     ...documentsOf(person, lang),
     ...generatedPublications(person, seed, !!orcid, !!idhal),
+    ...extras,
   ].sort((a, b) => b.year - a.year || a.title.localeCompare(b.title))
 
-  const domainProjects = PROJECTS[seed.domain]
-  const junior = /Doctorant|Post-doc|Ingé/.test(person.statut ?? '')
+  const sections: PersonCv['sections'] = {}
+  const exclusions: CvExclusion[] = []
+
+  push(sections, 'positions', seed.positions.map(withOrigin('affiliations')))
+  push(sections, 'education', seed.education.map(withOrigin('cv')))
+
+  if (own) {
+    // Activités saisies dans SoVisu+.
+    let notTalks = 0
+    own.activities.forEach((activity) => {
+      const mapped = activityToEntry(activity)
+      if (mapped) push(sections, mapped.section, [mapped.entry])
+      else notTalks += 1
+    })
+    if (notTalks) {
+      exclusions.push({ origin: 'activities', count: notTalks, reason: notTalks > 1 ? 'communications ou posters : à ajouter comme publications' : 'communication ou poster : à ajouter comme publication' })
+    }
+    // Thèmes validés du profil recherche ; les brouillons restent dans SoVisu+.
+    const validated = own.profile.themes.filter((t) => t.status === 'validated')
+    push(sections, 'themes', validated.map((t): CvEntry => ({
+      from: t.yearFrom,
+      to: t.yearTo,
+      title: t.label,
+      detail: t.variants?.researchers || t.description,
+      keywords: t.keywords.map((k) => k.label),
+      origin: 'profile',
+      visibility: t.visibility,
+    })))
+    const drafts = own.profile.themes.length - validated.length
+    if (drafts) exclusions.push({ origin: 'profile', count: drafts, reason: drafts > 1 ? 'thèmes en brouillon' : 'thème en brouillon' })
+  } else {
+    const projects = junior
+      ? PROJECTS[seed.domain].slice(0, 1).map((p) => ({ ...p, detail: p.detail?.replace(/ — .*$/, ' — participation') }))
+      : PROJECTS[seed.domain]
+    push(sections, 'grants', projects.map(withOrigin('activities')))
+    push(sections, 'supervision', (seed.supervision ?? []).map(withOrigin('activities')))
+    push(sections, 'teaching', (seed.teaching ?? []).map(withOrigin('activities')))
+    push(sections, 'awards', (seed.awards ?? []).map(withOrigin('activities')))
+    const service = seed.service ?? []
+    push(sections, 'peer-review', service.filter((e) => /Relecteur/.test(e.title)).map(withOrigin('activities')))
+    push(sections, 'editorial', service.filter((e) => isEditorialService(e) && !/Relecteur/.test(e.title)).map(withOrigin('activities')))
+    if (!junior) {
+      push(sections, 'talks', [withOrigin('activities')(TALKS[seed.domain])])
+      if (hash(person.slug) % 2 === 0) push(sections, 'outreach', [withOrigin('activities')(OUTREACH[seed.domain])])
+    }
+    push(sections, 'themes', THEMES[seed.domain].map(withOrigin('profile')))
+  }
+
+  // Responsabilités collectives : saisies comme activités (type « Responsabilité »).
+  if (!own) push(sections, 'service', (seed.service ?? []).filter((e) => !isEditorialService(e)).map(withOrigin('activities')))
 
   return {
     uid: person.uid,
@@ -631,16 +895,11 @@ export const getPersonCv = (uid: string, lang = 'fr'): PersonCv | null => {
     orcid,
     idhal,
     idref,
-    summary: seed.summary,
-    keywords: seed.keywords ?? (person as { keywords?: string[] }).keywords ?? [],
-    positions: seed.positions,
-    education: seed.education,
+    // Le profil recherche n'a pas de présentation générale : elle est saisie dans le service de CV.
+    statement: { text: seed.summary, keywords: seed.keywords ?? (person as { keywords?: string[] }).keywords ?? [], origin: 'cv' },
+    sections,
     publications,
-    projects: junior ? domainProjects.slice(0, 1).map((p) => ({ ...p, detail: p.detail?.replace(/ — (coordination|porteuse|partenaire|responsable.*)$/, ' — participation') })) : domainProjects,
-    supervision: seed.supervision ?? [],
-    teaching: seed.teaching ?? [],
-    service: seed.service ?? [],
-    awards: seed.awards ?? [],
+    exclusions,
   }
 }
 
@@ -654,24 +913,28 @@ export const CV_PERSON_UIDS = personsData.filter((p) => SEEDS[p.slug]).map((p) =
 export type CvTemplate = 'complete' | 'short' | 'anr' | 'erc'
 export type CitationStyle = 'apa' | 'vancouver' | 'iso690'
 
-export type CvSectionKey =
-  | 'summary' | 'positions' | 'education' | 'publications' | 'projects'
-  | 'supervision' | 'teaching' | 'service' | 'awards'
-
 export const SECTION_ORDER: CvSectionKey[] = [
-  'summary', 'positions', 'education', 'projects', 'publications', 'supervision', 'teaching', 'service', 'awards',
+  'statement', 'themes', 'positions', 'education', 'grants',
+  'publications', 'preprints', 'datasets', 'software',
+  'talks', 'supervision', 'teaching', 'editorial', 'peer-review', 'patents', 'outreach', 'service', 'awards',
 ]
 
 export const SECTION_LABELS: Record<'fr' | 'en', Record<CvSectionKey, string>> = {
   fr: {
-    summary: 'Présentation', positions: 'Parcours professionnel', education: 'Formation et diplômes',
-    publications: 'Publications', projects: 'Projets et financements', supervision: 'Encadrement',
-    teaching: 'Enseignement', service: 'Responsabilités collectives', awards: 'Prix et distinctions',
+    statement: 'Présentation', themes: 'Thèmes de recherche', positions: 'Parcours professionnel',
+    education: 'Formation et diplômes', grants: 'Projets et financements', publications: 'Publications',
+    preprints: 'Prépublications', datasets: 'Jeux de données', software: 'Logiciels',
+    talks: 'Conférences invitées', supervision: 'Encadrement', teaching: 'Enseignement',
+    editorial: 'Responsabilités éditoriales', 'peer-review': 'Relectures', patents: 'Brevets',
+    outreach: 'Médiation scientifique', service: 'Responsabilités collectives', awards: 'Prix et distinctions',
   },
   en: {
-    summary: 'Profile', positions: 'Employment', education: 'Education',
-    publications: 'Publications', projects: 'Grants and projects', supervision: 'Supervision',
-    teaching: 'Teaching', service: 'Service to the community', awards: 'Awards and honours',
+    statement: 'Profile', themes: 'Research themes', positions: 'Employment',
+    education: 'Education', grants: 'Grants and projects', publications: 'Publications',
+    preprints: 'Preprints', datasets: 'Datasets', software: 'Software',
+    talks: 'Invited talks', supervision: 'Supervision', teaching: 'Teaching',
+    editorial: 'Editorial work', 'peer-review': 'Peer review', patents: 'Patents',
+    outreach: 'Outreach', service: 'Service to the community', awards: 'Awards and honours',
   },
 }
 
@@ -684,19 +947,19 @@ export const TEMPLATES: Record<CvTemplate, { label: string; description: string;
   short: {
     label: 'CV court (2 pages)',
     description: 'Parcours, formation et 5 publications récentes.',
-    sections: ['summary', 'positions', 'education', 'publications', 'awards'],
+    sections: ['statement', 'positions', 'education', 'publications', 'awards'],
     maxPublications: 5,
   },
   anr: {
     label: 'ANR — CV du porteur',
     description: 'Format de l’appel à projets générique : parcours, 5 publications, projets, encadrement.',
-    sections: ['positions', 'education', 'publications', 'projects', 'supervision', 'awards'],
+    sections: ['positions', 'education', 'publications', 'grants', 'supervision', 'awards'],
     maxPublications: 5,
   },
   erc: {
     label: 'ERC — Track record',
-    description: 'Dix dernières années : publications, financements, prix, encadrement.',
-    sections: ['summary', 'positions', 'education', 'publications', 'projects', 'supervision', 'awards'],
+    description: 'Dix dernières années : thèmes, publications, financements, conférences invitées, prix, encadrement.',
+    sections: ['statement', 'themes', 'positions', 'education', 'publications', 'preprints', 'grants', 'talks', 'supervision', 'awards'],
     maxPublications: 10,
     sinceYears: 10,
   },
@@ -730,13 +993,19 @@ export const formatAuthors = (authors: string[], style: CitationStyle): string =
   return `${parts.slice(0, -1).join(', ')}${sep}${parts[parts.length - 1]}`
 }
 
-/** Publications retenues pour un modèle donné. */
+/**
+ * Publications retenues pour un modèle donné, toutes sections confondues.
+ * La limite du modèle ne porte que sur la section « Publications ».
+ */
 export const selectPublications = (cv: PersonCv, template: CvTemplate, includeUnvalidated: boolean, now = 2026) => {
   const config = TEMPLATES[template]
-  let list = cv.publications.filter((p) => includeUnvalidated || p.validated)
-  if (config.sinceYears) list = list.filter((p) => p.year > now - config.sinceYears!)
-  if (config.maxPublications) list = list.slice(0, config.maxPublications)
-  return list
+  const list = cv.publications.filter((p) =>
+    (includeUnvalidated || p.validated)
+    && (!config.sinceYears || p.year > now - config.sinceYears)
+    && config.sections.includes(publicationSection(p)))
+  if (!config.maxPublications) return list
+  let kept = 0
+  return list.filter((p) => publicationSection(p) !== 'publications' || kept++ < config.maxPublications!)
 }
 
 /* ------------------------------------------------------------------ */
@@ -745,7 +1014,7 @@ export const selectPublications = (cv: PersonCv, template: CvTemplate, includeUn
 
 const CSL_TYPES: Record<CvPublicationType, string> = {
   article: 'article-journal', conference: 'paper-conference', book: 'book',
-  chapter: 'chapter', report: 'report', software: 'software',
+  chapter: 'chapter', report: 'report', software: 'software', preprint: 'article', dataset: 'dataset',
 }
 
 /** CSL-JSON : le format du flux institutionnel décrit dans le plan (§ 5.1). */
@@ -771,7 +1040,7 @@ export const toCslJson = (publications: CvPublication[]) =>
 
 const BIBTEX_TYPES: Record<CvPublicationType, string> = {
   article: 'article', conference: 'inproceedings', book: 'book',
-  chapter: 'incollection', report: 'techreport', software: 'software',
+  chapter: 'incollection', report: 'techreport', software: 'software', preprint: 'unpublished', dataset: 'misc',
 }
 
 export const toBibtex = (publications: CvPublication[]) =>

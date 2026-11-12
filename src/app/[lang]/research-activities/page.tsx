@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -19,6 +19,7 @@ import useStore from '@/stores/global_store'
 import * as Lingui from '@lingui/core'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { Activity, ActivityType } from '@/types/Activity'
+import { INITIAL_ACTIVITIES, loadActivities, saveActivities } from './activitiesStore'
 import ActivityCard from './components/ActivityCard'
 import ActivityDialog from './components/ActivityDialog'
 import { ACTIVITY_TYPES, isPunctual } from './components/activityTypes'
@@ -44,98 +45,17 @@ const overlaps = (activity: Activity, from?: string | null, to?: string | null) 
   return (!to || start <= to.slice(0, 10)) && (!from || end >= from.slice(0, 10))
 }
 
-const initialActivities: Activity[] = [
-  {
-    id: '1',
-    type: 'projet',
-    title: 'ANR DeepLearning4Science',
-    startDate: '2023-01-15',
-    endDate: '2025-12-31',
-    description:
-      "Développement de méthodes d'apprentissage profond pour l'analyse de données scientifiques massives en climatologie et biologie computationnelle.",
-    url: 'https://anr.fr',
-    specificData: { budget: '450 000 €', role: 'Coordinateur' },
-  },
-  {
-    id: '2',
-    type: 'encadrement',
-    title: 'Thèse de Marie Dupont',
-    startDate: '2022-10-01',
-    endDate: '2025-09-30',
-    description:
-      "Optimisation des algorithmes de traitement d'images médicales par apprentissage profond — application à la détection précoce du cancer.",
-    specificData: { student: 'Marie Dupont', level: 'PhD', percentage: '50%' },
-  },
-  {
-    id: '3',
-    type: 'brevet',
-    title: "Système d'analyse automatisée pour la détection précoce",
-    startDate: '2024-03-15',
-    description:
-      "Brevet déposé pour un système innovant utilisant l'IA pour la détection précoce de pathologies à partir d'images radiologiques.",
-    specificData: { number: 'FR2024001234', status: "En cours d'examen" },
-  },
-  {
-    id: '4',
-    type: 'distinction',
-    title: "Prix jeune chercheur – Société Française d'IA",
-    startDate: '2024-06-10',
-    description:
-      "Récompense pour contributions exceptionnelles dans le domaine de l'apprentissage automatique appliqué aux sciences de la vie.",
-    specificData: { organization: 'SFIA' },
-  },
-  {
-    id: '5',
-    type: 'conference',
-    title: 'Conférence invitée – NeurIPS 2024',
-    startDate: '2024-12-10',
-    description:
-      'Présentation invitée sur les avancées récentes en apprentissage par renforcement appliqué à la robotique chirurgicale.',
-    url: 'https://neurips.cc',
-    specificData: { location: 'Vancouver, Canada', type: 'Invited talk' },
-  },
-  {
-    id: '6',
-    type: 'enseignement',
-    title: 'Intelligence Artificielle Avancée – Master 2',
-    startDate: '2023-09-01',
-    endDate: '2024-06-30',
-    description:
-      "Cours magistral et travaux dirigés sur l'apprentissage profond, les réseaux de neurones convolutifs et récurrents, avec projets appliqués.",
-    specificData: {
-      establishment: 'Université de Nantes',
-      level: 'Master 2',
-      hours: '48',
-      courseType: 'Mixte',
-      subject: 'Intelligence Artificielle Avancée',
-    },
-  },
-  {
-    id: '7',
-    type: 'editorial',
-    title: "Éditeur associé – Journal of Machine Learning Research",
-    startDate: '2022-01-01',
-    description:
-      "Responsabilités éditoriales incluant la gestion de soumissions et la coordination des relectures pour une revue internationale classée A*.",
-    specificData: { journal: 'JMLR', role: 'Éditeur associé' },
-  },
-  {
-    id: '8',
-    type: 'encadrement',
-    title: 'Stage M2 – Lucas Martin',
-    startDate: '2024-02-01',
-    endDate: '2024-07-31',
-    description:
-      "Stage de master 2 sur la génération de texte médical par grands modèles de langage, en partenariat avec le CHU de Nantes.",
-    specificData: { student: 'Lucas Martin', level: 'Master', percentage: '100%' },
-  },
-]
-
 const ResearchActivitiesPage = () => {
   const { currentPerspective } = useStore((state) => state.user)
   const lang = Lingui.i18n.locale as ExtendedLanguageCode
 
-  const [activities, setActivities] = useState<Activity[]>(initialActivities)
+  const [activities, setActivitiesState] = useState<Activity[]>(INITIAL_ACTIVITIES)
+  // Lu après le montage : la page est pré-rendue sans localStorage.
+  useEffect(() => setActivitiesState(loadActivities()), [])
+  const setActivities = (next: Activity[]) => {
+    setActivitiesState(next)
+    saveActivities(next)
+  }
   const [filters, setFilters] = useState<MRT_ColumnFiltersState>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
