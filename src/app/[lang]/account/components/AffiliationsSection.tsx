@@ -4,11 +4,14 @@ import { useState } from 'react'
 import { Trans } from '@lingui/react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { Box, Card, IconButton, Snackbar, Tooltip, Typography } from '@mui/material'
+import CareerHistory from './CareerHistory'
 
 interface AffiliationsSectionProps {
   laboratories: string[]
   signatures: string[]
   isOwn: boolean
+  /** Personne affichée : son parcours vient du graphe. */
+  slug?: string | null
 }
 
 const Row = ({ label, children }: { label: React.ReactNode; children: React.ReactNode }) => (
@@ -18,7 +21,7 @@ const Row = ({ label, children }: { label: React.ReactNode; children: React.Reac
   </Box>
 )
 
-const AffiliationsSection = ({ laboratories, signatures, isOwn }: AffiliationsSectionProps) => {
+const AffiliationsSection = ({ laboratories, signatures, isOwn, slug }: AffiliationsSectionProps) => {
   const [copied, setCopied] = useState(false)
   const signature = signatures.filter(Boolean).join(', ')
 
@@ -51,6 +54,14 @@ const AffiliationsSection = ({ laboratories, signatures, isOwn }: AffiliationsSe
           )}
         </Box>
       </Row>
+      {slug && (
+        <Row label='Parcours'>
+          <Typography variant='body2' color='text.secondary' sx={{ mb: 1.5 }}>
+            {'Affiliations successives connues du graphe CRISalid. Elles forment la rubrique « Parcours professionnel » du CV.'}
+          </Typography>
+          <CareerHistory slug={slug} isOwn={isOwn} />
+        </Row>
+      )}
       <Snackbar
         open={copied}
         autoHideDuration={3000}

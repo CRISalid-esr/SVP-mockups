@@ -797,7 +797,32 @@ const push = (sections: PersonCv['sections'], key: CvEntrySectionKey, entries: C
  * Avec `own`, les activités et les thèmes viennent de ce que la personne
  * connectée a saisi dans SoVisu+ ; sinon, de sa fiche de maquette.
  */
-export const getPersonCv = (uid: string, lang = 'fr', own?: OwnDossier): PersonCv | null => {
+/** Parcours connu du graphe CRISalid (affiliations datées), tel que le montre Mon compte. */
+export interface CareerEntry {
+  id: string
+  from: number | null
+  to?: number | null
+  title: string
+  place?: string
+}
+
+/**
+ * Affiliations passées que le graphe a trouvées mais que la personne n'a pas
+ * encore confirmées (plan CV, S4). Maquette : une seule, pour Jean Dupont.
+ */
+const CAREER_PROPOSALS: Record<string, CareerEntry[]> = {
+  'jean-dupont': [
+    { id: 'jean-dupont-ater', from: 2013, to: 2014, title: 'Attaché temporaire d’enseignement et de recherche', place: 'Université de Rennes, IRISA' },
+  ],
+}
+
+/** Parcours d'une personne : affiliations confirmées et propositions du graphe. */
+export const careerOf = (slug: string): { confirmed: CareerEntry[]; proposals: CareerEntry[] } => ({
+  confirmed: (SEEDS[slug]?.positions ?? []).map((p, i) => ({ ...p, id: `${slug}-position-${i}` })),
+  proposals: CAREER_PROPOSALS[slug] ?? [],
+})
+
+export const getPersonCv = (uid: string, lang = 'fr', own?: OwnDossier, confirmedCareer: string[] = []): PersonCv | null => {
   const person = personsData.find((p) => p.uid === uid)
   if (!person) return null
   const seed = SEEDS[person.slug]
@@ -832,7 +857,11 @@ export const getPersonCv = (uid: string, lang = 'fr', own?: OwnDossier): PersonC
   const sections: PersonCv['sections'] = {}
   const exclusions: CvExclusion[] = []
 
-  push(sections, 'positions', seed.positions.map(withOrigin('affiliations')))
+  // Parcours : affiliations du graphe, plus les propositions confirmées dans Mon compte.
+  const confirmedProposals = (CAREER_PROPOSALS[person.slug] ?? []).filter((p) => confirmedCareer.includes(p.id))
+  push(sections, 'positions', [...seed.positions, ...confirmedProposals.map(({ id: _id, ...entry }) => entry)]
+    .sort((a, b) => (b.from ?? 0) - (a.from ?? 0))
+    .map(withOrigin('affiliations')))
   push(sections, 'education', seed.education.map(withOrigin('cv')))
 
   if (own) {

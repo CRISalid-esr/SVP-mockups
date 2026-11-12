@@ -9,6 +9,7 @@ import useStore from '@/stores/global_store'
 import { ExtendedLanguageCode } from '@/types/ExtendLanguageCode'
 import { loadActivities } from '@/app/[lang]/research-activities/activitiesStore'
 import { loadProfile } from '@/app/[lang]/expertise-v2/storage'
+import { loadCareerDecisions } from '@/app/[lang]/account/careerStore'
 import { OwnDossier, getPersonCv } from './cvMock'
 import MembersCvList from './components/MembersCvList'
 import PersonCvView from './components/PersonCvView'
@@ -29,6 +30,12 @@ const CvPage = () => {
   const [dossier, setDossier] = useState<OwnDossier | null>(null)
   useEffect(() => setDossier({ activities: loadActivities(), profile: loadProfile() }), [])
 
+  // Affiliations passées confirmées dans Mon compte, pour la personne affichée.
+  const isOwn = scope === 'own'
+  const slug = isOwn ? connectedUser?.person?.slug : currentPerspective?.slug
+  const [confirmedCareer, setConfirmedCareer] = useState<string[]>([])
+  useEffect(() => setConfirmedCareer(loadCareerDecisions(slug).confirmed), [slug])
+
   if (scope === 'structure' && currentPerspective) {
     return (
       <Box>
@@ -38,11 +45,10 @@ const CvPage = () => {
     )
   }
 
-  const isOwn = scope === 'own'
   const uid = isOwn ? connectedUser?.person?.uid : currentPerspective?.uid
   if (!uid) return null
   if (isOwn && !dossier) return null
-  const cv = getPersonCv(uid, lang, isOwn ? dossier ?? undefined : undefined)
+  const cv = getPersonCv(uid, lang, isOwn ? dossier ?? undefined : undefined, confirmedCareer)
 
   return (
     <Box>

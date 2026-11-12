@@ -3,7 +3,7 @@ import { INITIAL_ACTIVITIES } from '@/app/[lang]/research-activities/activitiesS
 import { DEMO_PROFILE } from '@/app/[lang]/expertise-v2/types'
 import { Activity } from '@/types/Activity'
 import {
-  CV_PERSON_UIDS, activityToEntry, isPublicEntry, formatAuthors, getPersonCv, publicationSection, selectPublications, toBibtex, toCslJson,
+  CV_PERSON_UIDS, activityToEntry, careerOf, isPublicEntry, formatAuthors, getPersonCv, publicationSection, selectPublications, toBibtex, toCslJson,
 } from './cvMock'
 
 describe('CV de maquette', () => {
@@ -16,6 +16,16 @@ describe('CV de maquette', () => {
       // Chaque publication cite la personne.
       for (const p of cv.publications) expect(p.authors).toContain(`${cv.lastName}, ${cv.firstName}`)
     }
+  })
+
+  it('ajoute au parcours une affiliation passée confirmée dans Mon compte', () => {
+    const [proposal] = careerOf('jean-dupont').proposals
+    const before = getPersonCv('person-1')!.sections.positions!.map((e) => e.title)
+    expect(before).not.toContain(proposal.title)
+    const after = getPersonCv('person-1', 'fr', undefined, [proposal.id])!.sections.positions!
+    expect(after.map((e) => e.title)).toContain(proposal.title)
+    // Toujours du plus récent au plus ancien.
+    expect(after.map((e) => e.from)).toEqual([...after.map((e) => e.from)].sort((x, y) => (y ?? 0) - (x ?? 0)))
   })
 
   it('reprend les documents de la base comme validés dans SoVisu+', () => {

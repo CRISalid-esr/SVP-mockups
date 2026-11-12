@@ -110,7 +110,7 @@ const MyAccountPage = () => {
             <IdentifiersSection key={person.uid} person={person} displayName={displayName} isOwn={isOwn} />
           )}
           {selected === 'affiliations' && (
-            <AffiliationsSection laboratories={person.membershipAcronyms} signatures={person.membershipSignatures} isOwn={isOwn} />
+            <AffiliationsSection laboratories={person.membershipAcronyms} signatures={person.membershipSignatures} isOwn={isOwn} slug={person.slug} />
           )}
           {selected === 'notification' && <Notifications />}
           {selected === 'authorizations' && <Authorizations />}

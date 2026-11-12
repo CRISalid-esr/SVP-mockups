@@ -345,6 +345,11 @@ export default function ThemeEditor({
                 )
               })}
             </Box>
+            <Typography variant='body2' color='text.secondary' sx={{ mt: 1.5 }}>
+              {draft.visibility === 'public'
+                ? 'Une fois validé, ce thème figure dans votre CV, y compris sur sa page publique.'
+                : 'Une fois validé, ce thème figure dans votre CV, mais pas sur sa page publique.'}
+            </Typography>
 
             {/* Les sollicitations n'existent que pour un thème public. */}
             {isPublic && (
