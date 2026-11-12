@@ -14,7 +14,7 @@ import MembersCvList from './components/MembersCvList'
 import PersonCvView from './components/PersonCvView'
 
 /**
- * Rubrique « Mon CV » (plan « Mon CV », § 5.4 S1). Dans la cible, l'entrée de menu
+ * Rubrique « CV » (plan « Mon CV », § 5.4 S1). Dans la cible, l'entrée de menu
  * ouvre le service de CV de l'établissement dans un nouvel onglet ; la maquette montre
  * le CV directement, construit à partir des données des personnes fictives.
  */
@@ -46,7 +46,7 @@ const CvPage = () => {
 
   return (
     <Box>
-      <DocumentHeader perspectiveName={perspectiveName} pageName={isOwn ? 'Mon CV' : 'CV'} />
+      <DocumentHeader perspectiveName={perspectiveName} pageName='CV' />
       {cv ? (
         <PersonCvView key={cv.uid} cv={cv} isOwn={isOwn} lang={lang} />
       ) : (

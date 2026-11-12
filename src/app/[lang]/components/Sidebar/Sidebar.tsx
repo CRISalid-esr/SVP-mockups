@@ -48,7 +48,7 @@ const MAIN_ITEMS: NavItem[] = [
     icon: <ClipboardCheck {...ICON_PROPS} />,
   },
   { route: 'expertise-v2', label: <Trans>side_bar_expertise</Trans>, icon: <Compass {...ICON_PROPS} /> },
-  { route: 'cv', label: 'Mon CV', icon: <FileIcon {...ICON_PROPS} /> },
+  { route: 'cv', label: 'CV', icon: <FileIcon {...ICON_PROPS} /> },
 ]
 
 const SECONDARY_ITEMS: NavItem[] = [

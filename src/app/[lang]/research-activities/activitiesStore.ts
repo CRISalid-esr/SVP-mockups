@@ -2,7 +2,7 @@ import { Activity } from '@/types/Activity'
 
 /**
  * Activités de recherche de la personne connectée (maquette).
- * Gardées en localStorage pour que « Mon CV » reprenne ce qui a été saisi.
+ * Gardées en localStorage pour que le CV reprenne ce qui a été saisi.
  */
 export const ACTIVITIES_KEY = 'research-activities-v1'
 

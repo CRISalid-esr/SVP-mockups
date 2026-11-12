@@ -108,7 +108,7 @@ describe('ResearchActivitiesPage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Ajouter l’activité' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
-    // Enregistrée pour que « Mon CV » la reprenne.
+    // Enregistrée pour que le CV la reprenne.
     expect(localStorage.getItem('research-activities-v1')).toContain('Projet Horizon')
     const card = screen.getByRole('heading', { name: 'Projet Horizon' }).closest('article') as HTMLElement
     expect(within(card).getByText(/en cours/)).toBeInTheDocument()
