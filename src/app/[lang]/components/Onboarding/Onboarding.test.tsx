@@ -96,7 +96,7 @@ describe('visite guidée', () => {
 
   it('ne présente que le Profil de recherche 2', () => {
     const paths = getTourSteps().map((s) => s.path)
-    expect(paths).toContain('expertise-v2')
+    expect(paths).toContain('expertise-v3')
     expect(paths).not.toContain('expertise')
   })
 

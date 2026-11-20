@@ -316,6 +316,17 @@ Moteur commun `PerspectivePicker` : couvre tous les chercheurs de la base et tou
 
 ---
 
+## Écrans repris de la refonte sur `main` (nov. 2026)
+
+En attendant que la refonte soit adoptée, deux rubriques de la branche `refonte-design` sont copiées sur `main` :
+- **Profil recherche** (menu) → `/expertise-v3` = copie de `expertise-v2` de la refonte. L'ancienne `/expertise-v2` reste intacte, hors menu ; même clé localStorage (`research-profile-v2-default`).
+- **Activités de recherche** : dossier `research-activities/` remplacé par la version refonte (propositions du graphe, type Responsabilité, diffusion).
+- Dépendances ajoutées : `components/ListTable/`, `theme/brand.ts` **réduit** (variables CSS avec valeur par défaut, sans `@material/material-color-utilities`), jetons `navHover`/`navActive` dans `palette.ts`, 4 libellés `documents_page_*` dans les catalogues.
+- Menu : Tableau de bord, Publications, Activités de recherche, Profil recherche | Aide, Structures de recherche. Profil recherche v1, Chercheurs, Gestion des droits retirés du menu (pages conservées).
+- Pour reprendre une nouvelle évolution de la refonte : recopier le dossier depuis `refonte-design` (`git archive refonte-design <dossier>`) et remplacer `/expertise-v2` par `/expertise-v3`.
+
+---
+
 ## Fonctionnalités à développer (restant)
 
 ### 🔲 Activités de recherche

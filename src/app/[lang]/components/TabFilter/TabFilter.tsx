@@ -70,7 +70,7 @@ const TabFilter = ({
                 }}
               >
                 <Typography sx={{ mr: 1 }}>{tab.label}</Typography>
-                {tab.numberOfItems && (
+                {!!tab.numberOfItems && (
                   <Badge
                     sx={{
                       ' .MuiBadge-badge': {

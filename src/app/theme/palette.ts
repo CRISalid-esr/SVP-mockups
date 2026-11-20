@@ -59,6 +59,9 @@ const light: Theme = {
   cardBorder: colors.cardBorder,
   textSecondary: colors.textSecondary,
   lightSecondaryContainer: colors.lightSecondaryContainer,
+  // Survol et sélection discrets, repris de la refonte (Profil recherche v3, Activités)
+  navHover: '#F3F7F6',
+  navActive: '#E6F2F0',
   primary: {
     main: colors.primary40,
     light: colors.primary40,
@@ -126,6 +129,8 @@ const dark: Theme = {
   white: colors.white,
   cardBorder: colors.cardBorder,
   lightSecondaryContainer: colors.lightSecondaryContainer,
+  navHover: 'rgba(255, 255, 255, 0.05)',
+  navActive: 'rgba(255, 255, 255, 0.1)',
   primary: {
     main: colors.primary80,
     light: colors.primary40,

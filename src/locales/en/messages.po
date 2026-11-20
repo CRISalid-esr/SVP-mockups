@@ -1992,3 +1992,15 @@ msgstr "Coming soon !"
 #: src/app/[lang]/components/WordStream/WordStream.tsx:187
 msgid "wordstream_no_data_to_display"
 msgstr "No data to display"
+
+msgid "documents_page_reset_filters"
+msgstr "Reset filters"
+
+msgid "documents_page_search_placeholder"
+msgstr "Search"
+
+msgid "documents_page_year_from"
+msgstr "From"
+
+msgid "documents_page_year_to"
+msgstr "To"

@@ -129,6 +129,8 @@ declare module '@mui/material/styles' {
     white: string
     gray950: string
     sidebarItemHover: string
+    navHover: string
+    navActive: string
     cardBorder: string
     textSecondary: string
   }
@@ -178,6 +180,8 @@ declare module '@mui/material/styles' {
     shadows?: string
     gray950?: string
     sidebarItemHover?: string
+    navHover?: string
+    navActive?: string
     cardBorder?: string
     textSecondary?: string
   }

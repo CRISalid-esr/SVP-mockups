@@ -484,7 +484,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
               </ListItem>
               <ListItem
                 component={Link}
-                href={`/${lang}/expertise-v2?${searchParams.toString()}`}
+                href={`/${lang}/expertise-v3?${searchParams.toString()}`}
                 onClick={() => isMobile && handleToggleDrawerAction()}
                 sx={{
                   marginBottom: theme.utils.pxToRem(4),
@@ -492,7 +492,7 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   color: theme.palette.primaryContainer,
-                  ...(pathname?.startsWith(`/${lang}/expertise-v2`)
+                  ...(pathname?.startsWith(`/${lang}/expertise-v3`)
                     ? {
                       backgroundColor: theme.palette.primaryContainer,
                       borderRadius: theme.utils.pxToRem(8),
