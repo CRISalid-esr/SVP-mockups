@@ -38,7 +38,7 @@ const Section: React.FC<{ title: string }> = ({ title }) => (
  * Sans saisie, il les présente tous, précédés de mon espace et des espaces récents.
  */
 const PerspectivePicker: React.FC = () => {
-  const { anchorEl, closePicker, restoreVariant } = usePerspectiveUi()
+  const { anchorEl, closePicker } = usePerspectiveUi()
   const open = Boolean(anchorEl)
   const { goTo, goHome, recents } = usePerspectiveNavigation()
   const { connectedUser, currentPerspective } = useStore((s) => s.user)
@@ -54,7 +54,8 @@ const PerspectivePicker: React.FC = () => {
   const term = query.trim()
   const searching = term.length > 0
 
-  useEffect(() => restoreVariant(), [restoreVariant])
+  // Sur main, la commande de maquette A/B est retirée : on reste sur l'option A (barre latérale),
+  // sans relire un éventuel choix « B · Titre » mémorisé (restoreVariant n'est plus appelé).
 
   useEffect(() => {
     if (!open) setQuery('')

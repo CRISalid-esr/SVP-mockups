@@ -41,7 +41,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ThemeMode, useThemeContext } from '../../context/ThemeContext'
-import { PerspectiveSwitcher, PerspectiveVariantSwitch } from '../Perspective'
+import { PerspectiveSwitcher } from '../Perspective'
 import { helpUrl } from '../HelpLink'
 import { useOnboarding } from '../Onboarding'
 import { signOut } from 'next-auth/react'
@@ -665,7 +665,6 @@ const Sidebar = ({ open, handleToggleDrawerAction, user }: SidebarProps) => {
               </Box>
               {/* Third Box */}
               <Box>
-                {open && <PerspectiveVariantSwitch />}
                 {open ? (
                   <Select
                     aria-label='Theme switcher'
