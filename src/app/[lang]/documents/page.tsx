@@ -96,6 +96,13 @@ const DEFAULT_PAGINATION = {
   pageIndex: 0,
   pageSize: 10,
 }
+/**
+ * Sélection de publications pour le calcul des expertises (Profil recherche v1).
+ * Masquée : le menu ouvre désormais le Profil recherche v3, qui choisit ses publications
+ * dans son propre atelier. Repasser à true pour la retrouver.
+ */
+const SHOW_EXPERTISE_SELECTION = false
+
 const DocumentsPage = () => {
   const { data: session } = useSession()
   const { _ } = useLingui()
@@ -556,7 +563,7 @@ const DocumentsPage = () => {
           },
         ),
       },
-      {
+      ...(SHOW_EXPERTISE_SELECTION ? [{
         id: 'expertise',
         header: 'Expertises',
         size: 52,
@@ -577,7 +584,7 @@ const DocumentsPage = () => {
             </Tooltip>
           )
         },
-      },
+      }] : []),
     ]
   }, [
     lang,
@@ -909,7 +916,7 @@ const DocumentsPage = () => {
                   {t`documents_page_merge_selected_documents_button`}
                 </Button>
                 <HelpLink topic='merge' sx={{ ml: -1.5 }} />
-                <Button
+                {SHOW_EXPERTISE_SELECTION && <Button
                   variant="outlined"
                   startIcon={<Psychology fontSize="small" />}
                   onClick={() => enterExpertiseMode(table.getState().rowSelection)}
@@ -927,7 +934,7 @@ const DocumentsPage = () => {
                       {expertiseSelectedPubs.length}
                     </Box>
                   )}
-                </Button>
+                </Button>}
               </>
             )}
           </Box>
