@@ -1,12 +1,14 @@
 # Onglet Domaines — Descriptif fonctionnel
 
-> Dernière mise à jour : novembre 2026 (première maquette)
+> Dernière mise à jour : 20 novembre 2026 (sujet principal, propositions automatiques sans bouton de génération)
 
 ## Contexte
 
-L'onglet Domaines d'un document affiche sa classification OpenAlex sur 4 niveaux et ses domaines HAL. Il permet aussi de générer des propositions, d'ajouter un sujet à la main et d'attribuer un domaine HAL repris au dépôt.
+L'onglet Domaines d'un document affiche sa classification OpenAlex sur 4 niveaux et ses domaines HAL. Il affiche aussi des propositions automatiques, permet d'ajouter un sujet à la main et d'attribuer un domaine HAL repris au dépôt.
 
-Tout est simulé : aucun appel à OpenAlex, à la génération automatique ou à HAL.
+Tout est simulé : aucun appel à OpenAlex, au service de propositions ou à HAL.
+
+**Pas de bouton « Générer ».** Une fois activé, le calcul des propositions (Crisalid-taxi, appelé par l'IKG) tourne pour chaque document créé ou modifié, juste après le moissonnage, qu'il ait ou non des sujets OpenAlex. Un bouton ne produirait rien de nouveau : les propositions sont donc déjà là quand on ouvre l'onglet.
 
 ---
 
@@ -14,20 +16,22 @@ Tout est simulé : aucun appel à OpenAlex, à la génération automatique ou à
 
 ### Classification OpenAlex
 
-Les sujets sont regroupés par branche, sous le chemin complet : domaine › discipline › sous-discipline.
+**Sujet principal.** OpenAlex attribue au plus 3 sujets à une publication ; le mieux classé est son sujet principal (`primary_topic`). Il est sorti de la liste et affiché en tête, dans un encadré, avec l'étiquette « OpenAlex, principal », son score et son chemin complet. Les autres sujets suivent sous « Autres sujets ».
+
+Les autres sujets sont regroupés par branche, sous le chemin complet : domaine › discipline › sous-discipline.
 
 | Origine | Étiquette | Score | Actions |
 |---|---|---|---|
+| OpenAlex, sujet principal | OpenAlex, principal | oui | aucune (lecture seule) |
 | OpenAlex | OpenAlex | oui | aucune (lecture seule) |
-| Génération | Proposé | oui | Valider · Écarter |
+| Proposition automatique | Proposé | oui | Valider · Écarter |
 | Proposition validée | Validé | oui | Retirer |
 | Saisie | Saisi à la main | non | Retirer |
 
-- **Voir plus :** seuls les sujets OpenAlex sont repliés au-delà de 5. Une proposition à traiter reste toujours visible.
-- **Écartés :** ils ne reviennent pas à la génération suivante, et peuvent être rétablis.
-- **Sans domaine :** un état vide met en avant « Générer des propositions » et « Ajouter un domaine ».
-- **Sans résumé :** un avertissement apparaît avant le lancement, et les propositions portent la mention « d'après le titre seul ».
-- **Panne :** un message indique que les domaines n'ont pas changé, avec « Réessayer ».
+- **Propositions repliées :** quand OpenAlex a déjà classé la publication, les propositions ne sont qu'un complément. Elles sont repliées sous « Voir N propositions automatiques en complément ». Sans notice OpenAlex, elles sont visibles d'emblée.
+- **Écartés :** ils ne reviennent pas au calcul suivant, et peuvent être rétablis.
+- **Sans domaine :** quand rien n'a pu être proposé, un état vide met en avant « Ajouter un domaine ».
+- **Sans résumé :** un avertissement indique que les propositions ont été faites d'après le titre seul, et chacune porte la mention « d'après le titre seul ».
 
 ### Ajouter un domaine
 
@@ -50,14 +54,14 @@ Sans droit de modification, ou document figé : plus aucune action. Les proposit
 
 | Document | Situation | À montrer |
 |---|---|---|
-| `doc-1` | OpenAlex + HAL | Écran complet : repli, proposition, saisie, HAL moissonné et attribué |
-| `doc-2` | Ni OpenAlex ni HAL | État vide, génération, attribution puis dépôt pré-rempli |
-| `doc-3` | OpenAlex, hors HAL | Sujets OpenAlex sans repli, panne de génération |
-| `doc-4` | Sans résumé | Génération d'après le titre seul |
-| `doc-5` | Aucune notice source | État vide et génération |
+| `doc-1` | OpenAlex + HAL | Écran complet : sujet principal, propositions repliées, saisie, HAL moissonné et attribué |
+| `doc-2` | Ni OpenAlex ni HAL | Propositions visibles d'emblée, attribution puis dépôt pré-rempli |
+| `doc-3` | OpenAlex, hors HAL | Sujet principal et 2 autres sujets, une proposition repliée |
+| `doc-4` | Sans résumé | Propositions d'après le titre seul |
+| `doc-5` | Aucune notice source | Propositions ; état vide avec « Sans proposition automatique » |
 | `doc-6` | OpenAlex + HAL | Sciences du sol, domaine HAL principal |
 
-La zone « Simuler » change les droits, fige le document, met la génération en panne et réinitialise la démonstration.
+La zone « Simuler » change les droits, fige le document, retire les propositions automatiques (état vide) et réinitialise la démonstration.
 
 ---
 
@@ -70,13 +74,17 @@ La zone « Simuler » change les droits, fige le document, met la génération e
 | `documents/[uid]/components/Domains/domainsMock.ts` | Taxonomie d'échantillon, scénarios, état, `getDepositDomains()` |
 | `documents/[uid]/components/halDomains.ts` | Liste des domaines HAL, partagée avec le dépôt |
 
-État conservé en localStorage, clé `document-domains-v1-{uid}`.
+État conservé en localStorage, clé `document-domains-v2-{uid}`.
 
 **Données :** identifiants et libellés anglais viennent de la classification OpenAlex liée à l'issue #373 (échantillon de sujets sur 4 515). Les traductions françaises et les scores sont des propositions de maquette.
 
 ---
 
 ## Questions ouvertes
+
+- **Sujet principal en données :** le moissonneur ne conserve pas le champ `primary_topic` d'OpenAlex, seulement les sujets et leur score. Le principal se déduit du meilleur score, sauf si une publication a plusieurs notices OpenAlex. Faut-il transmettre un indicateur explicite (moissonneur, IKG, Apollo) ?
+- **Sujet principal sans OpenAlex :** pour une publication sans notice OpenAlex, faut-il permettre de désigner un sujet principal parmi les sujets validés ou saisis ?
+- **Propositions à côté d'OpenAlex :** faut-il les replier, comme ici, les limiter à 2 ou 3, ou ne pas les afficher du tout quand OpenAlex a classé la publication ?
 
 - **Niveau de saisie :** cette maquette limite la saisie au sujet, alors que celle de l'issue #373 permet de choisir à n'importe quel niveau. À trancher avec le consortium.
 - **Traduction :** la feuille liée à l'issue #373 ne contient aucun libellé français. Les 275 libellés de niveaux restent à traduire.

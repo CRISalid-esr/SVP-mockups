@@ -148,9 +148,9 @@ Onglet `hal_update`, à la place de « Déposer dans HAL » quand la publication
 
 ### ✅ Onglet Domaines (`src/app/[lang]/documents/[uid]/components/Domains/`)
 
-Classification OpenAlex sur 4 niveaux (OpenAlex en lecture seule ; propositions à valider ou écarter ; saisie au niveau du sujet) et domaines HAL (moissonnés en lecture seule ; attribués, repris au dépôt pour une publication hors HAL). Zone « Simuler » : droits, document figé, panne de génération.
+Classification OpenAlex sur 4 niveaux (OpenAlex en lecture seule, **sujet principal** = meilleur score mis en avant dans un encadré « OpenAlex, principal », au plus 3 sujets OpenAlex ; propositions automatiques à valider ou écarter ; saisie au niveau du sujet) et domaines HAL (moissonnés en lecture seule ; attribués, repris au dépôt pour une publication hors HAL). **Pas de bouton « Générer »** (décision du 20 nov. 2026) : les propositions sont calculées à l'arrivée du document, visibles d'emblée sans notice OpenAlex, repliées (« Voir N propositions automatiques en complément ») quand OpenAlex a classé la publication. Zone « Simuler » : droits, document figé, sans proposition automatique (état vide).
 
-**Données :** `domainsMock.ts` (échantillon réel de la classification, traductions et scores de maquette, un scénario par document de `doc-1` à `doc-6`) · état en localStorage `document-domains-v1-{uid}` · `halDomains.ts` partagé avec `HalDeposit.tsx`, pré-rempli via `getDepositDomains()`. `documents.json` : notice OpenAlex ajoutée à `doc-1`, résumé retiré de `doc-4` (cas du titre seul). Vocabulaire à l'écran : pas de « taxi », dire « Proposé » et « Générer ». Pas de « ? » : pas encore de page d'aide. Tests : `Domains.test.tsx`.
+**Données :** `domainsMock.ts` (échantillon réel de la classification, traductions et scores de maquette, un scénario par document de `doc-1` à `doc-6`) · état en localStorage `document-domains-v2-{uid}` · `halDomains.ts` partagé avec `HalDeposit.tsx`, pré-rempli via `getDepositDomains()`. `documents.json` : notice OpenAlex ajoutée à `doc-1`, résumé retiré de `doc-4` (cas du titre seul). Vocabulaire à l'écran : pas de « taxi », dire « Proposé » et « proposition automatique ». Pas de « ? » : pas encore de page d'aide. Tests : `Domains.test.tsx`.
 
 **Descriptif et questions ouvertes :** `public/prompts/domaines.md`
 

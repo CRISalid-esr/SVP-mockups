@@ -14,7 +14,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  LinearProgress,
   Link,
   Paper,
   TextField,
@@ -22,7 +21,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { HAL_DOMAINS, halDomainLabel } from '../halDomains'
 import {
   clearDomainsState,
@@ -48,10 +47,6 @@ const TEXT = '#2D3836'
 const MUTED = '#6F7977'
 const WARN = '#B45309'
 const WARN_BORDER = '#F1D9A0'
-
-/** Sujets OpenAlex affichés avant « voir plus » (seuil à confirmer). */
-const VISIBLE_OPENALEX_TOPICS = 5
-const GENERATION_DELAY_MS = 1600
 
 type DemoAccess = 'edit' | 'read_only' | 'frozen'
 type RowStatus = 'openalex' | 'proposed' | 'validated' | 'typed'
@@ -153,27 +148,16 @@ export default function Domains() {
   const scenario = getDomainsScenario(uid)
 
   const [state, setState] = useState<DomainsState>(() => initialDomainsState(uid))
-  const [showAllOpenalex, setShowAllOpenalex] = useState(false)
+  const [showProposals, setShowProposals] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [halDialogOpen, setHalDialogOpen] = useState(false)
   const [halSelection, setHalSelection] = useState<string[]>([])
-  const [generating, setGenerating] = useState(false)
-  const [generationFailed, setGenerationFailed] = useState(false)
-  const [nothingNew, setNothingNew] = useState(false)
   const [demoAccess, setDemoAccess] = useState<DemoAccess>('edit')
-  const [simulateOutage, setSimulateOutage] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [simulateNoProposals, setSimulateNoProposals] = useState(false)
 
   useEffect(() => {
     if (uid) setState(loadDomainsState(uid))
   }, [uid])
-
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current)
-    },
-    [],
-  )
 
   if (!selectedDocument) return null
 
@@ -187,11 +171,20 @@ export default function Domains() {
     (record) => record.platform === BibliographicPlatform.HAL,
   )
   const hasAbstract = selectedDocument.abstracts.length > 0
-  const canEdit = demoAccess === 'edit' && !generating
+  const canEdit = demoAccess === 'edit'
+
+  // Le sujet principal est celui qu'OpenAlex classe en premier : il est sorti de la liste et mis en avant.
+  const [primary, ...otherOpenalex] = [...scenario.openalex].sort((a, b) => b.score - a.score)
+  const hasOpenalex = primary !== undefined
+  // Les propositions automatiques sont calculées pour tous les documents. Quand OpenAlex a déjà
+  // classé la publication, elles ne sont qu'un complément : repliées, pour ne pas noyer ses sujets.
+  const proposals = simulateNoProposals ? [] : state.proposals
+  const proposalsFolded = hasOpenalex && !showProposals
+  const visibleProposals = proposalsFolded ? [] : proposals
 
   const rows: TopicRow[] = [
-    ...scenario.openalex.map((t): TopicRow => ({ ...t, status: 'openalex' })),
-    ...state.proposals.map((t): TopicRow => ({ ...t, status: 'proposed' })),
+    ...otherOpenalex.map((t): TopicRow => ({ ...t, status: 'openalex' })),
+    ...visibleProposals.map((t): TopicRow => ({ ...t, status: 'proposed', titleOnly: !hasAbstract })),
     ...state.manual.map(
       (t): TopicRow => ({
         topicId: t.topicId,
@@ -204,17 +197,8 @@ export default function Domains() {
       STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || (b.score ?? 0) - (a.score ?? 0),
   )
 
-  const openalexRows = rows.filter((row) => row.status === 'openalex')
-  const hiddenCount = showAllOpenalex
-    ? 0
-    : Math.max(0, openalexRows.length - VISIBLE_OPENALEX_TOPICS)
-  // Le repli ne touche que les sujets OpenAlex : une proposition à traiter reste toujours visible.
-  const visibleRows = rows.filter(
-    (row) => row.status !== 'openalex' || openalexRows.indexOf(row) < VISIBLE_OPENALEX_TOPICS || showAllOpenalex,
-  )
-
   const groups: { subfieldId: string; path: string; rows: TopicRow[] }[] = []
-  visibleRows.forEach((row) => {
+  rows.forEach((row) => {
     const topic = getTopic(row.topicId)
     if (!topic) return
     const group = groups.find((g) => g.subfieldId === topic.subfieldId)
@@ -222,27 +206,13 @@ export default function Domains() {
     else groups.push({ subfieldId: topic.subfieldId, path: topicPath(topic), rows: [row] })
   })
 
-  const linkedIds = rows.map((row) => row.topicId)
-  const isEmpty = rows.length === 0
-
-  const generate = () => {
-    setGenerationFailed(false)
-    setNothingNew(false)
-    setGenerating(true)
-    timer.current = setTimeout(() => {
-      setGenerating(false)
-      if (simulateOutage) {
-        setGenerationFailed(true)
-        return
-      }
-      const rejectedIds = state.rejected.map((t) => t.topicId)
-      const fresh = scenario.generated
-        .filter((t) => !linkedIds.includes(t.topicId) && !rejectedIds.includes(t.topicId))
-        .map((t) => ({ ...t, titleOnly: !hasAbstract }))
-      if (fresh.length === 0) setNothingNew(true)
-      else update({ proposals: [...state.proposals, ...fresh] })
-    }, GENERATION_DELAY_MS)
-  }
+  const linkedIds = [
+    ...scenario.openalex.map((t) => t.topicId),
+    ...proposals.map((t) => t.topicId),
+    ...state.manual.map((t) => t.topicId),
+  ]
+  const isEmpty = !hasOpenalex && rows.length === 0
+  const primaryTopic = primary ? getTopic(primary.topicId) : undefined
 
   const validate = (topicId: string, score?: number) =>
     update({
@@ -267,7 +237,6 @@ export default function Domains() {
 
   const addTopics = (topicIds: string[]) => {
     setPickerOpen(false)
-    setNothingNew(false)
     update({
       manual: [...state.manual, ...topicIds.map((topicId) => ({ topicId, origin: 'typed' as const }))],
       // Choisir soi-même un sujet écarté annule son rejet.
@@ -292,15 +261,11 @@ export default function Domains() {
   }
 
   const resetDemo = () => {
-    if (timer.current) clearTimeout(timer.current)
     clearDomainsState(uid)
     setState(initialDomainsState(uid))
-    setGenerating(false)
-    setGenerationFailed(false)
-    setNothingNew(false)
-    setShowAllOpenalex(false)
+    setShowProposals(false)
     setDemoAccess('edit')
-    setSimulateOutage(false)
+    setSimulateNoProposals(false)
   }
 
   const presentHalCodes = [
@@ -309,16 +274,20 @@ export default function Domains() {
   ]
   const halOptions = HAL_DOMAINS.filter((domain) => !presentHalCodes.includes(domain.value))
 
-  const titleOnlyNotice = !hasAbstract && canEdit && (
+  const titleOnlyNotice = !hasAbstract && visibleProposals.length > 0 && (
     <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-start', mb: 2 }}>
       <WarningAmber sx={{ color: WARN, fontSize: 17, mt: '2px' }} />
       <Typography sx={{ color: WARN, fontSize: '0.8125rem' }}>
-        {`Ce document n'a pas de résumé : la génération se fera d'après le titre seul, ce qui la rend moins fiable.`}
+        {`Ce document n'a pas de résumé : les propositions ont été faites d'après le titre seul, elles sont moins fiables.`}
       </Typography>
     </Box>
   )
 
-  const generateButtonLabel = generating ? 'Génération…' : 'Générer'
+  const proposalsCount = proposals.length
+  const proposalsToggleLabel = showProposals
+    ? 'Masquer les propositions automatiques'
+    : `Voir ${proposalsCount} proposition${proposalsCount > 1 ? 's' : ''} automatique${proposalsCount > 1 ? 's' : ''} en complément`
+
   const demoButtonSx = { textTransform: 'none', fontSize: '0.75rem', color: MUTED, borderColor: BORDER, py: 0.25 }
   const demoOptions: { value: DemoAccess; label: string }[] = [
     { value: 'edit', label: 'Modification autorisée' },
@@ -338,65 +307,62 @@ export default function Domains() {
       <Section
         title="Classification OpenAlex"
         actions={
-          // À vide, ces actions sont déjà mises en avant dans le corps de la section.
-          !isEmpty && (canEdit || generating) ? (
-            <>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
-                disabled={generating}
-                onClick={generate}
-                sx={outlinedButtonSx}
-              >
-                {generateButtonLabel}
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<Add sx={{ fontSize: 16 }} />}
-                disabled={generating}
-                onClick={() => setPickerOpen(true)}
-                sx={outlinedButtonSx}
-              >
-                Ajouter
-              </Button>
-            </>
+          // À vide, l'ajout est déjà mis en avant dans le corps de la section.
+          !isEmpty && canEdit ? (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<Add sx={{ fontSize: 16 }} />}
+              onClick={() => setPickerOpen(true)}
+              sx={outlinedButtonSx}
+            >
+              Ajouter
+            </Button>
           ) : undefined
         }
       >
-        {generating && (
-          <Box sx={{ mb: 2 }}>
-            <Typography sx={{ color: TEXT, fontSize: '0.875rem', mb: 0.75 }}>
-              {`Recherche de sujets proches de ce document…`}
+        {primary && (
+          <Box
+            sx={{
+              border: `1px solid ${BORDER}`,
+              borderLeft: `3px solid ${TEAL}`,
+              borderRadius: 1,
+              px: 1.5,
+              py: 1.25,
+              mb: 2,
+            }}
+          >
+            <Typography sx={{ color: TEAL, fontSize: '0.75rem', fontWeight: 600, mb: 0.5 }}>
+              Sujet principal
             </Typography>
-            <LinearProgress sx={{ bgcolor: TEAL_LIGHT, '& .MuiLinearProgress-bar': { bgcolor: TEAL } }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ color: TEXT, fontWeight: 600, fontSize: '0.9375rem', flex: '1 1 240px', minWidth: 0 }}>
+                {primaryTopic?.label}
+              </Typography>
+              <Tooltip title="Le sujet le plus pertinent selon OpenAlex pour cette publication">
+                <Chip
+                  label="OpenAlex, principal"
+                  size="small"
+                  sx={{ bgcolor: TEAL_LIGHT, color: TEAL, fontSize: '0.75rem' }}
+                />
+              </Tooltip>
+              <Tooltip title="Score de correspondance, de 0 à 1">
+                <Typography sx={{ color: MUTED, fontSize: '0.8125rem', minWidth: 32, textAlign: 'right' }}>
+                  {formatScore(primary.score)}
+                </Typography>
+              </Tooltip>
+            </Box>
+            {primaryTopic && (
+              <Typography sx={{ color: MUTED, fontSize: '0.8125rem', mt: 0.25 }}>
+                {topicPath(primaryTopic)}
+              </Typography>
+            )}
           </Box>
         )}
 
-        {generationFailed && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            action={
-              <Button color="inherit" size="small" onClick={generate} sx={{ textTransform: 'none' }}>
-                Réessayer
-              </Button>
-            }
-          >
-            {`La génération n'a pas abouti. Les domaines de ce document n'ont pas changé.`}
-          </Alert>
-        )}
+        {titleOnlyNotice}
 
-        {nothingNew && (
-          <Alert severity="info" sx={{ mb: 2 }} onClose={() => setNothingNew(false)}>
-            {`Pas de nouvelle proposition pour ce document.`}
-          </Alert>
-        )}
-
-        {!isEmpty && titleOnlyNotice}
-
-        {isEmpty && !generating && (
+        {isEmpty && (
           <Box sx={{ textAlign: 'center', py: 3 }}>
             <Typography sx={{ color: TEXT, fontWeight: 600, mb: 0.5 }}>
               {`Aucun domaine pour ce document`}
@@ -404,29 +370,16 @@ export default function Domains() {
             {canEdit ? (
               <>
                 <Typography sx={{ color: MUTED, fontSize: '0.875rem', mb: 2 }}>
-                  {`Faites proposer des domaines à partir du document, ou choisissez-les vous-même.`}
+                  {`Aucun sujet n'a pu être proposé automatiquement. Vous pouvez choisir vous-même des domaines.`}
                 </Typography>
-                {titleOnlyNotice && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>{titleOnlyNotice}</Box>
-                )}
-                <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<AutoAwesome />}
-                    onClick={generate}
-                    sx={primaryButtonSx}
-                  >
-                    Générer des propositions
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Add />}
-                    onClick={() => setPickerOpen(true)}
-                    sx={outlinedButtonSx}
-                  >
-                    Ajouter un domaine
-                  </Button>
-                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setPickerOpen(true)}
+                  sx={primaryButtonSx}
+                >
+                  Ajouter un domaine
+                </Button>
               </>
             ) : (
               <Typography sx={{ color: MUTED, fontSize: '0.875rem' }}>
@@ -434,6 +387,10 @@ export default function Domains() {
               </Typography>
             )}
           </Box>
+        )}
+
+        {primary && groups.length > 0 && (
+          <Typography sx={{ color: MUTED, fontSize: '0.8125rem', mb: 1 }}>Autres sujets</Typography>
         )}
 
         {groups.map((group) => (
@@ -503,16 +460,15 @@ export default function Domains() {
           </Box>
         ))}
 
-        {openalexRows.length > VISIBLE_OPENALEX_TOPICS && (
+        {hasOpenalex && proposalsCount > 0 && (
           <Button
             size="small"
-            startIcon={showAllOpenalex ? <ExpandLess /> : <ExpandMore />}
-            onClick={() => setShowAllOpenalex(!showAllOpenalex)}
+            startIcon={<AutoAwesome sx={{ fontSize: 15 }} />}
+            endIcon={showProposals ? <ExpandLess /> : <ExpandMore />}
+            onClick={() => setShowProposals(!showProposals)}
             sx={{ ...smallButtonSx, color: TEAL, mt: 1 }}
           >
-            {showAllOpenalex
-              ? 'Voir moins'
-              : `Voir ${hiddenCount} autre${hiddenCount > 1 ? 's' : ''} sujet${hiddenCount > 1 ? 's' : ''} OpenAlex`}
+            {proposalsToggleLabel}
           </Button>
         )}
 
@@ -638,11 +594,11 @@ export default function Domains() {
         ))}
         <Button
           size="small"
-          variant={simulateOutage ? 'outlined' : 'text'}
-          onClick={() => setSimulateOutage(!simulateOutage)}
+          variant={simulateNoProposals ? 'outlined' : 'text'}
+          onClick={() => setSimulateNoProposals(!simulateNoProposals)}
           sx={demoButtonSx}
         >
-          Génération en panne
+          Sans proposition automatique
         </Button>
         <Button
           size="small"

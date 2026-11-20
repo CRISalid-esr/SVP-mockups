@@ -314,11 +314,11 @@ export interface ManualTopic {
 }
 
 interface DomainsScenario {
+  /** Sujets OpenAlex : au plus 3 par publication, le principal est celui qui a le meilleur score. */
   openalex: ScoredTopic[]
   /** Domaines moissonnés depuis HAL. */
   halHarvested: { code: string; primary: boolean }[]
-  /** Ce que renverrait une génération. */
-  generated: ScoredTopic[]
+  /** Propositions automatiques, calculées à l'arrivée du document (pas de bouton de génération). */
   initialProposals: ScoredTopic[]
   initialManual: ManualTopic[]
   initialAttributedHal: string[]
@@ -328,39 +328,33 @@ const scored = (entries: [string, number][]): ScoredTopic[] =>
   entries.map(([topicId, score]) => ({ topicId, score }))
 
 const SCENARIOS: Record<string, DomainsScenario> = {
-  // Tout l'écran d'un coup : OpenAlex replié, proposition, saisie, HAL moissonné et attribué.
+  // Tout l'écran d'un coup : sujet principal, propositions repliées, saisie, HAL moissonné et attribué.
   'doc-1': {
     openalex: scored([
       ['T10320', 0.98],
       ['T10029', 0.96],
       ['T10036', 0.91],
-      ['T10466', 0.87],
-      ['T10347', 0.74],
-      ['T10075', 0.62],
-      ['T11234', 0.55],
     ]),
     halHarvested: [
       { code: 'info.info-lg', primary: true },
       { code: 'sdu.ocean', primary: false },
     ],
-    generated: scored([
+    initialProposals: scored([
       ['T10226', 0.61],
       ['T10538', 0.57],
     ]),
-    initialProposals: scored([['T10226', 0.61]]),
     initialManual: [{ topicId: 'T10339', origin: 'typed' }],
     initialAttributedHal: ['sde.mcg'],
   },
-  // Sans notice OpenAlex ni HAL, avec résumé : état vide, puis génération et dépôt pré-rempli.
+  // Sans notice OpenAlex ni HAL, avec résumé : propositions visibles d'emblée, puis dépôt pré-rempli.
   'doc-2': {
     openalex: [],
     halHarvested: [],
-    generated: scored([
+    initialProposals: scored([
       ['T10622', 0.78],
       ['T10523', 0.66],
       ['T11261', 0.57],
     ]),
-    initialProposals: [],
     initialManual: [],
     initialAttributedHal: [],
   },
@@ -371,31 +365,28 @@ const SCENARIOS: Record<string, DomainsScenario> = {
       ['T11250', 0.59],
     ]),
     halHarvested: [],
-    generated: scored([['T10779', 0.56]]),
-    initialProposals: [],
+    initialProposals: scored([['T10779', 0.56]]),
     initialManual: [],
     initialAttributedHal: [],
   },
-  // Sans résumé : génération d'après le titre seul, moins fiable.
+  // Sans résumé : propositions faites d'après le titre seul, moins fiables.
   'doc-4': {
     openalex: [],
     halHarvested: [],
-    generated: scored([
+    initialProposals: scored([
       ['T10216', 0.58],
       ['T12144', 0.54],
     ]),
-    initialProposals: [],
     initialManual: [],
     initialAttributedHal: [],
   },
   'doc-5': {
     openalex: [],
     halHarvested: [],
-    generated: scored([
+    initialProposals: scored([
       ['T10203', 0.81],
       ['T10267', 0.76],
     ]),
-    initialProposals: [],
     initialManual: [],
     initialAttributedHal: [],
   },
@@ -408,8 +399,7 @@ const SCENARIOS: Record<string, DomainsScenario> = {
       { code: 'sdv.sa.sds', primary: true },
       { code: 'sdv.ee', primary: false },
     ],
-    generated: scored([['T10319', 0.63]]),
-    initialProposals: [],
+    initialProposals: scored([['T10319', 0.63]]),
     initialManual: [],
     initialAttributedHal: [],
   },
@@ -418,7 +408,6 @@ const SCENARIOS: Record<string, DomainsScenario> = {
 const EMPTY_SCENARIO: DomainsScenario = {
   openalex: [],
   halHarvested: [],
-  generated: [],
   initialProposals: [],
   initialManual: [],
   initialAttributedHal: [],
@@ -436,7 +425,7 @@ export interface DomainsState {
   attributedHal: string[]
 }
 
-const storageKey = (uid: string) => `document-domains-v1-${uid}`
+const storageKey = (uid: string) => `document-domains-v2-${uid}`
 
 export const initialDomainsState = (uid: string): DomainsState => {
   const scenario = getDomainsScenario(uid)
